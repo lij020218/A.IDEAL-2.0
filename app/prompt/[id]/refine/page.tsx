@@ -1,0 +1,447 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import Header from "@/components/Header";
+import LeftSidebar from "@/components/LeftSidebar";
+import { Send, Loader2, Sparkles, ArrowLeft, Copy, Check, Save } from "lucide-react";
+import { aiTools } from "@/lib/data/ai-tools";
+import { GeneratedPrompt } from "@/types";
+
+interface SavedPrompt {
+  id: string;
+  topic: string;
+  prompt: string;
+  recommendedTools: string[];
+  tips: string[];
+  createdAt: string;
+}
+
+interface Message {
+  role: "assistant" | "user";
+  content: string;
+}
+
+export default function RefinePromptPage() {
+  const params = useParams();
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [prompt, setPrompt] = useState<SavedPrompt | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [refinedPrompt, setRefinedPrompt] = useState<GeneratedPrompt | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (session && params.id) {
+      fetchPrompt();
+    } else if (!session) {
+      router.push("/auth/signin");
+    }
+  }, [session, params.id]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const fetchPrompt = async () => {
+    try {
+      const response = await fetch(`/api/prompts/${params.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setPrompt(data);
+        // Initialize conversation with AI's first message
+        initializeConversation(data);
+      } else {
+        router.push("/");
+      }
+    } catch (error) {
+      console.error("Error fetching prompt:", error);
+      router.push("/");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const initializeConversation = async (promptData: SavedPrompt) => {
+    setIsSending(true);
+    try {
+      const response = await fetch("/api/chat/refine", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          existingPrompt: promptData.prompt,
+          topic: promptData.topic,
+          messages: [],
+          isInitial: true,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setMessages([{ role: "assistant", content: data.message }]);
+      }
+    } catch (error) {
+      console.error("Error initializing conversation:", error);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isSending || !prompt) return;
+
+    const userMessage = input.trim();
+    setInput("");
+    setMessages([...messages, { role: "user", content: userMessage }]);
+    setIsSending(true);
+
+    try {
+      const response = await fetch("/api/chat/refine", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          existingPrompt: prompt.prompt,
+          topic: prompt.topic,
+          messages: [...messages, { role: "user", content: userMessage }],
+          isInitial: false,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setMessages((prev) => [...prev, { role: "assistant", content: data.message }]);
+      } else {
+        alert("메시지 전송에 실패했습니다");
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      alert("메시지 전송에 실패했습니다");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleGenerateRefinedPrompt = async () => {
+    if (!prompt || messages.length === 0) return;
+
+    setIsGenerating(true);
+    try {
+      const response = await fetch("/api/prompts/refine", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          existingPrompt: prompt.prompt,
+          topic: prompt.topic,
+          conversation: messages,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setRefinedPrompt(data);
+      } else {
+        alert("프롬프트 생성에 실패했습니다");
+      }
+    } catch (error) {
+      console.error("Error generating refined prompt:", error);
+      alert("프롬프트 생성에 실패했습니다");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleSavePrompt = async () => {
+    if (!refinedPrompt || !prompt) return;
+
+    setIsSaving(true);
+    try {
+      const response = await fetch("/api/prompts/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topic: prompt.topic,
+          prompt: refinedPrompt.prompt,
+          recommendedTools: refinedPrompt.recommendedTools,
+          tips: refinedPrompt.tips,
+          parentId: prompt.id, // Link to parent prompt
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to save prompt");
+
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 3000);
+    } catch (err) {
+      console.error("Error saving prompt:", err);
+      alert("프롬프트 저장에 실패했습니다");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCopy = () => {
+    if (refinedPrompt) {
+      navigator.clipboard.writeText(refinedPrompt.prompt);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleReset = () => {
+    setRefinedPrompt(null);
+    setMessages([]);
+    if (prompt) {
+      initializeConversation(prompt);
+    }
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const recommendedToolsData = refinedPrompt?.recommendedTools
+    .map((toolId) => aiTools.find((t) => t.id === toolId))
+    .filter(Boolean);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header onToggleSidebar={toggleSidebar} />
+        <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <div className="container mx-auto px-4 py-12 text-center">
+          <p className="text-muted-foreground">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!prompt) {
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header onToggleSidebar={toggleSidebar} />
+      <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
+      <div className="container mx-auto px-4 py-8">
+        {/* Back Button */}
+        <button
+          onClick={() => router.push(`/prompt/${params.id}`)}
+          className="mb-4 flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          돌아가기
+        </button>
+
+        {/* Title */}
+        <h1 className="text-3xl font-bold mb-6">
+          프롬프트 <span className="gradient-text">개선하기</span>
+        </h1>
+
+        {!refinedPrompt ? (
+          /* Two Column Layout - Chat Interface */
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Panel - Existing Prompt (Collapsible) */}
+            <div className="card-aurora rounded-xl p-6 max-h-[400px] overflow-y-auto">
+              <h2 className="text-xl font-bold mb-4 sticky top-0 bg-card z-10 pb-2">기존 프롬프트</h2>
+              <pre className="whitespace-pre-wrap font-mono text-sm bg-secondary/50 p-4 rounded-md">
+                {prompt.prompt}
+              </pre>
+            </div>
+
+            {/* Right Panel - Chat Interface */}
+            <div className="card-aurora rounded-xl p-6 flex flex-col" style={{ height: "70vh", minHeight: "500px" }}>
+              <h2 className="text-xl font-bold mb-4">AI와 대화하기</h2>
+
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto mb-4 space-y-4">
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-[80%] rounded-lg p-4 ${
+                        message.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary"
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                    </div>
+                  </div>
+                ))}
+                {isSending && (
+                  <div className="flex justify-start">
+                    <div className="bg-secondary rounded-lg p-4">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Generate Button (shows when there are user messages) */}
+              {messages.some(m => m.role === "user") && (
+                <div className="mb-4">
+                  <button
+                    onClick={handleGenerateRefinedPrompt}
+                    disabled={isGenerating}
+                    className="btn-aurora w-full px-6 py-3 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        생성 중...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-5 w-5" />
+                        추가 프롬프트 생성
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {/* Input Form */}
+              <form onSubmit={handleSendMessage} className="flex gap-2">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="메시지를 입력하세요..."
+                  className="input-aurora flex-1 px-4 py-3 rounded-lg"
+                  disabled={isSending}
+                />
+                <button
+                  type="submit"
+                  disabled={isSending || !input.trim()}
+                  className="btn-aurora px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Send className="h-5 w-5" />
+                </button>
+              </form>
+            </div>
+          </div>
+        ) : (
+          /* Result View - Same as PromptGenerator */
+          <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
+            {/* Generated Prompt */}
+            <div className="bg-card border rounded-lg p-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold">개선된 프롬프트</h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSavePrompt}
+                    disabled={isSaving || isSaved}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {isSaved ? (
+                      <>
+                        <Check className="h-4 w-4" />
+                        저장됨
+                      </>
+                    ) : isSaving ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        저장 중...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4" />
+                        저장
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={handleCopy}
+                    className="btn-aurora px-4 py-2 rounded-lg flex items-center gap-2"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-4 w-4" />
+                        복사됨
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                        복사
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+              <pre className="whitespace-pre-wrap font-mono text-sm bg-secondary/50 p-6 rounded-md">
+                {refinedPrompt.prompt}
+              </pre>
+            </div>
+
+            {/* Recommended Tools */}
+            {recommendedToolsData && recommendedToolsData.length > 0 && (
+              <div className="bg-card border rounded-lg p-8">
+                <h3 className="text-xl font-bold mb-4">추천 AI 도구</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {recommendedToolsData.map((tool) => (
+                    <a
+                      key={tool!.id}
+                      href={tool!.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-start gap-3 p-4 border rounded-lg hover:border-primary transition-colors"
+                    >
+                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-lg font-bold text-primary flex-shrink-0">
+                        {tool!.name.charAt(0)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold">{tool!.name}</h4>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {tool!.description}
+                        </p>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tips */}
+            {refinedPrompt.tips && refinedPrompt.tips.length > 0 && (
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-6">
+                <h3 className="text-lg font-semibold mb-3">💡 사용 팁</h3>
+                <ul className="space-y-2">
+                  {refinedPrompt.tips.map((tip, index) => (
+                    <li key={index} className="text-sm text-muted-foreground">
+                      • {tip}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-4">
+              <button
+                onClick={handleReset}
+                className="flex-1 px-6 py-3 border rounded-lg hover:bg-secondary transition-colors"
+              >
+                다시 개선하기
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,180 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 262 83% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 270 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 270 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 270 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 262 83% 65%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 262 83% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 262 83% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .gradient-bg {
+    background: linear-gradient(135deg, #e0f2fe 0%, #ddd6fe 25%, #fae8ff 50%, #ede9fe 75%, #e0f2fe 100%);
+    background-size: 300% 300%;
+    animation: aurora 20s ease infinite;
+  }
+
+  .gradient-text {
+    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #a78bfa);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: aurora 8s ease infinite;
+    display: inline-block;
+  }
+
+  .aurora-border {
+    position: relative;
+    background: linear-gradient(90deg, #00c6ff, #667eea, #764ba2, #f093fb, #00c6ff);
+    background-size: 400% 400%;
+    animation: aurora 6s ease infinite;
+  }
+
+  .aurora-glow {
+    box-shadow: 0 0 20px rgba(0, 198, 255, 0.4),
+                0 0 40px rgba(102, 126, 234, 0.3),
+                0 0 60px rgba(240, 147, 251, 0.2);
+  }
+
+  .glass-morphism {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .card-aurora {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.98) 100%);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(167, 139, 250, 0.15);
+    transition: all 0.3s ease;
+  }
+
+  .card-aurora:hover {
+    border-color: rgba(167, 139, 250, 0.3);
+    box-shadow: 0 8px 32px rgba(167, 139, 250, 0.12),
+                0 4px 16px rgba(240, 147, 251, 0.1),
+                0 0 0 1px rgba(167, 139, 250, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .input-aurora {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid rgba(102, 126, 234, 0.2);
+    transition: all 0.4s ease;
+  }
+
+  .input-aurora:focus {
+    outline: none;
+    border-color: rgba(118, 75, 162, 0.3);
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.1),
+                0 0 20px rgba(167, 139, 250, 0.15),
+                0 0 40px rgba(240, 147, 251, 0.1);
+  }
+
+  .btn-aurora {
+    background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+    background-size: 200% 200%;
+    animation: aurora 8s ease infinite;
+    transition: all 0.3s ease;
+    border: none;
+    color: white !important;
+    font-weight: 500;
+  }
+
+  .btn-aurora:hover:not(:disabled) {
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4),
+                0 4px 15px rgba(118, 75, 162, 0.3),
+                0 2px 10px rgba(240, 147, 251, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .btn-aurora:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* 버튼 내부 요소들도 흰색으로 */
+  .btn-aurora * {
+    color: white !important;
+  }
+
+  @keyframes aurora {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

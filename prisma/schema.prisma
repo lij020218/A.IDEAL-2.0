@@ -1,0 +1,155 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  password      String
+  name          String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  prompts       Prompt[]
+  challenges    Challenge[]
+  comments      Comment[]
+  chatMembers   ChatMember[]
+  chatMessages  ChatMessage[]
+  joinRequests  JoinRequest[]
+  notifications Notification[]
+}
+
+model Prompt {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic             String
+  prompt            String
+  recommendedTools  String   // JSON array of tool IDs
+  tips              String   // JSON array of tips
+  parentId          String?  // Reference to parent prompt for refined versions
+  parent            Prompt?  @relation("PromptRefinements", fields: [parentId], references: [id], onDelete: Cascade)
+  refinements       Prompt[] @relation("PromptRefinements")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId])
+  @@index([parentId])
+}
+
+model Challenge {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  codeSnippet String?    // Optional code snippet
+  ideaDetails String?    // Optional idea details
+  resumeUrl   String?    // URL to uploaded resume file
+  contactInfo String     // Email or contact information
+  tags        String     // JSON array of tags
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  comments    Comment[]
+  chatRoom    ChatRoom?
+  joinRequests JoinRequest[]
+
+  @@index([userId])
+}
+
+model Comment {
+  id          String    @id @default(cuid())
+  challengeId String
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content     String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([challengeId])
+  @@index([userId])
+}
+
+model ChatRoom {
+  id          String        @id @default(cuid())
+  challengeId String        @unique
+  challenge   Challenge     @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  members     ChatMember[]
+  messages    ChatMessage[]
+
+  @@index([challengeId])
+}
+
+model ChatMember {
+  id         String   @id @default(cuid())
+  chatRoomId String
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       String   // "designer" or "developer"
+  experience String   // Career/experience description
+  isOwner    Boolean  @default(false) // Challenge creator is the owner
+  joinedAt   DateTime @default(now())
+
+  @@unique([chatRoomId, userId])
+  @@index([chatRoomId])
+  @@index([userId])
+}
+
+model ChatMessage {
+  id         String   @id @default(cuid())
+  chatRoomId String
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content    String
+  fileUrl    String?  // URL to uploaded file/image
+  fileName   String?  // Original file name
+  fileType   String?  // MIME type (image/png, application/pdf, etc.)
+  createdAt  DateTime @default(now())
+
+  @@index([chatRoomId])
+  @@index([userId])
+}
+
+model JoinRequest {
+  id          String    @id @default(cuid())
+  challengeId String
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        String    // "designer" or "developer"
+  experience  String    // Career/experience description
+  status      String    @default("pending") // "pending", "approved", "rejected"
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([challengeId, userId])
+  @@index([challengeId])
+  @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // "join_request", "request_approved", etc.
+  title     String
+  message   String
+  link      String?  // Optional link to related page
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+}

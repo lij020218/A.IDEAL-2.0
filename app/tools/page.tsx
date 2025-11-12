@@ -1,0 +1,127 @@
+"use client";
+
+import Header from "@/components/Header";
+import { aiTools } from "@/lib/data/ai-tools";
+import { ExternalLink, Filter } from "lucide-react";
+import { useState } from "react";
+import { AIToolCategory } from "@/types";
+
+const categoryIcons: Record<string, string> = {
+  "text-generation": "✍️",
+  "image-generation": "🎨",
+  "code-assistant": "💻",
+  "data-analysis": "📊",
+  "audio-generation": "🎵",
+  "video-generation": "🎬",
+  general: "🌟",
+};
+
+export default function ToolsPage() {
+  const [selectedFilter, setSelectedFilter] = useState<AIToolCategory | "all">("all");
+
+  const filteredTools =
+    selectedFilter === "all"
+      ? aiTools
+      : aiTools.filter((tool) => tool.category === selectedFilter);
+
+  const categories: (AIToolCategory | "all")[] = [
+    "all",
+    "text-generation",
+    "image-generation",
+    "code-assistant",
+    "data-analysis",
+    "audio-generation",
+    "video-generation",
+    "general",
+  ];
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+
+      <div className="container mx-auto px-4 py-12">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            AI Tools Directory
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Explore the best AI tools for your creative and professional needs
+          </p>
+        </div>
+
+        {/* Filter */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">Filter by Category</h2>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedFilter(category)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  selectedFilter === category
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary hover:bg-secondary/80"
+                }`}
+              >
+                {category === "all" ? "All Tools" : category.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tools Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredTools.map((tool) => (
+            <a
+              key={tool.id}
+              href={tool.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group block"
+            >
+              <div className="h-full p-6 border rounded-lg bg-card hover:border-primary transition-all hover:shadow-lg">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="h-14 w-14 rounded-lg bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary">
+                    {categoryIcons[tool.category] || "🔧"}
+                  </div>
+                  <ExternalLink className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                </div>
+
+                <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
+                  {tool.name}
+                </h3>
+
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                  {tool.description}
+                </p>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs bg-secondary px-2 py-1 rounded">
+                    {tool.category.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
+                  </span>
+                  {tool.isPremium && (
+                    <span className="text-xs bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 px-2 py-1 rounded">
+                      Premium
+                    </span>
+                  )}
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+
+        {filteredTools.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">
+              No tools found in this category.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
