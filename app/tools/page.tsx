@@ -1,6 +1,7 @@
 "use client";
 
 import Header from "@/components/Header";
+import LeftSidebar from "@/components/LeftSidebar";
 import { aiTools } from "@/lib/data/ai-tools";
 import { ExternalLink, Filter } from "lucide-react";
 import { useState } from "react";
@@ -16,8 +17,20 @@ const categoryIcons: Record<string, string> = {
   general: "🌟",
 };
 
+const categoryLabels: Record<string, string> = {
+  "all": "전체",
+  "text-generation": "텍스트 생성",
+  "image-generation": "이미지 생성",
+  "code-assistant": "코드 어시스턴트",
+  "data-analysis": "데이터 분석",
+  "audio-generation": "오디오 생성",
+  "video-generation": "비디오 생성",
+  "general": "일반",
+};
+
 export default function ToolsPage() {
   const [selectedFilter, setSelectedFilter] = useState<AIToolCategory | "all">("all");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const filteredTools =
     selectedFilter === "all"
@@ -35,18 +48,23 @@ export default function ToolsPage() {
     "general",
   ];
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header onToggleSidebar={toggleSidebar} />
+      <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className="container mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            AI Tools Directory
+            <span className="gradient-text">AI 도구 모음</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Explore the best AI tools for your creative and professional needs
+            다양한 AI 도구를 탐색하고 활용하세요
           </p>
         </div>
 
@@ -54,7 +72,7 @@ export default function ToolsPage() {
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <Filter className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">Filter by Category</h2>
+            <h2 className="text-lg font-semibold">카테고리별 필터</h2>
           </div>
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => (
@@ -67,7 +85,7 @@ export default function ToolsPage() {
                     : "bg-secondary hover:bg-secondary/80"
                 }`}
               >
-                {category === "all" ? "All Tools" : category.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
+                {categoryLabels[category] || category}
               </button>
             ))}
           </div>
@@ -101,11 +119,11 @@ export default function ToolsPage() {
 
                 <div className="flex items-center justify-between">
                   <span className="text-xs bg-secondary px-2 py-1 rounded">
-                    {tool.category.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
+                    {categoryLabels[tool.category] || tool.category}
                   </span>
                   {tool.isPremium && (
                     <span className="text-xs bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 px-2 py-1 rounded">
-                      Premium
+                      프리미엄
                     </span>
                   )}
                 </div>
@@ -117,7 +135,7 @@ export default function ToolsPage() {
         {filteredTools.length === 0 && (
           <div className="text-center py-12">
             <p className="text-muted-foreground">
-              No tools found in this category.
+              이 카테고리에 도구가 없습니다.
             </p>
           </div>
         )}

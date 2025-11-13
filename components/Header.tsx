@@ -43,10 +43,10 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 
         <nav className="hidden md:flex items-center space-x-6">
           <Link
-            href="/"
+            href="/prompts/list"
             className="text-sm font-medium transition-colors hover:text-primary"
           >
-            {t.header.home}
+            프롬프트
           </Link>
           <Link
             href="/generate"
@@ -64,7 +64,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
             href="/tools"
             className="text-sm font-medium transition-colors hover:text-primary"
           >
-            {t.header.tools}
+            AI 도구
           </Link>
         </nav>
 

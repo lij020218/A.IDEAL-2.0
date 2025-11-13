@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
         prompt: true,
         recommendedTools: true,
         tips: true,
+        imageUrl: true,
         createdAt: true,
         parentId: true,
         refinements: {

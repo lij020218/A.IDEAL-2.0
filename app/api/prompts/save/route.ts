@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { topic, prompt, recommendedTools, tips, parentId } = await req.json();
+    const { topic, prompt, recommendedTools, tips, parentId, imageUrl, isPublic } = await req.json();
 
     if (!topic || !prompt) {
       return NextResponse.json(
@@ -31,7 +31,9 @@ export async function POST(req: NextRequest) {
         prompt,
         recommendedTools: JSON.stringify(recommendedTools || []),
         tips: JSON.stringify(tips || []),
+        imageUrl: imageUrl || null,
         parentId: parentId || null,
+        isPublic: isPublic || false, // Default to private
       },
     });
 
@@ -40,6 +42,7 @@ export async function POST(req: NextRequest) {
       prompt: {
         id: savedPrompt.id,
         topic: savedPrompt.topic,
+        imageUrl: savedPrompt.imageUrl,
         createdAt: savedPrompt.createdAt,
       },
     });

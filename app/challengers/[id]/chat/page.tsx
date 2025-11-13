@@ -5,9 +5,11 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Header from "@/components/Header";
 import LeftSidebar from "@/components/LeftSidebar";
-import { Send, Loader2, ArrowLeft, Users, UserCircle, Paperclip, X, File, FileImage } from "lucide-react";
+import { Send, Loader2, ArrowLeft, Users, UserCircle, Paperclip, X, File, FileImage, Calendar, Plus, Square, Github } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
+import CalendarModal from "@/components/CalendarModal";
+import WhiteboardModal from "@/components/WhiteboardModal";
 
 interface ChatMember {
   id: string;
@@ -53,6 +55,11 @@ export default function ChatRoomPage() {
   const [isSending, setIsSending] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [showWhiteboard, setShowWhiteboard] = useState(false);
+  const [showPlusMenu, setShowPlusMenu] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; messageId: string; content: string } | null>(null);
+  const [messageToAddToWhiteboard, setMessageToAddToWhiteboard] = useState<{ content: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -68,8 +75,14 @@ export default function ChatRoomPage() {
     }
   }, [session, params.id]);
 
+  const prevMessagesLengthRef = useRef(messages.length);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Only scroll if new messages were added
+    if (messages.length > prevMessagesLengthRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+    prevMessagesLengthRef.current = messages.length;
   }, [messages]);
 
   const fetchChatRoom = async () => {
@@ -196,6 +209,39 @@ export default function ChatRoomPage() {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  const handleRightClick = (e: React.MouseEvent, messageId: string, content: string) => {
+    e.preventDefault();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      messageId,
+      content,
+    });
+  };
+
+  const handleAddToWhiteboard = () => {
+    if (contextMenu) {
+      setMessageToAddToWhiteboard({ content: contextMenu.content });
+      setShowWhiteboard(true);
+      setContextMenu(null);
+    }
+  };
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      setContextMenu(null);
+      // Check if click is outside the plus menu
+      const target = e.target as HTMLElement;
+      if (!target.closest('.plus-menu-container')) {
+        setShowPlusMenu(false);
+      }
+    };
+    document.addEventListener("click", handleClick);
+    return () => {
+      document.removeEventListener("click", handleClick);
+    };
+  }, []);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -229,11 +275,31 @@ export default function ChatRoomPage() {
         </button>
 
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">
-            A.IDEAL SPACE: <span className="gradient-text">{challenge.title}</span>
-          </h1>
-          <p className="text-muted-foreground">팀원들과 함께 아이디어를 실현해보세요</p>
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">
+              A.IDEAL SPACE: <span className="gradient-text">{challenge.title}</span>
+            </h1>
+            <p className="text-muted-foreground">팀원들과 함께 아이디어를 실현해보세요</p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowCalendar(true)}
+              className="btn-aurora px-4 py-2 rounded-lg flex items-center gap-2"
+              title="일정 관리"
+            >
+              <Calendar className="h-5 w-5" />
+              일정
+            </button>
+            <button
+              onClick={() => setShowWhiteboard(true)}
+              className="btn-aurora px-4 py-2 rounded-lg flex items-center gap-2"
+              title="화이트보드"
+            >
+              <Square className="h-5 w-5" />
+              화이트보드
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -284,6 +350,24 @@ export default function ChatRoomPage() {
                   </div>
                 ))}
               </div>
+
+              {/* GitHub Integration */}
+              <div className="mt-6 p-4 bg-secondary/50 rounded-lg">
+                <div className="flex items-center gap-2 mb-3">
+                  <Github className="h-5 w-5 text-primary" />
+                  <h3 className="text-sm font-bold">GitHub 연동</h3>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  팀의 GitHub 저장소를 연결하여 커밋과 이슈를 추적하세요
+                </p>
+                <button className="w-full px-3 py-2 rounded-lg border border-border hover:bg-secondary transition-colors text-xs flex items-center justify-center gap-2">
+                  <Github className="h-4 w-4" />
+                  저장소 연결
+                </button>
+                <div className="mt-3 text-xs text-muted-foreground">
+                  <p className="opacity-60">연결된 저장소가 없습니다</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -305,11 +389,12 @@ export default function ChatRoomPage() {
                         className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}
                       >
                         <div
-                          className={`max-w-[70%] rounded-lg p-4 ${
+                          className={`max-w-[70%] rounded-lg p-4 cursor-pointer ${
                             isOwnMessage
                               ? "bg-primary text-primary-foreground"
                               : "bg-secondary"
                           }`}
+                          onContextMenu={(e) => handleRightClick(e, message.id, message.content)}
                         >
                           {!isOwnMessage && (
                             <p className="text-xs font-semibold mb-1 opacity-70">
@@ -402,7 +487,7 @@ export default function ChatRoomPage() {
                   </div>
                 )}
 
-                <form onSubmit={handleSendMessage} className="flex gap-2">
+                <form onSubmit={handleSendMessage} className="flex gap-2 items-end">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -410,15 +495,48 @@ export default function ChatRoomPage() {
                     className="hidden"
                     accept="*/*"
                   />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isSending || isUploading}
-                    className="px-3 py-3 rounded-lg border border-border hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-end"
-                    title="파일 첨부"
-                  >
-                    <Paperclip className="h-5 w-5" />
-                  </button>
+                  <div className="relative plus-menu-container">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowPlusMenu(!showPlusMenu);
+                      }}
+                      disabled={isSending || isUploading}
+                      className="h-[52px] px-3 rounded-lg border border-border hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                      title="추가 옵션"
+                    >
+                      <Plus className="h-5 w-5" />
+                    </button>
+                    {showPlusMenu && (
+                      <div className="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-10">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            fileInputRef.current?.click();
+                            setShowPlusMenu(false);
+                          }}
+                          className="w-full px-4 py-3 hover:bg-secondary transition-colors flex items-center gap-2 text-left whitespace-nowrap"
+                        >
+                          <Paperclip className="h-4 w-4" />
+                          파일 첨부
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowWhiteboard(true);
+                            setShowPlusMenu(false);
+                          }}
+                          className="w-full px-4 py-3 hover:bg-secondary transition-colors flex items-center gap-2 text-left whitespace-nowrap"
+                        >
+                          <Square className="h-4 w-4" />
+                          화이트보드
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   <textarea
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
@@ -429,14 +547,13 @@ export default function ChatRoomPage() {
                       }
                     }}
                     placeholder="메시지를 입력하세요... (Shift+Enter로 줄바꿈)"
-                    className="input-aurora flex-1 px-4 py-3 rounded-lg resize-none"
-                    rows={2}
+                    className="input-aurora flex-1 px-4 py-3 rounded-lg resize-none h-[52px]"
                     disabled={isSending || isUploading}
                   />
                   <button
                     type="submit"
                     disabled={isSending || isUploading || (!newMessage.trim() && !selectedFile)}
-                    className="btn-aurora px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed self-end"
+                    className="btn-aurora h-[52px] px-6 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSending || isUploading ? (
                       <>
@@ -453,6 +570,40 @@ export default function ChatRoomPage() {
           </div>
         </div>
       </div>
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <div
+          className="fixed bg-card border border-border rounded-lg shadow-lg py-1 z-50"
+          style={{ top: contextMenu.y, left: contextMenu.x }}
+        >
+          <button
+            onClick={handleAddToWhiteboard}
+            className="w-full px-4 py-2 hover:bg-secondary transition-colors flex items-center gap-2 text-left"
+          >
+            <Square className="h-4 w-4" />
+            화이트보드에 추가
+          </button>
+        </div>
+      )}
+
+      {/* Modals */}
+      <CalendarModal
+        isOpen={showCalendar}
+        onClose={() => setShowCalendar(false)}
+        challengeId={params.id as string}
+        currentUserId={session?.user?.id}
+      />
+      <WhiteboardModal
+        isOpen={showWhiteboard}
+        onClose={() => {
+          setShowWhiteboard(false);
+          setMessageToAddToWhiteboard(null);
+        }}
+        challengeId={params.id as string}
+        messageToAdd={messageToAddToWhiteboard}
+        onMessageAdded={() => setMessageToAddToWhiteboard(null)}
+      />
     </div>
   );
 }

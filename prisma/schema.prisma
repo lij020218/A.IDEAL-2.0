@@ -24,6 +24,7 @@ model User {
   chatMessages  ChatMessage[]
   joinRequests  JoinRequest[]
   notifications Notification[]
+  events        Event[]
 }
 
 model Prompt {
@@ -34,6 +35,8 @@ model Prompt {
   prompt            String
   recommendedTools  String   // JSON array of tool IDs
   tips              String   // JSON array of tips
+  imageUrl          String?  // Optional reference image URL
+  isPublic          Boolean  @default(false) // true = 공개 등록, false = 개인 저장
   parentId          String?  // Reference to parent prompt for refined versions
   parent            Prompt?  @relation("PromptRefinements", fields: [parentId], references: [id], onDelete: Cascade)
   refinements       Prompt[] @relation("PromptRefinements")
@@ -42,6 +45,7 @@ model Prompt {
 
   @@index([userId])
   @@index([parentId])
+  @@index([isPublic])
 }
 
 model Challenge {
@@ -86,6 +90,8 @@ model ChatRoom {
   updatedAt   DateTime      @updatedAt
   members     ChatMember[]
   messages    ChatMessage[]
+  events      Event[]
+  whiteboards Whiteboard[]
 
   @@index([challengeId])
 }
@@ -152,4 +158,49 @@ model Notification {
 
   @@index([userId])
   @@index([isRead])
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  chatRoomId  String
+  chatRoom    ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  color       String   @default("#3b82f6") // Default blue color
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([chatRoomId])
+  @@index([userId])
+}
+
+model Whiteboard {
+  id         String            @id @default(cuid())
+  chatRoomId String
+  chatRoom   ChatRoom          @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  title      String
+  items      WhiteboardItem[]
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  @@index([chatRoomId])
+}
+
+model WhiteboardItem {
+  id           String     @id @default(cuid())
+  whiteboardId String
+  whiteboard   Whiteboard @relation(fields: [whiteboardId], references: [id], onDelete: Cascade)
+  type         String     // "text", "message", "drawing"
+  content      String
+  position     String     // JSON: {x, y}
+  size         String     // JSON: {width, height}
+  style        String?    // JSON: {color, fontSize, etc}
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([whiteboardId])
 }

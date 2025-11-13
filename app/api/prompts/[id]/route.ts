@@ -21,6 +21,14 @@ export async function GET(
       where: {
         id: params.id,
       },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
     });
 
     if (!prompt) {
@@ -30,8 +38,8 @@ export async function GET(
       );
     }
 
-    // Check if the prompt belongs to the user
-    if (prompt.userId !== session.user.id) {
+    // Check if the prompt belongs to the user or is public
+    if (prompt.userId !== session.user.id && !prompt.isPublic) {
       return NextResponse.json(
         { error: "접근 권한이 없습니다" },
         { status: 403 }
@@ -44,7 +52,9 @@ export async function GET(
       prompt: prompt.prompt,
       recommendedTools: JSON.parse(prompt.recommendedTools),
       tips: JSON.parse(prompt.tips),
+      imageUrl: prompt.imageUrl,
       createdAt: prompt.createdAt.toISOString(),
+      user: prompt.user,
     });
   } catch (error) {
     console.error("Error fetching prompt:", error);
