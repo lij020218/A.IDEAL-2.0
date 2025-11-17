@@ -53,17 +53,20 @@ export default function ToolsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Global Background Effects */}
+      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
+      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-12 relative z-10">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="gradient-text">AI 도구 모음</span>
+            <span className="text-foreground dark:text-white/90">AI 도구 모음</span>
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground dark:text-white/80 max-w-2xl mx-auto">
             다양한 AI 도구를 탐색하고 활용하세요
           </p>
         </div>
@@ -79,10 +82,10 @@ export default function ToolsPage() {
               <button
                 key={category}
                 onClick={() => setSelectedFilter(category)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all border-2 ${
                   selectedFilter === category
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary hover:bg-secondary/80"
+                    ? "bg-foreground/20 backdrop-blur-md border-foreground/40 text-foreground shadow-xl shadow-black/15 dark:bg-white/15 dark:backdrop-blur-md dark:border-white/30 dark:text-foreground dark:shadow-xl dark:shadow-white/20"
+                    : "bg-white/60 backdrop-blur-md dark:bg-white/5 dark:backdrop-blur-md text-foreground border-white/50 dark:border-white/20 hover:bg-white/70 dark:hover:bg-white/10 shadow-lg shadow-black/8 dark:shadow-black/15"
                 }`}
               >
                 {categoryLabels[category] || category}
@@ -101,7 +104,7 @@ export default function ToolsPage() {
               rel="noopener noreferrer"
               className="group block"
             >
-              <div className="h-full p-6 border rounded-lg bg-card hover:border-primary transition-all hover:shadow-lg">
+              <div className="card-aurora h-full p-6 rounded-xl hover:shadow-xl transition-all">
                 <div className="flex items-start justify-between mb-4">
                   <div className="h-14 w-14 rounded-lg bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary">
                     {categoryIcons[tool.category] || "🔧"}

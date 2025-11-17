@@ -3,20 +3,31 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { GeneratedQuestion, GeneratedPrompt } from "@/types";
+import { GeneratedQuestion, GeneratedPrompt, AIProvider } from "@/types";
 import { Loader2, Sparkles, ArrowRight, ArrowLeft, Copy, Check, Save } from "lucide-react";
 import { aiTools } from "@/lib/data/ai-tools";
 import { useLanguage } from "@/lib/language-context";
+import { AIProviderBadge, AI_PROVIDER_LABELS, isAIProvider } from "@/components/AIProviderBadge";
 
 type Step = "topic" | "questions" | "result";
 
+interface ExistingPromptData {
+  id: string;
+  topic: string;
+  prompt: string;
+  recommendedTools: string[];
+  tips: string[];
+  aiProvider?: string | null;
+  aiModel?: string | null;
+}
+
 interface PromptGeneratorProps {
   initialTopic?: string;
-  existingPrompt?: string;
+  existingPromptData?: ExistingPromptData;
   onPromptSaved?: () => void;
 }
 
-export default function PromptGenerator({ initialTopic = "", existingPrompt, onPromptSaved }: PromptGeneratorProps) {
+export default function PromptGenerator({ initialTopic = "", existingPromptData, onPromptSaved }: PromptGeneratorProps) {
   const { t } = useLanguage();
   const { data: session } = useSession();
   const router = useRouter();
@@ -32,10 +43,44 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
   const [copied, setCopied] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [aiProvider, setAiProvider] = useState<AIProvider | null>(null);
+  const [aiModel, setAiModel] = useState<string | null>(null);
 
-  // Auto-submit when initialTopic is provided
+  // Restore state from sessionStorage on mount
   useEffect(() => {
-    if (initialTopic && initialTopic.trim()) {
+    if (typeof window === "undefined") return;
+    
+    const savedState = sessionStorage.getItem("promptGeneratorState");
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        if (parsed.step === "result" && parsed.generatedPrompt) {
+          setStep("result");
+          setGeneratedPrompt(parsed.generatedPrompt);
+          setTopic(parsed.topic || "");
+          setAnswers(parsed.answers || {});
+          setQuestions(parsed.questions || []);
+          setAiProvider(parsed.aiProvider || null);
+          setAiModel(parsed.aiModel || null);
+          return; // Don't run other effects if restoring result
+        }
+      } catch (e) {
+        console.error("Error restoring state:", e);
+        sessionStorage.removeItem("promptGeneratorState");
+      }
+    }
+  }, []);
+
+  // Pre-fill topic when editing existing prompt
+  useEffect(() => {
+    if (existingPromptData) {
+      setTopic(existingPromptData.topic);
+    }
+  }, [existingPromptData]);
+
+  // Auto-submit when initialTopic is provided (but not when editing)
+  useEffect(() => {
+    if (initialTopic && initialTopic.trim() && !existingPromptData) {
       setTopic(initialTopic);
       // Automatically generate questions
       handleTopicSubmitWithValue(initialTopic);
@@ -51,29 +96,49 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
       return;
     }
 
+    console.log("[PromptGenerator] Starting question generation for topic:", topicValue);
     setIsLoading(true);
     setError("");
 
     try {
+      console.log("[PromptGenerator] Fetching questions from API...");
       const response = await fetch("/api/generate-questions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           topic: topicValue,
-          existingPrompt: existingPrompt
+          existingPrompt: existingPromptData?.prompt
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to generate questions");
+      console.log("[PromptGenerator] Response status:", response.status);
+      console.log("[PromptGenerator] Response ok:", response.ok);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("[PromptGenerator] Error response:", errorData);
+        throw new Error("Failed to generate questions");
+      }
 
       const data = await response.json();
+      console.log("[PromptGenerator] Received data:", data);
+      console.log("[PromptGenerator] Questions count:", data.questions?.length || 0);
+
+      if (!data.questions || data.questions.length === 0) {
+        console.error("[PromptGenerator] No questions in response!");
+        throw new Error("No questions received");
+      }
+
       setQuestions(data.questions);
       setStep("questions");
+      console.log("[PromptGenerator] Step changed to questions");
     } catch (err) {
+      console.error("[PromptGenerator] Error:", err);
       setError(t.generate.error);
       console.error(err);
     } finally {
       setIsLoading(false);
+      console.log("[PromptGenerator] Loading finished");
     }
   };
 
@@ -91,10 +156,13 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          id: existingPromptData?.id, // Include ID if editing
           topic,
           prompt: generatedPrompt.prompt,
           recommendedTools: generatedPrompt.recommendedTools,
           tips: generatedPrompt.tips,
+          aiProvider,
+          aiModel,
         }),
       });
 
@@ -106,6 +174,12 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
       // Call callback if provided
       if (onPromptSaved) {
         onPromptSaved();
+      }
+
+      // Navigate to the prompt detail page after saving
+      const data = await response.json();
+      if (data.id) {
+        router.push(`/prompt/${data.id}`);
       }
     } catch (err) {
       console.error("Error saving prompt:", err);
@@ -143,7 +217,7 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
         body: JSON.stringify({
           topic,
           answers: { ...answers, [questions[currentQuestionIndex].question]: currentAnswer },
-          existingPrompt: existingPrompt
+          existingPrompt: existingPromptData?.prompt
         }),
       });
 
@@ -151,7 +225,24 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
 
       const data: GeneratedPrompt = await response.json();
       setGeneratedPrompt(data);
+      const provider = isAIProvider(data.aiProvider) ? data.aiProvider : null;
+      setAiProvider(provider);
+      setAiModel(data.aiModel || null);
       setStep("result");
+      
+      // Save state to sessionStorage
+      if (typeof window !== "undefined") {
+        const stateToSave = {
+          step: "result" as Step,
+          generatedPrompt: data,
+          topic,
+          answers: { ...answers, [questions[currentQuestionIndex].question]: currentAnswer },
+          questions,
+          aiProvider: provider,
+          aiModel: data.aiModel || null,
+        };
+        sessionStorage.setItem("promptGeneratorState", JSON.stringify(stateToSave));
+      }
     } catch (err) {
       setError(t.generate.error);
       console.error(err);
@@ -187,33 +278,46 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
     setAnswers({});
     setGeneratedPrompt(null);
     setError("");
+    
+    // Clear sessionStorage
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("promptGeneratorState");
+    }
   };
 
   const recommendedToolsData = generatedPrompt?.recommendedTools
     .map((toolId) => aiTools.find((t) => t.id === toolId))
     .filter(Boolean);
 
+  const providerLabel = aiProvider ? AI_PROVIDER_LABELS[aiProvider] : null;
+  const cardClass =
+    "rounded-2xl border-2 border-white/60 dark:border-white/20 bg-white/70 dark:bg-white/10 backdrop-blur-md shadow-xl shadow-black/10 dark:shadow-black/30";
+  const inputClass =
+    "w-full px-4 py-3 rounded-xl border-2 border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/50 dark:focus:ring-[#40f8ff]/40 focus:border-white/60 dark:focus:border-white/30 transition-all";
+  const secondaryButtonClass =
+    "px-6 py-3 rounded-full border-2 border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md text-foreground hover:bg-white/60 dark:hover:bg-white/10 transition-all disabled:opacity-50 flex items-center gap-2 shadow-md shadow-black/5 dark:shadow-black/10";
+
   return (
     <div className="max-w-3xl mx-auto">
       {/* Progress Indicator */}
-      <div className="mb-8">
+          <div className="mb-8">
         <div className="flex items-center justify-center gap-4">
-          <div className={`flex items-center gap-2 ${step === "topic" ? "text-primary" : "text-muted-foreground"}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === "topic" ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>
+          <div className={`flex items-center gap-2 ${step === "topic" ? "text-foreground" : "text-muted-foreground"}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border-2 ${step === "topic" ? "bg-white/50 dark:bg-white/10 border-white/40 dark:border-white/20 text-foreground shadow-md shadow-black/5 dark:shadow-black/15" : "bg-white/30 dark:bg-white/5 border-white/30 dark:border-white/10 text-foreground"}`}>
               1
             </div>
             <span className="font-medium hidden sm:inline">{t.generate.step1}</span>
           </div>
-          <div className="w-12 h-0.5 bg-border"></div>
-          <div className={`flex items-center gap-2 ${step === "questions" ? "text-primary" : "text-muted-foreground"}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === "questions" ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>
+          <div className="w-12 h-0.5 bg-white/30 dark:bg-white/10"></div>
+          <div className={`flex items-center gap-2 ${step === "questions" ? "text-foreground" : "text-muted-foreground"}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border-2 ${step === "questions" ? "bg-white/50 dark:bg-white/10 border-white/40 dark:border-white/20 text-foreground shadow-md shadow-black/5 dark:shadow-black/15" : "bg-white/30 dark:bg-white/5 border-white/30 dark:border-white/10 text-foreground"}`}>
               2
             </div>
             <span className="font-medium hidden sm:inline">{t.generate.step2}</span>
           </div>
-          <div className="w-12 h-0.5 bg-border"></div>
-          <div className={`flex items-center gap-2 ${step === "result" ? "text-primary" : "text-muted-foreground"}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === "result" ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>
+          <div className="w-12 h-0.5 bg-white/30 dark:bg-white/10"></div>
+          <div className={`flex items-center gap-2 ${step === "result" ? "text-foreground" : "text-muted-foreground"}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border-2 ${step === "result" ? "bg-white/50 dark:bg-white/10 border-white/40 dark:border-white/20 text-foreground shadow-md shadow-black/5 dark:shadow-black/15" : "bg-white/30 dark:bg-white/5 border-white/30 dark:border-white/10 text-foreground"}`}>
               3
             </div>
             <span className="font-medium hidden sm:inline">{t.generate.step3}</span>
@@ -230,10 +334,10 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
 
       {/* Step 1: Topic Input */}
       {step === "topic" && (
-        <div className="bg-card border rounded-lg p-8 animate-fade-in">
+        <div className={`${cardClass} p-8 animate-fade-in`}>
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold mb-2">{t.generate.topicTitle}</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-2xl font-bold mb-2 text-foreground dark:text-white/90">{t.generate.topicTitle}</h2>
+            <p className="text-muted-foreground dark:text-white/80">
               {t.generate.topicSubtitle}
             </p>
           </div>
@@ -241,7 +345,7 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
           <form onSubmit={handleTopicSubmit}>
             <div className="space-y-4">
               <div>
-                <label htmlFor="topic" className="block text-sm font-medium mb-2">
+                <label htmlFor="topic" className="block text-sm font-medium mb-2 text-foreground dark:text-white/90">
                   {t.generate.topicLabel}
                 </label>
                 <input
@@ -250,7 +354,7 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   placeholder={t.generate.topicPlaceholder}
-                  className="input-aurora w-full px-4 py-3 rounded-lg"
+                  className={inputClass}
                   disabled={isLoading}
                   required
                 />
@@ -259,7 +363,7 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
               <button
                 type="submit"
                 disabled={isLoading || !topic.trim()}
-                className="btn-aurora w-full px-6 py-3 rounded-lg flex items-center justify-center gap-2"
+                className="btn-continue w-full px-6 py-3 flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <>
@@ -280,20 +384,20 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
 
       {/* Step 2: Questions */}
       {step === "questions" && questions.length > 0 && (
-        <div className="bg-card border rounded-lg p-8 animate-fade-in">
+        <div className={`${cardClass} p-8 animate-fade-in`}>
           {/* Progress */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-muted-foreground">
                 질문 {currentQuestionIndex + 1} / {questions.length}
               </span>
-              <span className="text-sm font-medium text-primary">
+              <span className="text-sm font-medium text-foreground">
                 {Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}%
               </span>
             </div>
-            <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
+            <div className="w-full h-2 bg-white/30 dark:bg-white/10 rounded-full overflow-hidden backdrop-blur-sm border border-white/20 dark:border-white/10">
               <div
-                className="h-full bg-primary transition-all duration-300"
+                className="h-full bg-white/60 dark:bg-white/20 transition-all duration-300"
                 style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
               />
             </div>
@@ -302,7 +406,7 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
           <form onSubmit={handleNextQuestion}>
             <div className="space-y-4">
               <div>
-                <label htmlFor="currentQuestion" className="block text-lg font-semibold mb-3">
+                <label htmlFor="currentQuestion" className="block text-lg font-semibold mb-3 text-foreground dark:text-white/90">
                   {questions[currentQuestionIndex].question}
                 </label>
                 {questions[currentQuestionIndex].type === "textarea" ? (
@@ -311,7 +415,7 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
                     value={currentAnswer}
                     onChange={(e) => setCurrentAnswer(e.target.value)}
                     placeholder={questions[currentQuestionIndex].placeholder}
-                    className="input-aurora w-full px-4 py-3 rounded-lg resize-none"
+                    className={`${inputClass} resize-none`}
                     rows={4}
                     disabled={isLoading}
                     required
@@ -324,7 +428,7 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
                     value={currentAnswer}
                     onChange={(e) => setCurrentAnswer(e.target.value)}
                     placeholder={questions[currentQuestionIndex].placeholder}
-                    className="input-aurora w-full px-4 py-3 rounded-lg"
+                    className={inputClass}
                     disabled={isLoading}
                     required
                     autoFocus
@@ -337,7 +441,7 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
                   type="button"
                   onClick={handlePreviousQuestion}
                   disabled={isLoading}
-                  className="px-6 py-3 border rounded-lg hover:bg-secondary transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className={secondaryButtonClass}
                 >
                   <ArrowLeft className="h-5 w-5" />
                   {t.generate.back}
@@ -345,7 +449,7 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
                 <button
                   type="submit"
                   disabled={isLoading || !currentAnswer.trim()}
-                  className="btn-aurora flex-1 px-6 py-3 rounded-lg flex items-center justify-center gap-2"
+                  className="btn-aurora flex-1 px-6 py-3 rounded-full flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
                     <>
@@ -378,14 +482,25 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
       {step === "result" && generatedPrompt && (
         <div className="space-y-6 animate-fade-in">
           {/* Generated Prompt */}
-          <div className="bg-card border rounded-lg p-8">
+          <div className={`${cardClass} p-8`}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">{t.generate.yourPrompt}</h2>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-2xl font-bold text-foreground dark:text-white/90">{t.generate.yourPrompt}</h2>
+                  {aiProvider && <AIProviderBadge provider={aiProvider} model={aiModel || undefined} size="sm" />}
+                </div>
+                {providerLabel && (
+                  <p className="text-sm text-muted-foreground dark:text-white/80">
+                    {aiProvider === "gpt" ? "GPT-5.1" : providerLabel}
+                    {aiModel && aiProvider !== "gpt" ? ` · ${aiModel}` : ""} 모델이 생성한 프롬프트예요.
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-2 flex-wrap justify-end">
                 <button
                   onClick={handleSavePrompt}
                   disabled={isSaving || isSaved}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                  className="inline-flex items-center gap-1 px-4 py-2 text-sm rounded-lg border-2 backdrop-blur-md transition-all shadow-lg font-medium bg-purple-200/80 dark:bg-purple-500/50 border-purple-300/60 dark:border-purple-400/70 text-purple-800 dark:text-purple-100 hover:bg-purple-200/90 dark:hover:bg-purple-500/60 shadow-purple-500/20 dark:shadow-purple-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSaved ? (
                     <>
@@ -406,7 +521,7 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
                 </button>
                 <button
                   onClick={handleCopy}
-                  className="btn-aurora px-4 py-2 rounded-lg flex items-center gap-2"
+                  className="inline-flex items-center gap-1 px-4 py-2 text-sm rounded-lg border-2 backdrop-blur-md transition-all shadow-lg font-medium bg-orange-200/80 dark:bg-blue-500/50 border-orange-300/60 dark:border-blue-400/70 text-orange-800 dark:text-blue-100 hover:bg-orange-200/90 dark:hover:bg-blue-500/60 shadow-orange-500/20 dark:shadow-blue-500/40"
                 >
                   {copied ? (
                     <>
@@ -422,15 +537,15 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
                 </button>
               </div>
             </div>
-            <pre className="whitespace-pre-wrap font-mono text-sm bg-secondary/50 p-6 rounded-md">
+            <pre className="whitespace-pre-wrap font-mono text-sm bg-white/70 dark:bg-white/10 backdrop-blur-md border-2 border-white/60 dark:border-white/20 rounded-xl p-6 shadow-xl shadow-black/10 dark:shadow-black/30 text-foreground">
               {generatedPrompt.prompt}
             </pre>
           </div>
 
           {/* Recommended Tools */}
           {recommendedToolsData && recommendedToolsData.length > 0 && (
-            <div className="bg-card border rounded-lg p-8">
-              <h3 className="text-xl font-bold mb-4">{t.generate.recommendedTools}</h3>
+            <div className={`${cardClass} p-8`}>
+                <h3 className="text-xl font-bold mb-4 text-foreground dark:text-white/90">{t.generate.recommendedTools}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {recommendedToolsData.map((tool) => (
                   <a
@@ -438,14 +553,14 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
                     href={tool!.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-start gap-3 p-4 border rounded-lg hover:border-primary transition-colors"
+                    className="flex items-start gap-3 p-4 rounded-2xl border-2 border-white/60 dark:border-white/20 bg-white/70 dark:bg-white/10 backdrop-blur-md hover:border-white/70 dark:hover:border-white/30 hover:bg-white/80 dark:hover:bg-white/15 transition-all shadow-xl shadow-black/10 dark:shadow-black/30"
                   >
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-lg font-bold text-primary flex-shrink-0">
+                    <div className="h-10 w-10 rounded-full bg-white/50 dark:bg-white/10 backdrop-blur-sm border border-white/40 dark:border-white/20 text-foreground flex items-center justify-center text-lg font-bold flex-shrink-0 shadow-lg shadow-black/5 dark:shadow-black/15">
                       {tool!.name.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold">{tool!.name}</h4>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                      <h4 className="font-semibold text-foreground dark:text-white/90">{tool!.name}</h4>
+                      <p className="text-sm text-muted-foreground dark:text-white/80 line-clamp-2">
                         {tool!.description}
                       </p>
                     </div>
@@ -457,11 +572,11 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
 
           {/* Tips */}
           {generatedPrompt.tips && generatedPrompt.tips.length > 0 && (
-            <div className="bg-primary/5 border border-primary/20 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-3">{t.generate.tips}</h3>
+            <div className={`${cardClass} p-6`}>
+              <h3 className="text-lg font-semibold mb-3 text-foreground dark:text-white/90">{t.generate.tips}</h3>
               <ul className="space-y-2">
                 {generatedPrompt.tips.map((tip, index) => (
-                  <li key={index} className="text-sm text-muted-foreground">
+                  <li key={index} className="text-sm text-muted-foreground dark:text-white/80">
                     • {tip}
                   </li>
                 ))}
@@ -473,7 +588,7 @@ export default function PromptGenerator({ initialTopic = "", existingPrompt, onP
           <div className="flex gap-4">
             <button
               onClick={handleReset}
-              className="flex-1 px-6 py-3 border rounded-lg hover:bg-secondary transition-colors"
+              className={`${secondaryButtonClass} flex-1 justify-center`}
             >
               {t.generate.createAnother}
             </button>

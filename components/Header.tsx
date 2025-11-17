@@ -1,27 +1,51 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles, Globe, LogOut, User as UserIcon, Menu } from "lucide-react";
+import {
+  Sparkles,
+  LogOut,
+  User as UserIcon,
+  Menu,
+  LayoutDashboard,
+  ChevronDown,
+} from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 import { useSession, signOut } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import NotificationBell from "./NotificationBell";
 
 interface HeaderProps {
   onToggleSidebar?: () => void;
 }
 
 export default function Header({ onToggleSidebar }: HeaderProps) {
-  const { language, setLanguage, t } = useLanguage();
+  const { t, translate } = useLanguage();
   const { data: session } = useSession();
+  const pathname = usePathname();
   const [showUserMenu, setShowUserMenu] = useState(false);
-
-  const toggleLanguage = () => {
-    setLanguage(language === "ko" ? "en" : "ko");
-  };
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" });
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const userName =
+    session?.user?.name || session?.user?.email?.split("@")[0] || "User";
+  const userInitial = userName.charAt(0).toUpperCase();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -44,55 +68,106 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
         <nav className="hidden md:flex items-center space-x-6">
           <Link
             href="/prompts/list"
-            className="text-sm font-medium transition-colors hover:text-primary"
+            className={`text-sm font-medium transition-all px-4 py-2 rounded-full ${
+              pathname?.startsWith("/prompts") && pathname !== "/"
+                ? "bg-white/70 dark:bg-white/15 backdrop-blur-xl border border-white/60 dark:border-white/30 text-foreground dark:text-white shadow-[0_8px_32px_0_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_0_rgba(255,255,255,0.1)] before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-br before:from-white/40 before:to-transparent before:opacity-50 relative overflow-hidden"
+                : "text-foreground dark:text-white/80 hover:bg-white/50 dark:hover:bg-white/8 hover:backdrop-blur-lg hover:shadow-md transition-all"
+            }`}
           >
-            프롬프트
+            {translate("프롬프트")}
           </Link>
           <Link
             href="/generate"
-            className="text-sm font-medium transition-colors hover:text-primary"
+            className={`text-sm font-medium transition-all px-4 py-2 rounded-full ${
+              pathname?.startsWith("/generate")
+                ? "bg-white/70 dark:bg-white/15 backdrop-blur-xl border border-white/60 dark:border-white/30 text-foreground dark:text-white shadow-[0_8px_32px_0_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_0_rgba(255,255,255,0.1)] before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-br before:from-white/40 before:to-transparent before:opacity-50 relative overflow-hidden"
+                : "text-foreground dark:text-white/80 hover:bg-white/50 dark:hover:bg-white/8 hover:backdrop-blur-lg hover:shadow-md transition-all"
+            }`}
           >
             {t.header.generate}
           </Link>
           <Link
-            href="/challengers"
-            className="text-sm font-medium transition-colors hover:text-primary"
+            href="/grow"
+            className={`text-sm font-medium transition-all px-4 py-2 rounded-full ${
+              pathname?.startsWith("/grow")
+                ? "bg-white/70 dark:bg-white/15 backdrop-blur-xl border border-white/60 dark:border-white/30 text-foreground dark:text-white shadow-[0_8px_32px_0_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_0_rgba(255,255,255,0.1)] before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-br before:from-white/40 before:to-transparent before:opacity-50 relative overflow-hidden"
+                : "text-foreground dark:text-white/80 hover:bg-white/50 dark:hover:bg-white/8 hover:backdrop-blur-lg hover:shadow-md transition-all"
+            }`}
           >
-            도전자들
+            {translate("성장하기")}
+          </Link>
+          <Link
+            href="/challengers"
+            className={`text-sm font-medium transition-all px-4 py-2 rounded-full ${
+              pathname?.startsWith("/challengers")
+                ? "bg-white/70 dark:bg-white/15 backdrop-blur-xl border border-white/60 dark:border-white/30 text-foreground dark:text-white shadow-[0_8px_32px_0_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_0_rgba(255,255,255,0.1)] before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-br before:from-white/40 before:to-transparent before:opacity-50 relative overflow-hidden"
+                : "text-foreground dark:text-white/80 hover:bg-white/50 dark:hover:bg-white/8 hover:backdrop-blur-lg hover:shadow-md transition-all"
+            }`}
+          >
+            {translate("도전자들")}
           </Link>
           <Link
             href="/tools"
-            className="text-sm font-medium transition-colors hover:text-primary"
+            className={`text-sm font-medium transition-all px-4 py-2 rounded-full ${
+              pathname?.startsWith("/tools")
+                ? "bg-white/70 dark:bg-white/15 backdrop-blur-xl border border-white/60 dark:border-white/30 text-foreground dark:text-white shadow-[0_8px_32px_0_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_0_rgba(255,255,255,0.1)] before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-br before:from-white/40 before:to-transparent before:opacity-50 relative overflow-hidden"
+                : "text-foreground dark:text-white/80 hover:bg-white/50 dark:hover:bg-white/8 hover:backdrop-blur-lg hover:shadow-md transition-all"
+            }`}
           >
-            AI 도구
+            {translate("AI 도구")}
           </Link>
         </nav>
 
         <div className="flex items-center space-x-4">
-          <button
-            onClick={toggleLanguage}
-            className="p-2 hover:bg-accent rounded-md transition-colors flex items-center gap-2"
-            title={language === "ko" ? "English" : "한국어"}
-          >
-            <Globe className="h-5 w-5" />
-            <span className="text-sm font-medium">{language === "ko" ? "EN" : "KO"}</span>
-          </button>
+          {session && <NotificationBell />}
 
           {session ? (
-            <div className="relative">
+            <div className="relative" ref={userMenuRef}>
               <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-accent transition-colors"
+                onClick={() => setShowUserMenu((prev) => !prev)}
+                className="flex items-center gap-3 rounded-full border border-primary/20 bg-secondary/50 px-2 py-1.5 hover:border-primary/40 transition-colors"
+                aria-haspopup="true"
+                aria-expanded={showUserMenu}
               >
-                <UserIcon className="h-4 w-4" />
-                <span className="text-sm font-medium">{session.user?.name || session.user?.email}</span>
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-purple-500 text-primary-foreground flex items-center justify-center font-semibold">
+                  {userInitial}
+                </div>
+                <div className="hidden sm:flex flex-col items-start text-left">
+                  <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    내 계정
+                  </span>
+                  <span className="text-sm font-medium text-foreground">
+                    {userName}
+                  </span>
+                </div>
+                <ChevronDown
+                  className={`h-4 w-4 text-muted-foreground transition-transform ${
+                    showUserMenu ? "rotate-180" : ""
+                  }`}
+                />
               </button>
 
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-2">
+                <div className="absolute right-0 mt-2 w-56 card-aurora rounded-xl shadow-lg py-2 border border-primary/10">
+                  <Link
+                    href="/profile"
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-secondary transition-colors flex items-center gap-2"
+                    onClick={() => setShowUserMenu(false)}
+                  >
+                    <UserIcon className="h-4 w-4" />
+                    마이페이지
+                  </Link>
+                  <Link
+                    href="/dashboard"
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-secondary transition-colors flex items-center gap-2"
+                    onClick={() => setShowUserMenu(false)}
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    대시보드
+                  </Link>
                   <button
                     onClick={handleSignOut}
-                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-secondary transition-colors flex items-center gap-2"
                   >
                     <LogOut className="h-4 w-4" />
                     로그아웃

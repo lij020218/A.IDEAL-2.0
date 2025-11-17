@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { FileText, Loader2, X, Menu } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
+import { AIProviderBadge, isAIProvider } from "@/components/AIProviderBadge";
 
 interface SavedPrompt {
   id: string;
@@ -13,6 +14,8 @@ interface SavedPrompt {
   recommendedTools: string[];
   tips: string[];
   createdAt: string;
+  aiProvider?: string | null;
+  aiModel?: string | null;
 }
 
 interface PromptSidebarProps {
@@ -88,7 +91,9 @@ export default function PromptSidebar({ onPromptSelect, refreshTrigger }: Prompt
             </div>
           ) : (
             <div className="space-y-3">
-              {prompts.map((prompt) => (
+              {prompts.map((prompt) => {
+                const provider = prompt.aiProvider && isAIProvider(prompt.aiProvider) ? prompt.aiProvider : null;
+                return (
                 <button
                   key={prompt.id}
                   onClick={() => {
@@ -99,25 +104,30 @@ export default function PromptSidebar({ onPromptSelect, refreshTrigger }: Prompt
                   }}
                   className="w-full text-left p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group"
                 >
-                  <div className="flex items-start gap-3">
-                    <FileText className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm mb-1 truncate group-hover:text-primary transition-colors">
-                        {prompt.topic}
-                      </h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">
-                        {prompt.prompt.substring(0, 100)}...
-                      </p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500">
-                        {formatDistanceToNow(new Date(prompt.createdAt), {
-                          addSuffix: true,
-                          locale: ko,
-                        })}
-                      </p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <FileText className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-sm mb-1 truncate group-hover:text-primary transition-colors">
+                          {prompt.topic}
+                        </h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">
+                          {prompt.prompt.substring(0, 100)}...
+                        </p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">
+                          {formatDistanceToNow(new Date(prompt.createdAt), {
+                            addSuffix: true,
+                            locale: ko,
+                          })}
+                        </p>
+                      </div>
                     </div>
+                    {provider && (
+                      <AIProviderBadge provider={provider} model={prompt.aiModel || undefined} size="sm" />
+                    )}
                   </div>
                 </button>
-              ))}
+              )})}
             </div>
           )}
         </div>

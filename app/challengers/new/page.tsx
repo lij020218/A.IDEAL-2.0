@@ -71,13 +71,16 @@ export default function NewChallengePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Global Background Effects */}
+      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
+      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <div className="container mx-auto px-4 py-12 max-w-3xl">
+      <div className="container mx-auto px-4 py-12 max-w-3xl relative z-10">
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold mb-2">새로운 <span className="gradient-text">도전</span> 올리기</h1>
+          <h1 className="text-4xl font-bold mb-2">새로운 <span className="text-foreground">도전</span> 올리기</h1>
           <p className="text-muted-foreground">
             당신의 아이디어와 열정을 공유하고, 함께할 동료를 찾아보세요
           </p>
@@ -203,7 +206,7 @@ export default function NewChallengePage() {
             <button
               type="button"
               onClick={() => router.back()}
-              className="px-6 py-3 border rounded-lg hover:bg-secondary transition-colors flex items-center gap-2"
+              className="px-6 py-3 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md text-foreground dark:text-white hover:bg-white/60 dark:hover:bg-white/10 transition-all flex items-center gap-2 shadow-lg shadow-black/8 dark:shadow-black/15"
             >
               <X className="h-5 w-5" />
               취소

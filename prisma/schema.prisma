@@ -17,6 +17,11 @@ model User {
   name          String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  plan          String        @default("free")
+  promptCopiesToday Int       @default(0)
+  promptCopiesResetAt DateTime?
+  growthContentToday Int      @default(0)
+  growthContentResetAt DateTime?
   prompts       Prompt[]
   challenges    Challenge[]
   comments      Comment[]
@@ -25,28 +30,60 @@ model User {
   joinRequests  JoinRequest[]
   notifications Notification[]
   events        Event[]
+  growthTopics  GrowthTopic[]
+  learningProgress LearningProgress[]
+  searchHistory SearchHistory[]
+  followers     Follow[]      @relation("UserFollowers")
+  following     Follow[]      @relation("UserFollowing")
 }
 
 model Prompt {
-  id                String   @id @default(cuid())
+  id                String         @id @default(cuid())
   userId            String
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   topic             String
   prompt            String
-  recommendedTools  String   // JSON array of tool IDs
-  tips              String   // JSON array of tips
-  imageUrl          String?  // Optional reference image URL
-  isPublic          Boolean  @default(false) // true = 공개 등록, false = 개인 저장
-  parentId          String?  // Reference to parent prompt for refined versions
-  parent            Prompt?  @relation("PromptRefinements", fields: [parentId], references: [id], onDelete: Cascade)
-  refinements       Prompt[] @relation("PromptRefinements")
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  category          String?        // PromptCategory: "writing", "coding", "marketing", etc.
+  recommendedTools  String         // JSON array of tool IDs
+  tips              String         // JSON array of tips
+  imageUrl          String?        // Optional reference image URL
+  isPublic          Boolean        @default(false) // true = 공개 등록, false = 개인 보관
+  parentId          String?        // Reference to parent prompt for refined versions
+  parent            Prompt?        @relation("PromptRefinements", fields: [parentId], references: [id], onDelete: Cascade)
+  refinements       Prompt[]       @relation("PromptRefinements")
+  aiProvider        String?        // AI provider used: "gpt", "claude", "grok"
+  aiModel           String?        // Specific model used (e.g., "gpt-5", "claude-sonnet-4-5-20250929")
+  views             Int            @default(0) // View count
+  averageRating     Float?         // Average rating (1-5)
+  ratingCount       Int            @default(0) // Number of ratings
+  ratings           PromptRating[] // User ratings
+  comments          Comment[]      // 댓글
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
   @@index([userId])
   @@index([parentId])
   @@index([isPublic])
+  @@index([aiProvider])
+  @@index([category])
+  @@index([views])
+  @@index([averageRating])
 }
+
+model PromptRating {
+  id        String   @id @default(cuid())
+  promptId  String
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  userId    String
+  rating    Int      // 1-5 stars
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([promptId, userId]) // One rating per user per prompt
+  @@index([promptId])
+  @@index([userId])
+}
+
 
 model Challenge {
   id          String     @id @default(cuid())
@@ -70,16 +107,23 @@ model Challenge {
 
 model Comment {
   id          String    @id @default(cuid())
-  challengeId String
-  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  challengeId String?
+  challenge   Challenge? @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  promptId    String?
+  prompt      Prompt?   @relation(fields: [promptId], references: [id], onDelete: Cascade)
   userId      String
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   content     String
+  parentId    String?   // 답글 기능을 위한 부모 댓글 ID
+  parent      Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     Comment[] @relation("CommentReplies")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   @@index([challengeId])
+  @@index([promptId])
   @@index([userId])
+  @@index([parentId])
 }
 
 model ChatRoom {
@@ -172,35 +216,109 @@ model Event {
   endDate     DateTime?
   color       String   @default("#3b82f6") // Default blue color
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 
   @@index([chatRoomId])
   @@index([userId])
+  @@index([startDate])
 }
 
 model Whiteboard {
-  id         String            @id @default(cuid())
+  id         String   @id @default(cuid())
   chatRoomId String
-  chatRoom   ChatRoom          @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
   title      String
-  items      WhiteboardItem[]
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
+  content    String?  // JSON string representing whiteboard state
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([chatRoomId])
 }
 
-model WhiteboardItem {
-  id           String     @id @default(cuid())
-  whiteboardId String
-  whiteboard   Whiteboard @relation(fields: [whiteboardId], references: [id], onDelete: Cascade)
-  type         String     // "text", "message", "drawing"
-  content      String
-  position     String     // JSON: {x, y}
-  size         String     // JSON: {width, height}
-  style        String?    // JSON: {color, fontSize, etc}
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+model GrowthTopic {
+  id          String            @id @default(cuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  goal        String
+  level       String            // "beginner", "intermediate", "advanced"
+  duration    Int               // 학습 기간 (일)
+  startDate   DateTime
+  endDate     DateTime
+  status      String            @default("active") // "active", "paused", "completed"
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  curriculum  Curriculum[]
+  progress    LearningProgress[]
 
-  @@index([whiteboardId])
+  @@index([userId])
+  @@index([status])
+}
+
+model Curriculum {
+  id             String      @id @default(cuid())
+  topicId        String
+  topic          GrowthTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  dayNumber      Int         // 몇 번째 날 (1, 2, 3...)
+  date           DateTime    // 해당 날짜
+  title          String      // 학습 주제 제목
+  description    String      // 학습 내용 설명
+  objectives     String      // JSON array: 학습 목표들
+  content        String?     // AI가 생성한 슬라이드 내용 (JSON 형식)
+  exercises      String?     // JSON array: 학습 퀴즈들
+  resources      String?     // JSON array: 참고 자료들
+  estimatedTime  Int         @default(60) // 예상 학습 시간 (분)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@unique([topicId, dayNumber])
+  @@index([topicId])
+  @@index([date])
+}
+
+model LearningProgress {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topicId       String
+  topic         GrowthTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  dayNumber     Int
+  date          DateTime
+  status        String      @default("not_started") // "not_started", "in_progress", "completed"
+  timeSpent     Int         @default(0) // 학습 시간 (초)
+  notes         String?
+  chatHistory   String?
+  completedAt   DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([userId, topicId, dayNumber])
+  @@index([userId])
+  @@index([topicId])
+  @@index([dayNumber])
+}
+
+model SearchHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  query     String
+  filters   String?  // JSON string: { category, aiProvider, sortOrder }
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String   // 팔로우하는 사용자
+  follower    User     @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String   // 팔로우받는 사용자
+  following   User     @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
 }

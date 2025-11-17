@@ -28,6 +28,8 @@ export type PromptCategory =
   | "creative"
   | "analysis";
 
+export type AIProvider = "gpt" | "claude" | "grok" | "midjourney" | "gemini" | "sora";
+
 export interface Prompt {
   id: string;
   title: string;
@@ -66,4 +68,6 @@ export interface GeneratedPrompt {
   prompt: string;
   recommendedTools: string[];
   tips?: string[];
+  aiProvider?: AIProvider;
+  aiModel?: string;
 }

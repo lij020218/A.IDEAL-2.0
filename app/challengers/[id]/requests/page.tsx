@@ -90,42 +90,48 @@ export default function JoinRequestsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background relative">
+        {/* Global Background Effects */}
+        <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
+        <div className="fixed inset-0 hero-grain pointer-events-none"></div>
         <Header onToggleSidebar={toggleSidebar} />
         <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <div className="container mx-auto px-4 py-12 text-center">
+        <div className="container mx-auto px-4 py-12 text-center relative z-10">
           <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-          <p className="text-muted-foreground mt-4">로딩 중...</p>
+          <p className="text-muted-foreground dark:text-white/80 mt-4">로딩 중...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Global Background Effects */}
+      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
+      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
         {/* Back Button */}
         <button
           onClick={() => router.push(`/challengers/${params.id}`)}
-          className="mb-4 flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+          className="mb-4 flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md text-foreground dark:text-white hover:bg-white/60 dark:hover:bg-white/10 transition-all shadow-lg shadow-black/8 dark:shadow-black/15"
         >
           <ArrowLeft className="h-4 w-4" />
           도전 상세로 돌아가기
         </button>
 
         {/* Header */}
-        <h1 className="text-3xl font-bold mb-6">
-          참가 <span className="gradient-text">신청 관리</span>
+        <h1 className="text-3xl font-bold mb-6 text-foreground dark:text-white/90">
+          참가 신청 관리
         </h1>
 
         {/* Pending Requests */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold mb-4">대기 중인 신청 ({pendingRequests.length})</h2>
+          <h2 className="text-xl font-bold mb-4 text-foreground dark:text-white/90">대기 중인 신청 ({pendingRequests.length})</h2>
           {pendingRequests.length === 0 ? (
-            <div className="card-aurora rounded-xl p-8 text-center text-muted-foreground">
+            <div className="card-aurora rounded-xl p-8 text-center text-muted-foreground dark:text-white/80">
               대기 중인 참가 신청이 없습니다
             </div>
           ) : (
@@ -133,28 +139,28 @@ export default function JoinRequestsPage() {
               {pendingRequests.map((request) => (
                 <div key={request.id} className="card-aurora rounded-xl p-6">
                   <div className="flex items-start gap-4">
-                    <UserCircle className="h-12 w-12 text-muted-foreground flex-shrink-0" />
+                    <UserCircle className="h-12 w-12 text-muted-foreground dark:text-white/80 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-lg font-semibold">
+                        <h3 className="text-lg font-semibold text-foreground dark:text-white/90">
                           {request.user.name || "익명"}
                         </h3>
-                        <span className="px-2 py-1 bg-primary/10 text-primary text-sm rounded">
+                        <span className="px-3 py-1 bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-white/40 dark:border-white/20 text-foreground dark:text-white/80 text-sm rounded-lg shadow-md shadow-black/5 dark:shadow-black/10">
                           {request.role === "designer" ? "디자이너" : "개발자"}
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-1">
+                      <p className="text-sm text-muted-foreground dark:text-white/80 mb-1">
                         {request.user.email}
                       </p>
-                      <p className="text-sm text-muted-foreground mb-3">
+                      <p className="text-sm text-muted-foreground dark:text-white/80 mb-3">
                         {formatDistanceToNow(new Date(request.createdAt), {
                           addSuffix: true,
                           locale: ko,
                         })}
                       </p>
-                      <div className="bg-secondary/50 rounded-lg p-4 mb-4">
-                        <p className="text-sm font-semibold mb-1">경력 사항:</p>
-                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                      <div className="bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-lg p-4 mb-4 shadow-lg shadow-black/5 dark:shadow-black/15">
+                        <p className="text-sm font-semibold mb-1 text-foreground dark:text-white/90">경력 사항:</p>
+                        <p className="text-sm text-muted-foreground dark:text-white/80 whitespace-pre-wrap">
                           {request.experience}
                         </p>
                       </div>
@@ -162,7 +168,7 @@ export default function JoinRequestsPage() {
                         <button
                           onClick={() => handleAction(request.id, "approve")}
                           disabled={processingId === request.id}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-4 py-2 rounded-lg border-2 border-green-500/40 dark:border-green-500/30 bg-green-500/20 dark:bg-green-500/10 backdrop-blur-md text-green-600 dark:text-green-400 hover:bg-green-500/30 dark:hover:bg-green-500/20 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {processingId === request.id ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -174,7 +180,7 @@ export default function JoinRequestsPage() {
                         <button
                           onClick={() => handleAction(request.id, "reject")}
                           disabled={processingId === request.id}
-                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-4 py-2 rounded-lg border-2 border-red-500/40 dark:border-red-500/30 bg-red-500/20 dark:bg-red-500/10 backdrop-blur-md text-red-600 dark:text-red-400 hover:bg-red-500/30 dark:hover:bg-red-500/20 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {processingId === request.id ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -195,31 +201,31 @@ export default function JoinRequestsPage() {
         {/* Processed Requests */}
         {processedRequests.length > 0 && (
           <div>
-            <h2 className="text-xl font-bold mb-4">처리된 신청 ({processedRequests.length})</h2>
+            <h2 className="text-xl font-bold mb-4 text-foreground dark:text-white/90">처리된 신청 ({processedRequests.length})</h2>
             <div className="space-y-4">
               {processedRequests.map((request) => (
                 <div key={request.id} className="card-aurora rounded-xl p-6 opacity-70">
                   <div className="flex items-start gap-4">
-                    <UserCircle className="h-12 w-12 text-muted-foreground flex-shrink-0" />
+                    <UserCircle className="h-12 w-12 text-muted-foreground dark:text-white/60 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-lg font-semibold">
+                        <h3 className="text-lg font-semibold text-foreground dark:text-white/70">
                           {request.user.name || "익명"}
                         </h3>
-                        <span className="px-2 py-1 bg-primary/10 text-primary text-sm rounded">
+                        <span className="px-3 py-1 bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-white/40 dark:border-white/20 text-foreground dark:text-white/60 text-sm rounded-lg shadow-md shadow-black/5 dark:shadow-black/10">
                           {request.role === "designer" ? "디자이너" : "개발자"}
                         </span>
                         <span
-                          className={`px-2 py-1 text-sm rounded ${
+                          className={`px-3 py-1 text-sm rounded-lg backdrop-blur-sm border shadow-md shadow-black/5 dark:shadow-black/10 ${
                             request.status === "approved"
-                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                              : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                              ? "bg-green-500/20 dark:bg-green-500/10 border-green-500/40 dark:border-green-500/30 text-green-600 dark:text-green-400"
+                              : "bg-red-500/20 dark:bg-red-500/10 border-red-500/40 dark:border-red-500/30 text-red-600 dark:text-red-400"
                           }`}
                         >
                           {request.status === "approved" ? "승인됨" : "거절됨"}
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-muted-foreground dark:text-white/60">
                         {request.user.email}
                       </p>
                     </div>

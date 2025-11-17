@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { topic, prompt, recommendedTools, tips, parentId, imageUrl, isPublic } = await req.json();
+    const { id, topic, prompt, category, recommendedTools, tips, parentId, imageUrl, isPublic, aiProvider, aiModel } = await req.json();
 
     if (!topic || !prompt) {
       return NextResponse.json(
@@ -23,22 +23,65 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Save prompt to database
-    const savedPrompt = await prisma.prompt.create({
-      data: {
-        userId: session.user.id,
-        topic,
-        prompt,
-        recommendedTools: JSON.stringify(recommendedTools || []),
-        tips: JSON.stringify(tips || []),
-        imageUrl: imageUrl || null,
-        parentId: parentId || null,
-        isPublic: isPublic || false, // Default to private
-      },
-    });
+    let savedPrompt;
+
+    // If id is provided, update existing prompt
+    if (id) {
+      // Verify ownership
+      const existingPrompt = await prisma.prompt.findUnique({
+        where: { id },
+      });
+
+      if (!existingPrompt) {
+        return NextResponse.json(
+          { error: "프롬프트를 찾을 수 없습니다" },
+          { status: 404 }
+        );
+      }
+
+      if (existingPrompt.userId !== session.user.id) {
+        return NextResponse.json(
+          { error: "수정 권한이 없습니다" },
+          { status: 403 }
+        );
+      }
+
+      // Update the prompt
+      savedPrompt = await prisma.prompt.update({
+        where: { id },
+        data: {
+          topic,
+          prompt,
+          category: category || null,
+          recommendedTools: JSON.stringify(recommendedTools || []),
+          tips: JSON.stringify(tips || []),
+          imageUrl: imageUrl || null,
+          aiProvider: aiProvider || null,
+          aiModel: aiModel || null,
+        },
+      });
+    } else {
+      // Create new prompt
+      savedPrompt = await prisma.prompt.create({
+        data: {
+          userId: session.user.id,
+          topic,
+          prompt,
+          category: category || null,
+          recommendedTools: JSON.stringify(recommendedTools || []),
+          tips: JSON.stringify(tips || []),
+          imageUrl: imageUrl || null,
+          parentId: parentId || null,
+          isPublic: isPublic || false, // Default to private
+          aiProvider: aiProvider || null,
+          aiModel: aiModel || null,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,
+      id: savedPrompt.id,
       prompt: {
         id: savedPrompt.id,
         topic: savedPrompt.topic,

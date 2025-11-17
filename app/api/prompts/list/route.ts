@@ -29,6 +29,12 @@ export async function GET(req: NextRequest) {
         recommendedTools: true,
         tips: true,
         imageUrl: true,
+        aiProvider: true,
+        aiModel: true,
+        isPublic: true,
+        views: true,
+        averageRating: true,
+        ratingCount: true,
         createdAt: true,
         parentId: true,
         refinements: {

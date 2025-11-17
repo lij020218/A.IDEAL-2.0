@@ -13,7 +13,8 @@ export const translations = {
     hero: {
       title: "어떤",
       titleHighlight: "세상",
-      titleEnd: "을 만들어 나가고 싶으세요?",
+      titleEnd: "을 만들어 나가고",
+      titleEnd2: "싶으세요?",
       subtitle: "AI와 함께 당신의 아이디어를 현실로 만드세요",
       searchPlaceholder: "원하는 프롬프트를 검색해보세요...",
       statsPrompts: "프롬프트",
@@ -132,6 +133,7 @@ export const translations = {
       title: "Discover Premium",
       titleHighlight: "AI Prompts",
       titleEnd: "",
+      titleEnd2: "",
       subtitle: "High-quality prompts with personalized AI tool recommendations",
       searchPlaceholder: "Search prompts by title, description, or tags...",
       statsPrompts: "Prompts",
@@ -242,3 +244,164 @@ export const translations = {
 export function getTranslation(lang: Language) {
   return translations[lang];
 }
+
+const stringCatalog: Record<
+  string,
+  {
+    ko: string;
+    en: string;
+  }
+> = {
+  "추천 프롬프트": { ko: "추천 프롬프트", en: "Featured Prompts" },
+  "커뮤니티가 만든 최신 프롬프트": {
+    ko: "커뮤니티가 만든 최신 프롬프트",
+    en: "Latest prompts from the community",
+  },
+  "전체보기": { ko: "전체보기", en: "View all" },
+  "도전자들": { ko: "도전자들", en: "Challengers" },
+  "커뮤니티의 도전 과제": {
+    ko: "커뮤니티의 도전 과제",
+    en: "Community challenge board",
+  },
+  "새 프롬프트 생성": { ko: "새 프롬프트 생성", en: "Create New Prompt" },
+  "프롬프트 등록": { ko: "프롬프트 등록", en: "Submit Prompt" },
+  "프롬프트": { ko: "프롬프트", en: "Prompts" },
+  "프롬프트 목록으로": {
+    ko: "프롬프트 목록으로",
+    en: "Back to prompt list",
+  },
+  "시작하기": { ko: "시작하기", en: "Get Started" },
+  "커뮤니티가 만든 최신 프롬프트": {
+    ko: "커뮤니티가 만든 최신 프롬프트",
+    en: "Latest prompts from the community",
+  },
+  "커뮤니티의 도전 과제": {
+    ko: "커뮤니티의 도전 과제",
+    en: "Community Challenges",
+  },
+  "커뮤니티의 도전 과제": {
+    ko: "커뮤니티의 도전 과제",
+    en: "Community challenges",
+  },
+  "성장하기": { ko: "성장하기", en: "Growth" },
+  "플랜 업그레이드": { ko: "플랜 업그레이드", en: "Upgrade Plan" },
+  "설정": { ko: "설정", en: "Settings" },
+  "도전": { ko: "도전", en: "Challenges" },
+  "학습": { ko: "학습", en: "Learning" },
+  "조회수": { ko: "조회수", en: "Views" },
+  "팔로워": { ko: "팔로워", en: "Followers" },
+  "팔로잉": { ko: "팔로잉", en: "Following" },
+  "로그인이 필요합니다": { ko: "로그인이 필요합니다", en: "Login required" },
+  "댓글을 입력하세요...": {
+    ko: "댓글을 입력하세요...",
+    en: "Write a comment...",
+  },
+  "도전이 삭제되었습니다": {
+    ko: "도전이 삭제되었습니다",
+    en: "Challenge has been deleted.",
+  },
+  "도전 삭제에 실패했습니다": {
+    ko: "도전 삭제에 실패했습니다",
+    en: "Failed to delete challenge.",
+  },
+  "무엇을 만들고 싶으신가요? (예: 유튜브 영상 편집 프롬프트)": {
+    ko: "무엇을 만들고 싶으신가요? (예: 유튜브 영상 편집 프롬프트)",
+    en: "What would you like to create? (e.g., a YouTube editing prompt)",
+  },
+  "저장된 프롬프트가 없습니다": {
+    ko: "저장된 프롬프트가 없습니다",
+    en: "No saved prompts yet",
+  },
+  "참여 중인 채팅방이 없습니다": {
+    ko: "참여 중인 채팅방이 없습니다",
+    en: "No chat rooms joined yet",
+  },
+  "프롬프트 등록": { ko: "프롬프트 등록", en: "Submit Prompt" },
+  "도전 참가 신청": { ko: "도전 참가 신청", en: "Manage Join Requests" },
+  "커뮤니티가 만든 최신 프롬프트": {
+    ko: "커뮤니티가 만든 최신 프롬프트",
+    en: "Latest prompts from the community",
+  },
+  "커뮤니티의 도전 과제": {
+    ko: "커뮤니티의 도전 과제",
+    en: "Community challenges",
+  },
+  "방장": { ko: "방장", en: "Host" },
+  "사용자": { ko: "사용자", en: "User" },
+  "A.IDEAL SPACE": { ko: "A.IDEAL SPACE", en: "A.IDEAL SPACE" },
+  "AI 도구": { ko: "AI 도구", en: "AI Tools" },
+  "언어": { ko: "언어", en: "Language" },
+  "인터페이스에 사용할 언어를 선택하세요.": {
+    ko: "인터페이스에 사용할 언어를 선택하세요.",
+    en: "Choose which language to use for the interface.",
+  },
+  "테마": { ko: "테마", en: "Theme" },
+  "눈의 피로를 줄이기 위해 밝기 모드를 전환하세요.": {
+    ko: "눈의 피로를 줄이기 위해 밝기 모드를 전환하세요.",
+    en: "Switch brightness modes to reduce eye strain.",
+  },
+  "라이트 모드": { ko: "라이트 모드", en: "Light Mode" },
+  "다크 모드": { ko: "다크 모드", en: "Dark Mode" },
+  "계정 설정": { ko: "계정 설정", en: "Account Settings" },
+  "프로필 정보와 알림 설정을 곧 추가할 예정입니다.": {
+    ko: "프로필 정보와 알림 설정을 곧 추가할 예정입니다.",
+    en: "Profile and notification settings are coming soon.",
+  },
+  "보안 설정": { ko: "보안 설정", en: "Security Settings" },
+  "2단계 인증과 로그인 기록 기능을 준비 중입니다.": {
+    ko: "2단계 인증과 로그인 기록 기능을 준비 중입니다.",
+    en: "Two-factor authentication and login history are coming soon.",
+  },
+  "개인 맞춤": { ko: "개인 맞춤", en: "Personalization" },
+  "추천 프롬프트와 알림을 더 정교하게 제어할 수 있도록 준비 중입니다.": {
+    ko: "추천 프롬프트와 알림을 더 정교하게 제어할 수 있도록 준비 중입니다.",
+    en: "More precise controls for recommendations and alerts are on the way.",
+  },
+  "계정과 환경을 한 곳에서 관리하세요.": {
+    ko: "계정과 환경을 한 곳에서 관리하세요.",
+    en: "Manage your account and workspace in one place.",
+  },
+  "닫기": { ko: "닫기", en: "Close" },
+  "현재 이용 중": { ko: "현재 이용 중", en: "Currently Active" },
+  "업그레이드하기": { ko: "업그레이드하기", en: "Upgrade" },
+  "무료 플랜으로 전환": { ko: "무료 플랜으로 전환", en: "Switch to Free Plan" },
+  "플랜 선택": { ko: "플랜 선택", en: "Choose your plan" },
+  "플랜": { ko: "플랜", en: "Plan" },
+  "사용량이 늘어날수록 Pro 플랜으로 더 많은 AI 기능을 이용해 보세요.": {
+    ko: "사용량이 늘어날수록 Pro 플랜으로 더 많은 AI 기능을 이용해 보세요.",
+    en: "Upgrade to Pro as your usage grows to unlock unlimited AI features.",
+  },
+  "사용량 현황": { ko: "사용량 현황", en: "Usage Overview" },
+  "프롬프트 복사": { ko: "프롬프트 복사", en: "Prompt Copies" },
+  "성장하기 콘텐츠 생성": {
+    ko: "성장하기 콘텐츠 생성",
+    en: "Growth Content Generations",
+  },
+  "성장하기 생성": { ko: "성장하기 생성", en: "Growth generation" },
+  "최근 사용 기록": { ko: "최근 사용 기록", en: "Recent Usage" },
+  "아직 사용 기록이 없습니다.": {
+    ko: "아직 사용 기록이 없습니다.",
+    en: "No usage has been recorded yet.",
+  },
+  "등록된 도전이 없습니다": {
+    ko: "등록된 도전이 없습니다",
+    en: "No challenges have been posted yet.",
+  },
+  "코드": { ko: "코드", en: "Code" },
+  "아이디어": { ko: "아이디어", en: "Idea" },
+  "이력서": { ko: "이력서", en: "Resume" },
+  "익명": { ko: "익명", en: "Anonymous" },
+  "인기": { ko: "인기", en: "Popular" },
+  "플랜 변경에 실패했습니다": {
+    ko: "플랜 변경에 실패했습니다",
+    en: "Failed to change plan.",
+  },
+  "무제한": { ko: "무제한", en: "Unlimited" },
+};
+
+export function translateText(text: string, lang: Language) {
+  if (lang === "ko") return text;
+  const entry = stringCatalog[text];
+  return entry ? entry[lang] : text;
+}
+

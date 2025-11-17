@@ -69,7 +69,7 @@ cp .env.example .env
 
 # .env 파일에 OpenAI API Key 입력
 OPENAI_API_KEY=your_openai_api_key_here
-OPENAI_MODEL=gpt-5
+OPENAI_MODEL=gpt-5.1-2025-11-13
 ```
 
 **OpenAI API Key 발급 방법:**

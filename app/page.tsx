@@ -13,7 +13,7 @@ import { ArrowRight, Sparkles, Search, TrendingUp, FileText, Code, Lightbulb, Ca
 import Link from "next/link";
 import { useLanguage } from "@/lib/language-context";
 import { formatDistanceToNow } from "date-fns";
-import { ko } from "date-fns/locale";
+import { ko, enUS } from "date-fns/locale";
 
 interface SavedPrompt {
   id: string;
@@ -23,7 +23,10 @@ interface SavedPrompt {
   tips: string[];
   imageUrl?: string | null;
   createdAt: string;
+  aiProvider?: string | null;
+  aiModel?: string | null;
   user: {
+    id?: string;
     name?: string;
     email: string;
   };
@@ -45,7 +48,8 @@ interface Challenge {
 }
 
 export default function Home() {
-  const { t } = useLanguage();
+  const { t, translate, language } = useLanguage();
+  const tr = translate;
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<PromptCategory | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -100,7 +104,10 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Global Background Effects */}
+      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
+      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
       <Header onToggleSidebar={toggleSidebar} />
 
       {/* Left Sidebar */}
@@ -111,15 +118,54 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20 px-4">
-        <div className="absolute inset-0 gradient-bg opacity-10"></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center space-y-6 max-w-3xl mx-auto">
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+            {/* subtle top badge (Framer 스타일 참고, 우리 톤 적용) */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/50 backdrop-blur-md text-foreground border-2 border-white/40 shadow-lg shadow-black/5 dark:bg-white/10 dark:backdrop-blur-md dark:border-white/20 dark:text-foreground dark:shadow-[0_0_18px_rgba(0,255,200,0.3)] text-sm font-medium">
+              <div className="relative">
+                <Sparkles 
+                  className="h-4 w-4 dark:hidden" 
+                  style={{ 
+                    stroke: 'url(#sparkles-gradient-light)',
+                    strokeWidth: 2,
+                  }} 
+                />
+                <Sparkles 
+                  className="h-4 w-4 hidden dark:block" 
+                  style={{ 
+                    stroke: 'url(#sparkles-gradient-dark)',
+                    strokeWidth: 2,
+                  }} 
+                />
+                <svg className="absolute w-0 h-0">
+                  <defs>
+                    <linearGradient id="sparkles-gradient-light" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#ADD8E6" />
+                      <stop offset="50%" stopColor="#DDA0DD" />
+                      <stop offset="100%" stopColor="#FFDAB9" />
+                    </linearGradient>
+                    <linearGradient id="sparkles-gradient-dark" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#00FFC8" />
+                      <stop offset="50%" stopColor="#FF0099" />
+                      <stop offset="100%" stopColor="#0096FF" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              {tr("아이디어에서 배포까지, AI로 더 빠르게")}
+            </div>
+            <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-foreground dark:text-white/90">
               {t.hero.title}{" "}
-              <span className="gradient-text">{t.hero.titleHighlight}</span>
+              <span className="text-foreground dark:text-white/90">{t.hero.titleHighlight}</span>
               {t.hero.titleEnd}
+              {((t as any).hero?.titleEnd2 ? (
+                <>
+                  <br />
+                  {(t as any).hero.titleEnd2}
+                </>
+              ) : null)}
             </h1>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-xl text-muted-foreground dark:text-white/80">
               {t.hero.subtitle}
             </p>
 
@@ -133,20 +179,20 @@ export default function Home() {
                   }
                 }}
               >
-                <div className="relative flex gap-2">
+                <div className="relative">
                   <input
                     type="text"
-                    placeholder="무엇을 만들고 싶으신가요? (예: 유튜브 영상 편집 프롬프트)"
+                    placeholder={tr("무엇을 만들고 싶으신가요? (예: 유튜브 영상 편집 프롬프트)")}
                     value={topicInput}
                     onChange={(e) => setTopicInput(e.target.value)}
-                    className="input-aurora flex-1 px-4 py-4 rounded-lg text-lg"
+                    className="w-full pl-5 pr-14 py-4 text-lg rounded-3xl bg-white/60 dark:bg-white/10 backdrop-blur-md border-2 border-white/50 dark:border-white/30 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-white/60 shadow-lg shadow-black/10 dark:shadow-black/20 focus:outline-none focus:ring-2 focus:ring-white/50 dark:focus:ring-white/30 focus:border-white/70 dark:focus:border-white/50 transition-all"
                   />
                   <button
                     type="submit"
+                    aria-label={tr("전송")}
                     disabled={!topicInput.trim()}
-                    className="btn-aurora px-8 py-4 rounded-lg font-semibold flex items-center gap-2"
+                    className="absolute top-1/2 -translate-y-1/2 right-1.5 h-10 w-10 rounded-full bg-gradient-to-r from-[#ADD8E6]/60 via-[#DDA0DD]/60 to-[#FFDAB9]/60 dark:from-[#00FFC8]/60 dark:via-[#FF0099]/60 dark:to-[#0096FF]/60 backdrop-blur-md border-2 border-[#ADD8E6]/50 dark:border-[#00FFC8]/50 text-foreground dark:text-white hover:from-[#ADD8E6]/70 hover:via-[#DDA0DD]/70 hover:to-[#FFDAB9]/70 dark:hover:from-[#00FFC8]/70 dark:hover:via-[#FF0099]/70 dark:hover:to-[#0096FF]/70 transition-all shadow-lg shadow-[#ADD8E6]/20 dark:shadow-[#00FFC8]/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
-                    시작하기
                     <ArrowRight className="h-5 w-5" />
                   </button>
                 </div>
@@ -156,15 +202,15 @@ export default function Home() {
             {/* Stats */}
             <div className="flex justify-center gap-8 pt-8">
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary">{samplePrompts.length}+</div>
+                <div className="text-3xl font-bold text-foreground">{samplePrompts.length}+</div>
                 <div className="text-sm text-muted-foreground">{t.hero.statsPrompts}</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary">10+</div>
+                <div className="text-3xl font-bold text-foreground">10+</div>
                 <div className="text-sm text-muted-foreground">{t.hero.statsTools}</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary">9</div>
+                <div className="text-3xl font-bold text-foreground">9</div>
                 <div className="text-sm text-muted-foreground">{t.hero.statsCategories}</div>
               </div>
             </div>
@@ -172,19 +218,25 @@ export default function Home() {
         </div>
       </section>
 
+      {/* (Removed) Key highlights cards */}
+
       {/* Recommended Prompts */}
-      <section className="py-16 px-4">
+      <section className="relative py-16 px-4">
         <div className="container mx-auto">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-3xl font-bold gradient-text">추천 프롬프트</h2>
-              <p className="text-sm text-muted-foreground">커뮤니티가 만든 최신 프롬프트</p>
+              <h2 className="text-3xl font-bold text-foreground">
+                {tr("추천 프롬프트")}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {tr("커뮤니티가 만든 최신 프롬프트")}
+              </p>
             </div>
             <Link
               href="/prompts/list"
-              className="flex items-center gap-2 text-primary hover:underline font-medium"
+              className="flex items-center gap-2 text-black dark:text-white hover:opacity-80 font-medium transition-opacity"
             >
-              전체보기
+              {tr("전체보기")}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -203,24 +255,26 @@ export default function Home() {
       </section>
 
       {/* Challengers Section */}
-      <section className="py-16 px-4">
+      <section className="relative py-16 px-4">
         <div className="container mx-auto">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-3xl font-bold gradient-text">도전자들</h2>
-              <p className="text-sm text-muted-foreground">커뮤니티의 도전 과제</p>
+              <h2 className="text-3xl font-bold text-foreground">{tr("도전자들")}</h2>
+              <p className="text-sm text-muted-foreground">
+                {tr("커뮤니티의 도전 과제")}
+              </p>
             </div>
             <Link
               href="/challengers"
-              className="flex items-center gap-2 text-primary hover:underline font-medium"
+              className="flex items-center gap-2 text-black dark:text-white hover:opacity-80 font-medium transition-opacity"
             >
-              전체보기
+              {tr("전체보기")}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
           {challenges.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">등록된 도전이 없습니다</p>
+              <p className="text-muted-foreground">{tr("등록된 도전이 없습니다")}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -230,68 +284,68 @@ export default function Home() {
                   href={`/challengers/${challenge.id}`}
                   className="card-aurora rounded-xl p-6 hover:shadow-lg transition-all block"
                 >
-                  <div className="mb-4">
-                    <h3 className="text-xl font-bold mb-2 line-clamp-2">
-                      {challenge.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-3">
-                      {challenge.description}
-                    </p>
-                  </div>
+                    <div className="mb-4">
+                      <h3 className="text-xl font-bold mb-2 line-clamp-2">
+                        {challenge.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground line-clamp-3">
+                        {challenge.description}
+                      </p>
+                    </div>
 
-                  {/* Icons for content types */}
-                  <div className="flex gap-2 mb-4">
-                    {challenge.codeSnippet && (
-                      <div className="px-2 py-1 bg-primary/10 text-primary rounded text-xs flex items-center gap-1">
-                        <Code className="h-3 w-3" />
-                        코드
+                    {/* Icons for content types */}
+                    <div className="flex gap-2 mb-4">
+                      {challenge.codeSnippet && (
+                        <div className="px-2 py-1 bg-foreground/10 text-foreground rounded text-xs flex items-center gap-1">
+                          <Code className="h-3 w-3" />
+                          {tr("코드")}
+                        </div>
+                      )}
+                      {challenge.ideaDetails && (
+                        <div className="px-2 py-1 bg-foreground/10 text-foreground rounded text-xs flex items-center gap-1">
+                          <Lightbulb className="h-3 w-3" />
+                          {tr("아이디어")}
+                        </div>
+                      )}
+                      {challenge.resumeUrl && (
+                        <div className="px-2 py-1 bg-foreground/10 text-foreground rounded text-xs flex items-center gap-1">
+                          <FileText className="h-3 w-3" />
+                          {tr("이력서")}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Tags */}
+                    {challenge.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {challenge.tags.slice(0, 3).map((tag, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-secondary text-xs rounded"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
                       </div>
                     )}
-                    {challenge.ideaDetails && (
-                      <div className="px-2 py-1 bg-primary/10 text-primary rounded text-xs flex items-center gap-1">
-                        <Lightbulb className="h-3 w-3" />
-                        아이디어
-                      </div>
-                    )}
-                    {challenge.resumeUrl && (
-                      <div className="px-2 py-1 bg-primary/10 text-primary rounded text-xs flex items-center gap-1">
-                        <FileText className="h-3 w-3" />
-                        이력서
-                      </div>
-                    )}
-                  </div>
 
-                  {/* Tags */}
-                  {challenge.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {challenge.tags.slice(0, 3).map((tag, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-secondary text-xs rounded"
-                        >
-                          #{tag}
-                        </span>
-                      ))}
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-4 border-t">
+                      <div className="text-sm text-muted-foreground">
+                        {challenge.author.name || tr("익명")}
+                      </div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {formatDistanceToNow(new Date(challenge.createdAt), {
+                          addSuffix: true,
+                          locale: language === "ko" ? ko : enUS,
+                        })}
+                      </div>
                     </div>
-                  )}
-
-                  {/* Footer */}
-                  <div className="flex items-center justify-between pt-4 border-t">
-                    <div className="text-sm text-muted-foreground">
-                      {challenge.author.name || "익명"}
-                    </div>
-                    <div className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {formatDistanceToNow(new Date(challenge.createdAt), {
-                        addSuffix: true,
-                        locale: ko,
-                      })}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
+                  </Link>
+                ))}
+              </div>
+            )}
         </div>
       </section>
 

@@ -1,22 +1,46 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
-import { Language, getTranslation } from "./translations";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { Language, getTranslation, translateText } from "./translations";
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: ReturnType<typeof getTranslation>;
+  translate: (text: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>("ko");
+  const [language, setLanguageState] = useState<Language>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("aid-language") as Language | null;
+      if (stored === "ko" || stored === "en") {
+        return stored;
+      }
+    }
+    return "ko";
+  });
   const t = getTranslation(language);
 
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = language;
+    }
+  }, [language]);
+
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("aid-language", lang);
+    }
+  };
+
+  const translate = (text: string) => translateText(text, language);
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, translate }}>
       {children}
     </LanguageContext.Provider>
   );

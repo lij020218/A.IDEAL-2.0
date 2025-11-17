@@ -15,6 +15,7 @@ export async function GET(
       include: {
         user: {
           select: {
+            id: true,
             name: true,
             email: true,
           },
@@ -41,6 +42,7 @@ export async function GET(
       tags: JSON.parse(challenge.tags),
       createdAt: challenge.createdAt.toISOString(),
       author: {
+        id: challenge.user.id,
         name: challenge.user.name,
         email: challenge.user.email,
       },

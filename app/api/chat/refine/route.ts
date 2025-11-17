@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { openai, OPENAI_MODEL } from "@/lib/openai";
+import { generateWithAI, UnifiedMessage } from "@/lib/ai-router";
+import { getServiceTaskSettings } from "@/lib/ai-config";
 
 interface Message {
   role: "assistant" | "user";
@@ -17,8 +18,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Build conversation history for OpenAI
-    const conversationMessages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
+    // 최적의 AI 설정 가져오기 (프롬프트 개선 채팅은 GPT-5가 최적)
+    const { provider, settings } = getServiceTaskSettings("CHAT_REFINE");
+    
+    console.log("[Chat Refine] Using AI provider:", provider);
+    console.log("[Chat Refine] Temperature:", settings.temperature);
+
+    // 메시지 구성
+    const conversationMessages: UnifiedMessage[] = [
       {
         role: "system",
         content: `당신은 프롬프트 개선을 돕는 AI입니다.
@@ -44,22 +51,38 @@ ${isInitial ? '첫 질문: "어떤 부분을 개선하고 싶으세요?" (정확
       });
     });
 
-    const completion = await openai.chat.completions.create({
-      model: OPENAI_MODEL,
-      messages: conversationMessages,
-      temperature: 1,
+    // 최적의 AI로 생성 (GPT-5가 일반 대화에 최적)
+    const response = await generateWithAI(provider, conversationMessages, {
+      temperature: settings.temperature, // GPT-5는 항상 1로 고정되지만 설정값 전달
+      maxTokens: settings.maxTokens,
     });
 
-    const responseMessage = completion.choices[0].message.content;
+    console.log("[Chat Refine] Response received, length:", response.content?.length || 0);
+
+    const responseMessage = response.content;
     if (!responseMessage) {
-      throw new Error("No response from OpenAI");
+      throw new Error("No response from AI");
     }
 
     return NextResponse.json({ message: responseMessage });
   } catch (error) {
-    console.error("Error in chat refine:", error);
+    console.error("[Chat Refine] Error:", error);
+    if (error instanceof Error) {
+      console.error("[Chat Refine] Error message:", error.message);
+      console.error("[Chat Refine] Error stack:", error.stack);
+      return NextResponse.json(
+        { 
+          error: "Failed to process chat message",
+          details: process.env.NODE_ENV === "development" ? error.message : undefined
+        },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(
-      { error: "Failed to process chat message" },
+      { 
+        error: "Failed to process chat message",
+        details: process.env.NODE_ENV === "development" ? String(error) : undefined
+      },
       { status: 500 }
     );
   }

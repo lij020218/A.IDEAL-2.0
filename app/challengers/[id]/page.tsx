@@ -6,9 +6,12 @@ import { useSession } from "next-auth/react";
 import Header from "@/components/Header";
 import LeftSidebar from "@/components/LeftSidebar";
 import JoinRequestModal from "@/components/JoinRequestModal";
+import CommentSection from "@/components/CommentSection";
 import { Code, Lightbulb, FileText, Mail, Calendar, Rocket, Copy, Check, Send, MessageCircle, Trash2, Users } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
+import FollowButton from "@/components/FollowButton";
+import Link from "next/link";
 
 interface Challenge {
   id: string;
@@ -22,20 +25,12 @@ interface Challenge {
   tags: string[];
   createdAt: string;
   author: {
+    id: string;
     name?: string;
     email: string;
   };
 }
 
-interface Comment {
-  id: string;
-  content: string;
-  createdAt: string;
-  author: {
-    name?: string;
-    email: string;
-  };
-}
 
 export default function ChallengeDetailPage() {
   const params = useParams();
@@ -46,9 +41,6 @@ export default function ChallengeDetailPage() {
   const [showContact, setShowContact] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [newComment, setNewComment] = useState("");
-  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joinRequestStatus, setJoinRequestStatus] = useState<string | null>(null);
@@ -56,7 +48,6 @@ export default function ChallengeDetailPage() {
   useEffect(() => {
     if (params.id) {
       fetchChallenge();
-      fetchComments();
       checkJoinStatus();
     }
   }, [params.id, session]);
@@ -78,17 +69,6 @@ export default function ChallengeDetailPage() {
     }
   };
 
-  const fetchComments = async () => {
-    try {
-      const response = await fetch(`/api/challenges/${params.id}/comments`);
-      if (response.ok) {
-        const data = await response.json();
-        setComments(data.comments);
-      }
-    } catch (error) {
-      console.error("Error fetching comments:", error);
-    }
-  };
 
   const checkJoinStatus = async () => {
     if (!session) return;
@@ -113,41 +93,6 @@ export default function ChallengeDetailPage() {
     router.push(`/challengers/${params.id}/chat`);
   };
 
-  const handleSubmitComment = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!session) {
-      router.push("/auth/signin?message=댓글을 작성하려면 로그인이 필요합니다");
-      return;
-    }
-
-    if (!newComment.trim()) {
-      return;
-    }
-
-    setIsSubmittingComment(true);
-
-    try {
-      const response = await fetch(`/api/challenges/${params.id}/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: newComment }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setComments([data.comment, ...comments]);
-        setNewComment("");
-      } else {
-        alert("댓글 작성에 실패했습니다");
-      }
-    } catch (error) {
-      console.error("Error submitting comment:", error);
-      alert("댓글 작성에 실패했습니다");
-    } finally {
-      setIsSubmittingComment(false);
-    }
-  };
 
   const handleCopyContact = () => {
     if (challenge) {
@@ -189,10 +134,13 @@ export default function ChallengeDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background relative">
+        {/* Global Background Effects */}
+        <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
+        <div className="fixed inset-0 hero-grain pointer-events-none"></div>
         <Header onToggleSidebar={toggleSidebar} />
         <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <div className="container mx-auto px-4 py-12 text-center">
+        <div className="container mx-auto px-4 py-12 text-center relative z-10">
           <p className="text-muted-foreground">로딩 중...</p>
         </div>
       </div>
@@ -204,18 +152,27 @@ export default function ChallengeDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Global Background Effects */}
+      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
+      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
+      <div className="container mx-auto px-4 py-12 max-w-4xl relative z-10">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold mb-4">{challenge.title}</h1>
-          <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Mail className="h-4 w-4" />
-              {challenge.author.name || "익명"}
+          <h1 className="text-4xl font-bold mb-4 text-foreground dark:text-white/90">{challenge.title}</h1>
+          <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground dark:text-white/80">
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/users/${challenge.userId}`}
+                className="flex items-center gap-1 hover:opacity-80 transition-colors text-foreground"
+              >
+                <Mail className="h-4 w-4" />
+                {challenge.author.name || "익명"}
+              </Link>
+              <FollowButton targetUserId={challenge.userId} size="xs" />
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
@@ -234,7 +191,7 @@ export default function ChallengeDetailPage() {
               {challenge.tags.map((tag, index) => (
                 <span
                   key={index}
-                  className="px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-sm font-medium"
+                  className="px-3 py-1.5 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 text-foreground rounded-lg text-sm font-medium shadow-lg shadow-black/5 dark:shadow-black/15"
                 >
                   #{tag}
                 </span>
@@ -248,7 +205,7 @@ export default function ChallengeDetailPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => router.push(`/challengers/${params.id}/requests`)}
-                className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors flex items-center gap-2"
+                className="px-4 py-2 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/60 dark:bg-white/10 backdrop-blur-md text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 flex items-center gap-2"
               >
                 <Users className="h-4 w-4" />
                 참가 신청 관리
@@ -256,7 +213,7 @@ export default function ChallengeDetailPage() {
               <button
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="px-4 py-2 text-red-600 hover:text-red-700 border border-red-300 hover:border-red-400 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-lg border-2 border-red-500/40 dark:border-red-500/30 bg-red-500/20 dark:bg-red-500/10 backdrop-blur-md text-red-600 dark:text-red-400 hover:bg-red-500/30 dark:hover:bg-red-500/20 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Trash2 className="h-4 w-4" />
                 {isDeleting ? "삭제 중..." : "삭제"}
@@ -267,8 +224,8 @@ export default function ChallengeDetailPage() {
 
         {/* Description */}
         <div className="card-aurora rounded-xl p-8 mb-6">
-          <h2 className="text-2xl font-bold mb-4">프로젝트 소개</h2>
-          <p className="whitespace-pre-wrap text-muted-foreground leading-relaxed">
+          <h2 className="text-2xl font-bold mb-4 text-foreground dark:text-white/90">프로젝트 소개</h2>
+          <p className="whitespace-pre-wrap text-muted-foreground dark:text-white leading-relaxed">
             {challenge.description}
           </p>
         </div>
@@ -277,10 +234,10 @@ export default function ChallengeDetailPage() {
         {challenge.codeSnippet && (
           <div className="card-aurora rounded-xl p-8 mb-6">
             <div className="flex items-center gap-2 mb-4">
-              <Code className="h-6 w-6 text-primary" />
-              <h2 className="text-2xl font-bold">코드</h2>
+              <Code className="h-6 w-6 text-foreground dark:text-white/90" />
+              <h2 className="text-2xl font-bold text-foreground dark:text-white/90">코드</h2>
             </div>
-            <pre className="whitespace-pre-wrap font-mono text-sm bg-secondary/50 p-6 rounded-md overflow-x-auto">
+            <pre className="whitespace-pre-wrap font-mono text-sm bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 p-6 rounded-md overflow-x-auto shadow-lg shadow-black/5 dark:shadow-black/15">
               {challenge.codeSnippet}
             </pre>
           </div>
@@ -290,10 +247,10 @@ export default function ChallengeDetailPage() {
         {challenge.ideaDetails && (
           <div className="card-aurora rounded-xl p-8 mb-6">
             <div className="flex items-center gap-2 mb-4">
-              <Lightbulb className="h-6 w-6 text-primary" />
-              <h2 className="text-2xl font-bold">아이디어 상세</h2>
+              <Lightbulb className="h-6 w-6 text-foreground dark:text-white/90" />
+              <h2 className="text-2xl font-bold text-foreground dark:text-white/90">아이디어 상세</h2>
             </div>
-            <p className="whitespace-pre-wrap text-muted-foreground leading-relaxed">
+            <p className="whitespace-pre-wrap text-muted-foreground dark:text-white leading-relaxed">
               {challenge.ideaDetails}
             </p>
           </div>
@@ -303,14 +260,14 @@ export default function ChallengeDetailPage() {
         {challenge.resumeUrl && (
           <div className="card-aurora rounded-xl p-8 mb-6">
             <div className="flex items-center gap-2 mb-4">
-              <FileText className="h-6 w-6 text-primary" />
-              <h2 className="text-2xl font-bold">이력서</h2>
+              <FileText className="h-6 w-6 text-foreground dark:text-white/90" />
+              <h2 className="text-2xl font-bold text-foreground dark:text-white/90">이력서</h2>
             </div>
             <a
               href={challenge.resumeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline flex items-center gap-2"
+              className="text-foreground dark:text-white hover:opacity-80 transition-colors flex items-center gap-2"
             >
               이력서 보기 →
             </a>
@@ -322,7 +279,7 @@ export default function ChallengeDetailPage() {
           {!showContact ? (
             <button
               onClick={() => setShowContact(true)}
-              className="btn-aurora w-full px-6 py-4 rounded-lg flex items-center justify-center gap-2 text-lg"
+              className="w-full px-6 py-4 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/60 dark:bg-white/10 backdrop-blur-md text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 flex items-center justify-center gap-2 text-lg font-semibold"
             >
               <Rocket className="h-6 w-6" />
               같이 도전하기
@@ -331,14 +288,14 @@ export default function ChallengeDetailPage() {
             <div className="space-y-4">
               {/* Contact Info */}
               <div>
-                <h3 className="text-xl font-bold mb-4">연락처</h3>
+                <h3 className="text-xl font-bold mb-4 text-foreground dark:text-white/90">연락처</h3>
                 <div className="flex gap-2">
-                  <div className="flex-1 px-4 py-3 bg-secondary rounded-lg font-mono">
+                  <div className="flex-1 px-4 py-3 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-lg font-mono shadow-lg shadow-black/5 dark:shadow-black/15">
                     {challenge.contactInfo}
                   </div>
                   <button
                     onClick={handleCopyContact}
-                    className="btn-aurora px-4 py-3 rounded-lg flex items-center gap-2"
+                    className="px-4 py-3 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/60 dark:bg-white/10 backdrop-blur-md text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 flex items-center gap-2"
                   >
                     {copied ? (
                       <>
@@ -357,18 +314,18 @@ export default function ChallengeDetailPage() {
 
               {/* A.DEAL SPACE Button */}
               {session && session.user?.id !== challenge.userId && (
-                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="pt-4 border-t border-foreground/20">
                   {joinRequestStatus === "approved" ? (
                     <button
                       onClick={handleGoToChatRoom}
-                      className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg flex items-center justify-center gap-2 text-lg font-semibold transition-all"
+                      className="w-full px-6 py-4 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/60 dark:bg-white/10 backdrop-blur-md text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 flex items-center justify-center gap-2 text-lg font-semibold"
                     >
                       <Users className="h-6 w-6" />
                       A.IDEAL SPACE로 이동
                     </button>
                   ) : joinRequestStatus === "pending" ? (
-                    <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                      <p className="text-yellow-700 dark:text-yellow-400 font-medium">
+                    <div className="text-center p-4 card-aurora rounded-lg">
+                      <p className="text-foreground font-medium">
                         참가 신청 승인 대기 중입니다
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
@@ -378,7 +335,7 @@ export default function ChallengeDetailPage() {
                   ) : (
                     <button
                       onClick={() => setShowJoinModal(true)}
-                      className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg flex items-center justify-center gap-2 text-lg font-semibold transition-all"
+                      className="w-full px-6 py-4 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/60 dark:bg-white/10 backdrop-blur-md text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 flex items-center justify-center gap-2 text-lg font-semibold"
                     >
                       <Users className="h-6 w-6" />
                       A.IDEAL SPACE 참가 신청
@@ -387,7 +344,7 @@ export default function ChallengeDetailPage() {
                 </div>
               )}
 
-              <p className="text-sm text-muted-foreground text-center">
+              <p className="text-sm text-muted-foreground dark:text-white/80 text-center">
                 {session && session.user?.id !== challenge.userId
                   ? "A.IDEAL SPACE에서 팀원들과 함께 아이디어를 실현해보세요!"
                   : "위 연락처로 연락하여 함께 도전을 시작해보세요!"}
@@ -398,81 +355,18 @@ export default function ChallengeDetailPage() {
 
         {/* Comments Section */}
         <div className="card-aurora rounded-xl p-8 mt-6">
-          <div className="flex items-center gap-2 mb-6">
-            <MessageCircle className="h-6 w-6 text-primary" />
-            <h2 className="text-2xl font-bold">댓글 ({comments.length})</h2>
-          </div>
-
-          {/* Comment Form */}
-          {session ? (
-            <form onSubmit={handleSubmitComment} className="mb-6">
-              <textarea
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="댓글을 입력하세요..."
-                className="input-aurora w-full px-4 py-3 rounded-lg resize-none"
-                rows={3}
-                disabled={isSubmittingComment}
-              />
-              <div className="flex justify-end mt-3">
-                <button
-                  type="submit"
-                  disabled={isSubmittingComment || !newComment.trim()}
-                  className="btn-aurora px-6 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Send className="h-4 w-4" />
-                  {isSubmittingComment ? "작성 중..." : "댓글 작성"}
-                </button>
-              </div>
-            </form>
-          ) : (
-            <div className="mb-6 p-4 bg-secondary rounded-lg text-center">
-              <p className="text-muted-foreground">
-                댓글을 작성하려면{" "}
-                <button
-                  onClick={() => router.push("/auth/signin?message=댓글을 작성하려면 로그인이 필요합니다")}
-                  className="text-primary hover:underline"
-                >
-                  로그인
-                </button>
-                이 필요합니다
-              </p>
-            </div>
-          )}
-
-          {/* Comments List */}
-          <div className="space-y-4">
-            {comments.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                첫 번째 댓글을 작성해보세요!
-              </p>
-            ) : (
-              comments.map((comment) => (
-                <div key={comment.id} className="p-4 bg-secondary/50 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{comment.author.name || "익명"}</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(comment.createdAt), {
-                        addSuffix: true,
-                        locale: ko,
-                      })}
-                    </span>
-                  </div>
-                  <p className="whitespace-pre-wrap text-muted-foreground">{comment.content}</p>
-                </div>
-              ))
-            )}
-          </div>
+          <CommentSection
+            resourceId={challenge.id}
+            resourceType="challenge"
+            resourceOwnerId={challenge.userId}
+          />
         </div>
 
         {/* Back Button */}
         <div className="mt-6">
           <button
             onClick={() => router.push("/challengers")}
-            className="px-6 py-3 border rounded-lg hover:bg-secondary transition-colors"
+            className="px-6 py-3 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/60 dark:bg-white/10 backdrop-blur-md text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15"
           >
             ← 목록으로
           </button>

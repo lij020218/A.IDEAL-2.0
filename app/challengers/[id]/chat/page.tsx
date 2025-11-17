@@ -244,10 +244,13 @@ export default function ChatRoomPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background relative">
+        {/* Global Background Effects */}
+        <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
+        <div className="fixed inset-0 hero-grain pointer-events-none"></div>
         <Header onToggleSidebar={toggleSidebar} />
         <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <div className="container mx-auto px-4 py-12 text-center">
+        <div className="container mx-auto px-4 py-12 text-center relative z-10">
           <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
           <p className="text-muted-foreground mt-4">로딩 중...</p>
         </div>
@@ -260,15 +263,18 @@ export default function ChatRoomPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Global Background Effects */}
+      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
+      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="container mx-auto px-4 py-8 max-w-6xl relative z-10">
         {/* Back Button */}
         <button
           onClick={() => router.push(`/challengers/${params.id}`)}
-          className="mb-4 flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+          className="mb-4 flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md text-foreground dark:text-white hover:bg-white/60 dark:hover:bg-white/10 transition-all shadow-lg shadow-black/8 dark:shadow-black/15"
         >
           <ArrowLeft className="h-4 w-4" />
           도전 상세로 돌아가기
@@ -277,10 +283,10 @@ export default function ChatRoomPage() {
         {/* Header */}
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <h1 className="text-3xl font-bold mb-2">
-              A.IDEAL SPACE: <span className="gradient-text">{challenge.title}</span>
+            <h1 className="text-3xl font-bold mb-2 text-foreground dark:text-white/90">
+              A.IDEAL SPACE: <span className="text-foreground dark:text-white/90">{challenge.title}</span>
             </h1>
-            <p className="text-muted-foreground">팀원들과 함께 아이디어를 실현해보세요</p>
+            <p className="text-muted-foreground dark:text-white/80">팀원들과 함께 아이디어를 실현해보세요</p>
           </div>
           <div className="flex gap-2">
             <button
@@ -304,29 +310,29 @@ export default function ChatRoomPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Members Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="card-aurora rounded-xl p-6 sticky top-24">
+          <div className="lg:col-span-1 flex">
+            <div className="card-aurora rounded-xl p-6 flex flex-col w-full" style={{ height: "70vh", minHeight: "500px" }}>
               <div className="flex items-center gap-2 mb-4">
                 <Users className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-bold">팀원 ({members.length})</h2>
+                <h2 className="text-lg font-bold text-foreground dark:text-white/90">팀원 ({members.length})</h2>
               </div>
-              <div className="space-y-3">
+              <div className="flex-1 overflow-y-auto space-y-3 mb-4">
                 {members.map((member) => (
-                  <div key={member.id} className="p-3 bg-secondary/50 rounded-lg">
+                  <div key={member.id} className="p-3 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-lg shadow-lg shadow-black/5 dark:shadow-black/15">
                     <div className="flex items-start gap-2">
-                      <UserCircle className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                      <UserCircle className="h-5 w-5 text-muted-foreground dark:text-white/80 flex-shrink-0 mt-0.5" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-medium text-sm truncate">
+                          <p className="font-medium text-sm truncate text-foreground dark:text-white/90">
                             {member.user.name || "익명"}
                           </p>
                           {member.isOwner && (
-                            <span className="px-1.5 py-0.5 bg-primary/20 text-primary text-xs rounded">
+                            <span className="px-1.5 py-0.5 bg-primary/20 text-primary text-xs rounded backdrop-blur-sm">
                               방장
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs text-muted-foreground dark:text-white/80 mt-1">
                           {member.role === "designer" ? "디자이너" :
                            member.role === "developer" ? "개발자" :
                            member.role === "pm" ? "기획자/PM" :
@@ -342,7 +348,7 @@ export default function ChatRoomPage() {
                            member.role === "mentor" ? "멘토/자문" :
                            member.role}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                        <p className="text-xs text-muted-foreground dark:text-white/80 mt-1 line-clamp-2">
                           {member.experience}
                         </p>
                       </div>
@@ -352,19 +358,19 @@ export default function ChatRoomPage() {
               </div>
 
               {/* GitHub Integration */}
-              <div className="mt-6 p-4 bg-secondary/50 rounded-lg">
+              <div className="p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-lg shadow-lg shadow-black/5 dark:shadow-black/15">
                 <div className="flex items-center gap-2 mb-3">
                   <Github className="h-5 w-5 text-primary" />
-                  <h3 className="text-sm font-bold">GitHub 연동</h3>
+                  <h3 className="text-sm font-bold text-foreground dark:text-white/90">GitHub 연동</h3>
                 </div>
-                <p className="text-xs text-muted-foreground mb-3">
+                <p className="text-xs text-muted-foreground dark:text-white/80 mb-3">
                   팀의 GitHub 저장소를 연결하여 커밋과 이슈를 추적하세요
                 </p>
-                <button className="w-full px-3 py-2 rounded-lg border border-border hover:bg-secondary transition-colors text-xs flex items-center justify-center gap-2">
+                <button className="w-full px-3 py-2 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md hover:bg-white/60 dark:hover:bg-white/10 transition-all text-xs flex items-center justify-center gap-2 shadow-lg shadow-black/8 dark:shadow-black/15">
                   <Github className="h-4 w-4" />
                   저장소 연결
                 </button>
-                <div className="mt-3 text-xs text-muted-foreground">
+                <div className="mt-3 text-xs text-muted-foreground dark:text-white/80">
                   <p className="opacity-60">연결된 저장소가 없습니다</p>
                 </div>
               </div>
@@ -372,8 +378,8 @@ export default function ChatRoomPage() {
           </div>
 
           {/* Chat Area */}
-          <div className="lg:col-span-3">
-            <div className="card-aurora rounded-xl p-6 flex flex-col" style={{ height: "70vh", minHeight: "500px" }}>
+          <div className="lg:col-span-3 flex">
+            <div className="card-aurora rounded-xl p-6 flex flex-col w-full" style={{ height: "70vh", minHeight: "500px" }}>
               {/* Messages */}
               <div className="flex-1 overflow-y-auto mb-4 space-y-4">
                 {messages.length === 0 ? (
@@ -391,18 +397,18 @@ export default function ChatRoomPage() {
                         <div
                           className={`max-w-[70%] rounded-lg p-4 cursor-pointer ${
                             isOwnMessage
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-secondary"
+                              ? "bg-white/60 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 text-foreground shadow-lg shadow-black/5 dark:shadow-black/15"
+                              : "bg-white/40 dark:bg-white/5 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-md shadow-black/5 dark:shadow-black/10"
                           }`}
                           onContextMenu={(e) => handleRightClick(e, message.id, message.content)}
                         >
                           {!isOwnMessage && (
-                            <p className="text-xs font-semibold mb-1 opacity-70">
+                            <p className="text-xs font-semibold mb-1 opacity-70 dark:text-white/80">
                               {message.user.name || message.user.email}
                             </p>
                           )}
                           {message.content && (
-                            <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                            <p className="whitespace-pre-wrap text-sm text-foreground dark:text-white">{message.content}</p>
                           )}
                           {message.fileUrl && (
                             <div className="mt-2">
@@ -428,11 +434,11 @@ export default function ChatRoomPage() {
                                   href={message.fileUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className={`flex items-center gap-2 p-3 rounded-lg border ${
+                                  className={`flex items-center gap-2 p-3 rounded-lg border border-white/40 dark:border-white/20 ${
                                     isOwnMessage
-                                      ? "border-primary-foreground/20 hover:bg-primary-foreground/10"
-                                      : "border-border hover:bg-secondary"
-                                  } transition-colors`}
+                                      ? "bg-white/40 dark:bg-white/5 backdrop-blur-sm hover:bg-white/50 dark:hover:bg-white/10"
+                                      : "bg-white/30 dark:bg-white/5 backdrop-blur-sm hover:bg-white/40 dark:hover:bg-white/10"
+                                  } transition-all`}
                                 >
                                   <File className="h-5 w-5 flex-shrink-0" />
                                   <div className="flex-1 min-w-0">
@@ -465,7 +471,7 @@ export default function ChatRoomPage() {
               <div className="space-y-2">
                 {/* File Preview */}
                 {selectedFile && (
-                  <div className="flex items-center gap-2 p-3 bg-secondary rounded-lg">
+                  <div className="flex items-center gap-2 p-3 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-lg shadow-lg shadow-black/5 dark:shadow-black/15">
                     {selectedFile.type.startsWith("image/") ? (
                       <FileImage className="h-5 w-5 text-primary" />
                     ) : (
@@ -503,13 +509,13 @@ export default function ChatRoomPage() {
                         setShowPlusMenu(!showPlusMenu);
                       }}
                       disabled={isSending || isUploading}
-                      className="h-[52px] px-3 rounded-lg border border-border hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                      className="h-[52px] px-3 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md hover:bg-white/60 dark:hover:bg-white/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-black/8 dark:shadow-black/15"
                       title="추가 옵션"
                     >
                       <Plus className="h-5 w-5" />
                     </button>
                     {showPlusMenu && (
-                      <div className="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-10">
+                      <div className="absolute bottom-full left-0 mb-2 bg-white/80 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-lg shadow-xl shadow-black/10 dark:shadow-black/30 overflow-hidden z-10">
                         <button
                           type="button"
                           onClick={(e) => {
@@ -517,7 +523,7 @@ export default function ChatRoomPage() {
                             fileInputRef.current?.click();
                             setShowPlusMenu(false);
                           }}
-                          className="w-full px-4 py-3 hover:bg-secondary transition-colors flex items-center gap-2 text-left whitespace-nowrap"
+                          className="w-full px-4 py-3 hover:bg-white/60 dark:hover:bg-white/20 transition-colors flex items-center gap-2 text-left whitespace-nowrap"
                         >
                           <Paperclip className="h-4 w-4" />
                           파일 첨부
@@ -529,7 +535,7 @@ export default function ChatRoomPage() {
                             setShowWhiteboard(true);
                             setShowPlusMenu(false);
                           }}
-                          className="w-full px-4 py-3 hover:bg-secondary transition-colors flex items-center gap-2 text-left whitespace-nowrap"
+                          className="w-full px-4 py-3 hover:bg-white/60 dark:hover:bg-white/20 transition-colors flex items-center gap-2 text-left whitespace-nowrap"
                         >
                           <Square className="h-4 w-4" />
                           화이트보드
@@ -553,7 +559,7 @@ export default function ChatRoomPage() {
                   <button
                     type="submit"
                     disabled={isSending || isUploading || (!newMessage.trim() && !selectedFile)}
-                    className="btn-aurora h-[52px] px-6 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="h-[52px] px-6 rounded-lg flex items-center justify-center gap-2 border-2 border-white/40 dark:border-white/20 bg-white/60 dark:bg-white/10 backdrop-blur-md text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSending || isUploading ? (
                       <>
@@ -574,12 +580,12 @@ export default function ChatRoomPage() {
       {/* Context Menu */}
       {contextMenu && (
         <div
-          className="fixed bg-card border border-border rounded-lg shadow-lg py-1 z-50"
+          className="fixed bg-white/80 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-lg shadow-xl shadow-black/10 dark:shadow-black/30 py-1 z-50"
           style={{ top: contextMenu.y, left: contextMenu.x }}
         >
           <button
             onClick={handleAddToWhiteboard}
-            className="w-full px-4 py-2 hover:bg-secondary transition-colors flex items-center gap-2 text-left"
+            className="w-full px-4 py-2 hover:bg-white/60 dark:hover:bg-white/20 transition-colors flex items-center gap-2 text-left"
           >
             <Square className="h-4 w-4" />
             화이트보드에 추가

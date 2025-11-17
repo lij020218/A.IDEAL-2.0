@@ -28,21 +28,21 @@
 
   .dark {
     --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --foreground: 0 0% 100%;
     --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card-foreground: 0 0% 100%;
     --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover-foreground: 0 0% 100%;
     --primary: 262 83% 65%;
     --primary-foreground: 0 0% 100%;
     --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary-foreground: 0 0% 100%;
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted-foreground: 0 0% 90%;
     --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 262 83% 65%;
@@ -55,23 +55,117 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Base background - gradient-bg와 hero-grain이 오버레이로 적용됨 */
+    background: hsl(var(--background));
+    background-attachment: fixed;
+  }
+
+  .dark body {
+    background: hsl(var(--background));
+    background-attachment: fixed;
+    box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.5);
   }
 }
 
 @layer utilities {
   .gradient-bg {
-    background: linear-gradient(135deg, #e0f2fe 0%, #ddd6fe 25%, #fae8ff 50%, #ede9fe 75%, #e0f2fe 100%);
-    background-size: 300% 300%;
-    animation: aurora 20s ease infinite;
+    background: radial-gradient(1400px 700px at 10% 15%, rgba(173, 216, 230, 0.42), transparent 65%),   /* pastel blue */
+                radial-gradient(1400px 700px at 90% 20%, rgba(221, 160, 221, 0.42), transparent 65%), /* pastel purple */
+                radial-gradient(1400px 700px at 50% 90%, rgba(255, 218, 185, 0.50), transparent 65%);   /* pastel peach */
+  }
+
+  .dark .gradient-bg {
+    background:
+      radial-gradient(1200px 600px at 18% 18%, rgba(0, 255, 200, 0.25), transparent 65%),
+      radial-gradient(1100px 550px at 82% 22%, rgba(255, 0, 153, 0.25), transparent 65%),
+      radial-gradient(1100px 600px at 50% 88%, rgba(0, 150, 255, 0.25), transparent 65%);
+    opacity: 0.60;
+  }
+
+  /* Apricot linear gradient for sections (no grain) */
+  .apricot-section {
+    background: linear-gradient(180deg, #FFF7ED 0%, #FFE7D8 40%, #FFD9C7 100%);
+  }
+
+  /* Lavender linear gradient for sections (no grain) */
+  .lavender-section {
+    background: linear-gradient(180deg, #F5F3FF 0%, #EDE9FE 45%, #E9D5FF 100%);
+  }
+
+  /* Subtle section haze overlay (no grain, very light pastels) */
+  .section-haze {
+    pointer-events: none;
+    background-image:
+      radial-gradient(1100px 600px at 12% 18%, rgba(173, 216, 230, 0.44), transparent 62%),   /* pastel blue */
+      radial-gradient(1100px 600px at 88% 22%, rgba(221, 160, 221, 0.44), transparent 62%),  /* pastel purple */
+      radial-gradient(1100px 600px at 50% 88%, rgba(255, 218, 185, 0.52), transparent 62%);  /* pastel peach */
+    opacity: 1;
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.85) 12%, rgba(0,0,0,0.85) 88%, rgba(0,0,0,0.02) 100%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.85) 12%, rgba(0,0,0,0.85) 88%, rgba(0,0,0,0.02) 100%);
+  }
+
+  .dark .section-haze {
+    background-image:
+      radial-gradient(1100px 600px at 12% 18%, rgba(0, 255, 200, 0.25), transparent 62%),
+      radial-gradient(1100px 600px at 88% 22%, rgba(255, 0, 153, 0.22), transparent 62%),
+      radial-gradient(1100px 600px at 50% 88%, rgba(0, 150, 255, 0.22), transparent 62%);
+    opacity: 0.70;
+  }
+
+  /* Stronger section haze for pages that need more color presence */
+  .section-haze-strong {
+    pointer-events: none;
+    background-image:
+      radial-gradient(1100px 600px at 12% 18%, rgba(173, 216, 230, 0.56), transparent 62%),   /* pastel blue */
+      radial-gradient(1100px 600px at 88% 22%, rgba(221, 160, 221, 0.56), transparent 62%),  /* pastel purple */
+      radial-gradient(1100px 600px at 50% 88%, rgba(255, 218, 185, 0.64), transparent 62%);  /* pastel peach */
+    opacity: 1;
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 10%, rgba(0,0,0,0.85) 20%, rgba(0,0,0,0.85) 80%, rgba(0,0,0,0.5) 90%, rgba(0,0,0,0.2) 100%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 10%, rgba(0,0,0,0.85) 20%, rgba(0,0,0,0.85) 80%, rgba(0,0,0,0.5) 90%, rgba(0,0,0,0.2) 100%);
+  }
+
+  .dark .section-haze-strong {
+    background-image:
+      radial-gradient(1100px 600px at 12% 18%, rgba(0, 255, 200, 0.35), transparent 62%),
+      radial-gradient(1100px 600px at 88% 22%, rgba(255, 0, 153, 0.32), transparent 62%),
+      radial-gradient(1100px 600px at 50% 88%, rgba(0, 150, 255, 0.32), transparent 62%);
+    opacity: 0.75;
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 10%, rgba(0,0,0,0.85) 20%, rgba(0,0,0,0.85) 80%, rgba(0,0,0,0.5) 90%, rgba(0,0,0,0.2) 100%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 10%, rgba(0,0,0,0.85) 20%, rgba(0,0,0,0.85) 80%, rgba(0,0,0,0.5) 90%, rgba(0,0,0,0.2) 100%);
+  }
+
+  /* Subtle grainy color haze for hero backdrop (Framer-style reference, A.IDEAL palette) */
+  .hero-grain {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(600px 380px at 18% 22%, rgba(221, 160, 221, 0.50) 0%, rgba(221, 160, 221, 0) 65%), /* pastel purple */
+      radial-gradient(700px 400px at 82% 28%, rgba(173, 216, 230, 0.46) 0%, rgba(173, 216, 230, 0) 70%),  /* pastel blue */
+      radial-gradient(800px 480px at 50% 88%, rgba(255, 218, 185, 0.42) 0%, rgba(255, 218, 185, 0) 70%),  /* pastel peach */
+      /* faux grain via tiny repeating dots */
+      radial-gradient(circle at 25% 30%, rgba(255,255,255,0.02) 0 1px, transparent 1px 6px),
+      radial-gradient(circle at 75% 60%, rgba(0,0,0,0.02) 0 1px, transparent 1px 6px);
+    background-blend-mode: screen, screen, screen, normal, normal;
+    opacity: 0.95;
+  }
+
+  .dark .hero-grain {
+    background-image:
+      radial-gradient(600px 380px at 18% 22%, rgba(0, 255, 200, 0.30) 0%, rgba(0, 255, 200, 0) 65%),
+      radial-gradient(700px 400px at 82% 28%, rgba(255, 0, 153, 0.28) 0%, rgba(255, 0, 153, 0) 70%),
+      radial-gradient(800px 480px at 50% 88%, rgba(0, 150, 255, 0.28) 0%, rgba(0, 150, 255, 0) 70%),
+      radial-gradient(circle at 25% 30%, rgba(255,255,255,0.03) 0 1px, transparent 1px 6px),
+      radial-gradient(circle at 75% 60%, rgba(0,0,0,0.05) 0 1px, transparent 1px 6px);
+    opacity: 0.60;
   }
 
   .gradient-text {
-    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #a78bfa);
-    background-size: 200% 200%;
+    background: linear-gradient(90deg, #6d28d9, #7c3aed);
+    background-size: 150% 150%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    animation: aurora 8s ease infinite;
     display: inline-block;
   }
 
@@ -80,6 +174,29 @@
     background: linear-gradient(90deg, #00c6ff, #667eea, #764ba2, #f093fb, #00c6ff);
     background-size: 400% 400%;
     animation: aurora 6s ease infinite;
+  }
+
+  /* Pastel aurora glow overlay for interactive cards */
+  .aurora-hover {
+    position: absolute;
+    inset: -2px;
+    border-radius: 20px;
+    background-image:
+      radial-gradient(120px 80px at 10% 0%, rgba(59, 130, 246, 0.55), transparent 60%),
+      radial-gradient(140px 90px at 90% 0%, rgba(167, 139, 250, 0.55), transparent 60%),
+      radial-gradient(220px 140px at 50% 120%, rgba(253, 186, 116, 0.55), transparent 65%);
+    opacity: 0;
+    filter: blur(10px);
+    transition: opacity 0.18s ease-out, transform 0.18s ease-out;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+
+  .group:hover .aurora-hover,
+  .group:focus-visible .aurora-hover,
+  .group:active .aurora-hover {
+    opacity: 1;
+    transform: scale(1.01);
   }
 
   .aurora-glow {
@@ -95,50 +212,213 @@
   }
 
   .card-aurora {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.98) 100%);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(167, 139, 250, 0.15);
-    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.5) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    border-radius: 16px !important;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+    transition:
+      transform 140ms ease,
+      box-shadow 140ms ease,
+      border-color 140ms ease,
+      background-color 140ms ease !important;
+    position: relative !important;
+    isolation: isolate !important;
   }
 
+  /* 큰 카드 컨테이너 (호버 효과 없음) */
+  .card-container {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  .dark .card-container {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+
   .card-aurora:hover {
-    border-color: rgba(167, 139, 250, 0.3);
-    box-shadow: 0 8px 32px rgba(167, 139, 250, 0.12),
-                0 4px 16px rgba(240, 147, 251, 0.1),
-                0 0 0 1px rgba(167, 139, 250, 0.08);
-    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.75) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.15),
+      0 0 0 1px rgba(200, 181, 255, 0.3),
+      0 0 20px rgba(147, 197, 253, 0.2),
+      0 0 30px rgba(196, 181, 253, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+    transform: translateY(-1px);
+  }
+
+  .dark .card-aurora {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    color: hsl(var(--foreground));
+  }
+
+  .dark .card-aurora:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      0 0 20px rgba(0, 255, 200, 0.2),
+      0 0 30px rgba(255, 0, 153, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+    transform: translateY(-1px);
+  }
+
+  /* Text accent colors for cards */
+  .text-lavender {
+    color: rgba(221, 160, 221, 0.9);
+  }
+
+  .text-apricot {
+    color: rgba(255, 183, 77, 0.9);
+  }
+
+  .text-neon-blue {
+    color: rgba(147, 197, 253, 0.9);
+  }
+
+  /* AI Provider Icon Colors */
+  .ai-icon-claude {
+    color: rgba(255, 183, 77, 1); /* 연한 주황 */
+  }
+
+  .ai-icon-gpt {
+    color: rgba(156, 163, 175, 1); /* 회색 (흰 배경에서 보이도록) */
+  }
+
+  .ai-icon-grok {
+    color: rgba(0, 0, 0, 1); /* 검정 */
+  }
+
+  .ai-icon-midjourney {
+    color: #ff006e; /* 네온 빨강 */
+  }
+
+  .ai-icon-gemini {
+    color: #00d4ff; /* 네온 블루 */
+  }
+
+  .ai-icon-sora {
+    color: #00bcd4; /* 소라색 (turquoise) */
+  }
+
+  .text-accent-gradient {
+    background: linear-gradient(135deg, rgba(221, 160, 221, 0.9) 0%, rgba(147, 197, 253, 0.9) 50%, rgba(255, 183, 77, 0.9) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: inline-block;
+  }
+
+  /* Pastel aurora halo when wrapping cards (used e.g. on prompts list) */
+  .aurora-hover {
+    position: relative;
+    z-index: 0;
+  }
+
+  .aurora-hover::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.28), transparent 55%),
+      radial-gradient(circle at 100% 0%, rgba(167, 139, 250, 0.28), transparent 55%),
+      radial-gradient(circle at 50% 100%, rgba(253, 186, 116, 0.28), transparent 60%);
+    opacity: 0;
+    filter: blur(18px);
+    transition: opacity 160ms ease, filter 200ms ease;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .aurora-hover:hover::before,
+  .aurora-hover:focus-within::before {
+    opacity: 1;
+    filter: blur(12px);
   }
 
   .input-aurora {
-    background: rgba(255, 255, 255, 0.95);
-    border: 2px solid rgba(102, 126, 234, 0.2);
-    transition: all 0.4s ease;
+    background: hsl(var(--card));
+    border: 1.5px solid hsl(var(--border));
+    border-radius: 8px;
+    transition: box-shadow 160ms ease, border-color 160ms ease, background-color 160ms ease;
   }
 
   .input-aurora:focus {
     outline: none;
-    border-color: rgba(118, 75, 162, 0.3);
-    background: rgba(255, 255, 255, 1);
-    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.1),
-                0 0 20px rgba(167, 139, 250, 0.15),
-                0 0 40px rgba(240, 147, 251, 0.1);
+    border-color: hsl(var(--border));
+    box-shadow: none;
+  }
+
+  .dark .input-aurora {
+    background: rgba(17, 24, 39, 0.7);
+    border-color: hsla(var(--foreground), 0.22);
+    color: hsl(var(--foreground));
+  }
+
+  .dark .input-aurora::placeholder {
+    color: hsla(var(--foreground), 0.5);
+  }
+
+  .dark .input-aurora:focus {
+    border-color: hsla(var(--foreground), 0.18);
+    box-shadow: none;
   }
 
   .btn-aurora {
-    background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
-    background-size: 200% 200%;
-    animation: aurora 8s ease infinite;
-    transition: all 0.3s ease;
-    border: none;
-    color: white !important;
-    font-weight: 500;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: hsl(var(--foreground)) !important;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 9999px;
+    padding: 0.875rem 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    transition: all 200ms ease;
   }
 
   .btn-aurora:hover:not(:disabled) {
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4),
-                0 4px 15px rgba(118, 75, 162, 0.3),
-                0 2px 10px rgba(240, 147, 251, 0.2);
-    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.6);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    transform: translateY(-1px);
+  }
+
+  .dark .btn-aurora {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .dark .btn-aurora:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
   }
 
   .btn-aurora:disabled {
@@ -148,8 +428,47 @@
 
   /* 버튼 내부 요소들도 흰색으로 */
   .btn-aurora * {
-    color: white !important;
+    color: inherit !important;
   }
+
+  /* Continue button */
+  .btn-continue {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: hsl(var(--foreground));
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 9999px;
+    padding: 0.875rem 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    transition: all 200ms ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  .btn-continue:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.6);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  }
+
+  .btn-continue:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+.dark .btn-continue {
+  background: rgba(255, 255, 255, 0.1);
+  color: hsl(var(--foreground));
+  border-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .btn-continue:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.18);
+  color: hsl(var(--background));
+}
 
   @keyframes aurora {
     0% {
@@ -176,5 +495,52 @@
       opacity: 1;
       transform: translateY(0);
     }
+  }
+
+  /* Sidebar scrollbar styling */
+  .sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.25);
+  }
+
+  /* Dark mode scrollbar */
+  .dark .sidebar-scroll {
+    scrollbar-color: rgba(64, 248, 255, 0.3) rgba(0, 0, 0, 0.2);
+  }
+
+  .dark .sidebar-scroll::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+  }
+
+  .dark .sidebar-scroll::-webkit-scrollbar-thumb {
+    background: rgba(64, 248, 255, 0.2);
+    box-shadow: 0 0 8px rgba(64, 248, 255, 0.3);
+    border: 2px solid rgba(0, 0, 0, 0.2);
+  }
+
+  .dark .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(64, 248, 255, 0.35);
+    box-shadow: 0 0 12px rgba(64, 248, 255, 0.5);
+    border: 2px solid rgba(0, 0, 0, 0.3);
   }
 }

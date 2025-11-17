@@ -8,6 +8,7 @@ import LeftSidebar from "@/components/LeftSidebar";
 import { Send, Loader2, Sparkles, ArrowLeft, Copy, Check, Save } from "lucide-react";
 import { aiTools } from "@/lib/data/ai-tools";
 import { GeneratedPrompt } from "@/types";
+import { AIProviderBadge, isAIProvider, AI_PROVIDER_LABELS } from "@/components/AIProviderBadge";
 
 interface SavedPrompt {
   id: string;
@@ -16,6 +17,8 @@ interface SavedPrompt {
   recommendedTools: string[];
   tips: string[];
   createdAt: string;
+  aiProvider?: string | null;
+  aiModel?: string | null;
 }
 
 interface Message {
@@ -174,6 +177,8 @@ export default function RefinePromptPage() {
           recommendedTools: refinedPrompt.recommendedTools,
           tips: refinedPrompt.tips,
           parentId: prompt.id, // Link to parent prompt
+          aiProvider: refinedPrompt.aiProvider ?? prompt.aiProvider ?? null,
+          aiModel: refinedPrompt.aiModel ?? prompt.aiModel ?? null,
         }),
       });
 
@@ -212,6 +217,10 @@ export default function RefinePromptPage() {
   const recommendedToolsData = refinedPrompt?.recommendedTools
     .map((toolId) => aiTools.find((t) => t.id === toolId))
     .filter(Boolean);
+  const refinedProvider = refinedPrompt?.aiProvider && isAIProvider(refinedPrompt.aiProvider)
+    ? refinedPrompt.aiProvider
+    : null;
+  const refinedProviderLabel = refinedProvider ? AI_PROVIDER_LABELS[refinedProvider] : null;
 
   if (isLoading) {
     return (
@@ -228,6 +237,9 @@ export default function RefinePromptPage() {
   if (!prompt) {
     return null;
   }
+
+  const originalProvider = prompt.aiProvider && isAIProvider(prompt.aiProvider) ? prompt.aiProvider : null;
+  const originalProviderLabel = originalProvider ? AI_PROVIDER_LABELS[originalProvider] : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -254,7 +266,20 @@ export default function RefinePromptPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Panel - Existing Prompt (Collapsible) */}
             <div className="card-aurora rounded-xl p-6 max-h-[400px] overflow-y-auto">
-              <h2 className="text-xl font-bold mb-4 sticky top-0 bg-card z-10 pb-2">기존 프롬프트</h2>
+              <div className="sticky top-0 bg-card z-10 pb-2 mb-4 space-y-2">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-xl font-bold">기존 프롬프트</h2>
+                  {originalProvider && (
+                    <AIProviderBadge provider={originalProvider} model={prompt.aiModel || undefined} size="sm" />
+                  )}
+                </div>
+                {originalProviderLabel && (
+                  <p className="text-sm text-muted-foreground">
+                    {originalProviderLabel}
+                    {prompt.aiModel ? ` · ${prompt.aiModel}` : ""} 모델이 생성했습니다.
+                  </p>
+                )}
+              </div>
               <pre className="whitespace-pre-wrap font-mono text-sm bg-secondary/50 p-4 rounded-md">
                 {prompt.prompt}
               </pre>
@@ -340,8 +365,25 @@ export default function RefinePromptPage() {
           <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
             {/* Generated Prompt */}
             <div className="bg-card border rounded-lg p-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold">개선된 프롬프트</h2>
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-2xl font-bold">개선된 프롬프트</h2>
+                    {refinedProvider && (
+                      <AIProviderBadge
+                        provider={refinedProvider}
+                        model={refinedPrompt.aiModel || undefined}
+                        size="sm"
+                      />
+                    )}
+                  </div>
+                  {refinedProviderLabel && (
+                    <p className="text-sm text-muted-foreground">
+                      {refinedProviderLabel}
+                      {refinedPrompt.aiModel ? ` · ${refinedPrompt.aiModel}` : ""} 모델이 생성했습니다.
+                    </p>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <button
                     onClick={handleSavePrompt}

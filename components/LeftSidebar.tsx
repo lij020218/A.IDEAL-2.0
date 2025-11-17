@@ -1,11 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { FileText, Loader2, Plus, ChevronDown, ChevronRight, Folder, FolderOpen, MessageSquare, Users } from "lucide-react";
+import {
+  FileText,
+  Loader2,
+  Plus,
+  ChevronDown,
+  ChevronRight,
+  Folder,
+  FolderOpen,
+  MessageSquare,
+  Users,
+  CreditCard,
+  Settings,
+  ChevronUp,
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { ko } from "date-fns/locale";
+import { ko, enUS } from "date-fns/locale";
 import Link from "next/link";
+import { AIProviderBadge, isAIProvider } from "@/components/AIProviderBadge";
+import { useLanguage } from "@/lib/language-context";
+import SettingsModal from "@/components/SettingsModal";
 
 interface RefinementSummary {
   id: string;
@@ -21,6 +37,8 @@ interface SavedPrompt {
   tips: string[];
   createdAt: string;
   parentId: string | null;
+  aiProvider?: string | null;
+  aiModel?: string | null;
   refinements?: RefinementSummary[];
 }
 
@@ -42,6 +60,7 @@ interface LeftSidebarProps {
 
 export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSidebarProps) {
   const { data: session } = useSession();
+  const { translate, language } = useLanguage();
   const [prompts, setPrompts] = useState<SavedPrompt[]>([]);
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -49,6 +68,9 @@ export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSid
   const [isPromptsExpanded, setIsPromptsExpanded] = useState(true);
   const [isChatRoomsExpanded, setIsChatRoomsExpanded] = useState(true);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const [showFooterMenu, setShowFooterMenu] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const footerMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (session) {
@@ -102,6 +124,16 @@ export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSid
   // Filter to only show parent prompts (prompts without a parentId)
   const parentPrompts = prompts.filter((p) => !p.parentId);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (footerMenuRef.current && !footerMenuRef.current.contains(event.target as Node)) {
+        setShowFooterMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   if (!session) {
     return null;
   }
@@ -118,45 +150,45 @@ export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSid
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-16 left-0 h-[calc(100vh-4rem)] w-80 bg-background border-r border-border transition-transform duration-300 z-40 flex flex-col
+        className={`fixed top-16 left-0 h-[calc(100vh-4rem)] w-80 bg-white/50 dark:bg-white/5 backdrop-blur-md border-r border-white/40 dark:border-white/20 transition-transform duration-300 z-40 flex flex-col shadow-xl shadow-black/10 dark:shadow-black/30
           ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         {/* Action Buttons */}
-        <div className="p-4 border-b border-border space-y-3">
+        <div className="p-4 border-b border-white/40 dark:border-white/20 space-y-3">
           <Link
             href="/generate"
-            className="btn-aurora w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold transition-all hover:shadow-lg"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold border-2 border-white/40 dark:border-white/20 bg-white/60 dark:bg-white/10 backdrop-blur-md hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15"
             onClick={onClose}
           >
             <Plus className="h-5 w-5" />
-            새 프롬프트 생성
+            {translate("새 프롬프트 생성")}
           </Link>
           <Link
             href="/prompts/new"
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium border-2 border-border hover:bg-secondary transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold border-2 border-white/40 dark:border-white/20 bg-white/60 dark:bg-white/10 backdrop-blur-md hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15"
             onClick={onClose}
           >
             <FileText className="h-5 w-5" />
-            프롬프트 등록
+            {translate("프롬프트 등록")}
           </Link>
         </div>
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sidebar-scroll">
           {/* Prompts Section */}
           <div className="mb-6">
             <button
               onClick={() => setIsPromptsExpanded(!isPromptsExpanded)}
-              className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-bold hover:bg-secondary rounded-lg transition-colors"
+            className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-bold hover:opacity-70 transition-opacity"
             >
               <div className="flex items-center gap-2">
                 {isPromptsExpanded ? (
-                  <ChevronDown className="h-4 w-4 text-primary" />
+                <ChevronDown className="h-4 w-4 text-foreground dark:text-[#40f8ff]" />
                 ) : (
-                  <ChevronRight className="h-4 w-4 text-primary" />
+                <ChevronRight className="h-4 w-4 text-foreground dark:text-[#40f8ff]" />
                 )}
-                <FileText className="h-4 w-4 text-primary" />
-                <span>프롬프트</span>
-                <span className="ml-1 px-1.5 py-0.5 bg-primary/10 text-primary text-xs rounded-full font-semibold">
+              <FileText className="h-4 w-4 text-foreground dark:text-[#40f8ff]" />
+                <span>{translate("프롬프트")}</span>
+              <span className="ml-1 px-1.5 py-0.5 text-foreground text-xs rounded-full font-semibold opacity-60">
                   {parentPrompts.length}
                 </span>
               </div>
@@ -166,17 +198,18 @@ export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSid
               <div className="mt-2 space-y-1">
                 {isLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    <Loader2 className="h-6 w-6 animate-spin text-foreground dark:text-[#40f8ff]" />
                   </div>
                 ) : parentPrompts.length === 0 ? (
                   <div className="px-3 py-8 text-center text-sm text-muted-foreground">
                     <FileText className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                    <p>저장된 프롬프트가 없습니다</p>
+                    <p>{translate("저장된 프롬프트가 없습니다")}</p>
                   </div>
                 ) : (
                   parentPrompts.map((prompt) => {
                     const hasRefinements = prompt.refinements && prompt.refinements.length > 0;
                     const isExpanded = expandedFolders.has(prompt.id);
+                    const provider = prompt.aiProvider && isAIProvider(prompt.aiProvider) ? prompt.aiProvider : null;
 
                     return (
                       <div key={prompt.id}>
@@ -189,7 +222,7 @@ export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSid
                                 e.preventDefault();
                                 toggleFolder(prompt.id);
                               }}
-                              className="p-1 hover:bg-secondary rounded transition-colors"
+                              className="p-1 hover:opacity-70 transition-opacity"
                             >
                               {isExpanded ? (
                                 <ChevronDown className="h-3 w-3 text-muted-foreground" />
@@ -203,31 +236,38 @@ export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSid
                           <Link
                             href={`/prompt/${prompt.id}`}
                             onClick={onClose}
-                            className="flex-1 block w-full text-left px-3 py-2.5 rounded-lg hover:bg-secondary transition-colors group"
+                            className="flex-1 block w-full text-left px-3 py-2.5 rounded-lg hover:opacity-70 transition-opacity group"
                           >
                             <div className="flex items-start gap-3">
                               {hasRefinements ? (
                                 isExpanded ? (
-                                  <FolderOpen className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                                  <FolderOpen className="h-4 w-4 text-foreground dark:text-[#40f8ff] flex-shrink-0 mt-0.5" />
                                 ) : (
-                                  <Folder className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                                  <Folder className="h-4 w-4 text-foreground dark:text-[#40f8ff] flex-shrink-0 mt-0.5" />
                                 )
                               ) : (
                                 <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                               )}
                               <div className="flex-1 min-w-0">
-                                <h4 className="text-sm font-medium truncate mb-0.5">
-                                  {prompt.topic}
+                                <div className="flex items-center gap-2 mb-0.5">
+                                  <h4 className="text-sm font-medium truncate flex-1 min-w-0">
+                                    {prompt.topic}
+                                  </h4>
                                   {hasRefinements && (
-                                    <span className="ml-2 px-1.5 py-0.5 bg-primary/10 text-primary text-xs rounded-full font-semibold">
+                                    <span className="px-1.5 py-0.5 text-foreground text-xs rounded-full font-semibold opacity-60 flex-shrink-0">
                                       {prompt.refinements.length}
                                     </span>
                                   )}
-                                </h4>
-                                <p className="text-xs text-muted-foreground">
+                                  {provider && (
+                                    <div className="flex-shrink-0">
+                                      <AIProviderBadge provider={provider} model={prompt.aiModel || undefined} size="sm" />
+                                    </div>
+                                  )}
+                                </div>
+                                <p className="text-xs text-muted-foreground truncate">
                                   {formatDistanceToNow(new Date(prompt.createdAt), {
                                     addSuffix: true,
-                                    locale: ko,
+                                    locale: language === "ko" ? ko : enUS,
                                   })}
                                 </p>
                               </div>
@@ -237,13 +277,13 @@ export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSid
 
                         {/* Child Refinements */}
                         {hasRefinements && isExpanded && (
-                          <div className="ml-6 mt-1 space-y-1 border-l-2 border-border pl-2">
+                          <div className="ml-6 mt-1 space-y-1 border-l-2 border-border/30 dark:border-white/20 pl-2">
                             {prompt.refinements.map((refinement) => (
                               <Link
                                 key={refinement.id}
                                 href={`/prompt/${refinement.id}`}
                                 onClick={onClose}
-                                className="block w-full text-left px-3 py-2 rounded-lg hover:bg-secondary transition-colors group"
+                                className="block w-full text-left px-3 py-2 rounded-lg hover:opacity-70 transition-opacity group"
                               >
                                 <div className="flex items-start gap-3">
                                   <FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0 mt-0.5" />
@@ -251,11 +291,11 @@ export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSid
                                     <h4 className="text-sm font-medium truncate mb-0.5 opacity-90">
                                       {refinement.topic}
                                     </h4>
-                                    <p className="text-xs text-muted-foreground">
-                                      {formatDistanceToNow(new Date(refinement.createdAt), {
-                                        addSuffix: true,
-                                        locale: ko,
-                                      })}
+                                    <p className="text-xs text-muted-foreground truncate">
+                                    {formatDistanceToNow(new Date(refinement.createdAt), {
+                                      addSuffix: true,
+                                      locale: language === "ko" ? ko : enUS,
+                                    })}
                                     </p>
                                   </div>
                                 </div>
@@ -275,17 +315,17 @@ export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSid
           <div className="mb-6">
             <button
               onClick={() => setIsChatRoomsExpanded(!isChatRoomsExpanded)}
-              className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-bold hover:bg-secondary rounded-lg transition-colors"
+              className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-bold hover:opacity-70 transition-opacity"
             >
               <div className="flex items-center gap-2">
                 {isChatRoomsExpanded ? (
-                  <ChevronDown className="h-4 w-4 text-primary" />
+                <ChevronDown className="h-4 w-4 text-foreground dark:text-[#40f8ff]" />
                 ) : (
-                  <ChevronRight className="h-4 w-4 text-primary" />
+                <ChevronRight className="h-4 w-4 text-foreground dark:text-[#40f8ff]" />
                 )}
-                <MessageSquare className="h-4 w-4 text-primary" />
-                <span>A.IDEAL SPACE</span>
-                <span className="ml-1 px-1.5 py-0.5 bg-primary/10 text-primary text-xs rounded-full font-semibold">
+              <MessageSquare className="h-4 w-4 text-foreground dark:text-[#40f8ff]" />
+                <span>{translate("A.IDEAL SPACE")}</span>
+              <span className="ml-1 px-1.5 py-0.5 text-foreground text-xs rounded-full font-semibold opacity-60">
                   {chatRooms.length}
                 </span>
               </div>
@@ -295,12 +335,12 @@ export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSid
               <div className="mt-2 space-y-2">
                 {isChatRoomsLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    <Loader2 className="h-6 w-6 animate-spin text-foreground dark:text-[#40f8ff]" />
                   </div>
                 ) : chatRooms.length === 0 ? (
                   <div className="px-3 py-8 text-center text-sm text-muted-foreground">
                     <MessageSquare className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                    <p>참여 중인 채팅방이 없습니다</p>
+                    <p>{translate("참여 중인 채팅방이 없습니다")}</p>
                   </div>
                 ) : (
                   chatRooms.map((room) => (
@@ -308,11 +348,11 @@ export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSid
                       key={room.id}
                       href={`/challengers/${room.challengeId}/chat`}
                       onClick={onClose}
-                      className="block w-full text-left px-3 py-3 rounded-lg hover:bg-secondary border border-transparent hover:border-border transition-all group"
+                      className="block w-full text-left px-3 py-3 rounded-lg hover:opacity-70 transition-opacity group"
                     >
                       <div className="flex items-start gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
-                          <Users className="h-5 w-5 text-white" />
+                        <div className="h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Users className="h-5 w-5 text-foreground dark:text-[#40f8ff]" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
@@ -320,8 +360,8 @@ export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSid
                               {room.challengeTitle}
                             </h4>
                             {room.isOwner && (
-                              <span className="px-1.5 py-0.5 bg-primary/20 text-primary text-xs rounded font-semibold flex-shrink-0">
-                                방장
+                              <span className="px-1.5 py-0.5 text-foreground text-xs rounded font-semibold flex-shrink-0 opacity-60">
+                                {translate("방장")}
                               </span>
                             )}
                           </div>
@@ -339,7 +379,7 @@ export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSid
                             <span>
                               {formatDistanceToNow(new Date(room.lastMessageAt), {
                                 addSuffix: true,
-                                locale: ko,
+                                locale: language === "ko" ? ko : enUS,
                               })}
                             </span>
                           </div>
@@ -354,20 +394,57 @@ export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSid
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-border bg-secondary/30">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center flex-shrink-0">
-              <span className="text-white text-sm font-semibold">
+        <div className="p-4 border-t border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md relative" ref={footerMenuRef}>
+          <button
+            onClick={() => setShowFooterMenu((prev) => !prev)}
+            className="w-full flex items-center gap-3 text-left hover:opacity-70 transition-opacity px-2 py-2"
+            aria-haspopup="true"
+            aria-expanded={showFooterMenu}
+          >
+            <div className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-foreground dark:text-[#40f8ff] text-sm font-semibold">
                 {session.user?.name?.charAt(0) || session.user?.email?.charAt(0).toUpperCase()}
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{session.user?.name || "사용자"}</p>
+              <p className="text-sm font-medium truncate">
+                {session.user?.name || translate("사용자")}
+              </p>
               <p className="text-xs text-muted-foreground truncate">{session.user?.email}</p>
             </div>
-          </div>
+            <ChevronUp
+              className={`h-4 w-4 text-muted-foreground transition-transform ${showFooterMenu ? "rotate-180" : ""}`}
+            />
+          </button>
+
+          {showFooterMenu && (
+            <div className="absolute left-4 right-4 bottom-16 bg-white dark:bg-[#0b0d1b] backdrop-blur-xl border border-white/40 dark:border-white/20 rounded-xl shadow-xl shadow-black/20 dark:shadow-black/50 py-2 z-10">
+              <Link
+                href="/billing"
+                className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-white/80 dark:hover:bg-white/10 transition-colors text-foreground dark:text-white"
+                onClick={() => {
+                  setShowFooterMenu(false);
+                  onClose?.();
+                }}
+              >
+                <CreditCard className="h-4 w-4" />
+                {translate("플랜 업그레이드")}
+              </Link>
+              <button
+                onClick={() => {
+                  setShowFooterMenu(false);
+                  setIsSettingsOpen(true);
+                }}
+                className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-white/80 dark:hover:bg-white/10 transition-colors text-foreground dark:text-white"
+              >
+                <Settings className="h-4 w-4" />
+                {translate("설정")}
+              </button>
+            </div>
+          )}
         </div>
       </aside>
+      <SettingsModal open={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </>
   );
 }
