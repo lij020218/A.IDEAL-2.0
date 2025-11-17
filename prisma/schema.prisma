@@ -223,15 +223,31 @@ model Event {
 }
 
 model Whiteboard {
-  id         String   @id @default(cuid())
+  id         String           @id @default(cuid())
   chatRoomId String
-  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  chatRoom   ChatRoom         @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
   title      String
-  content    String?  // JSON string representing whiteboard state
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  content    String?          // JSON string representing whiteboard state
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  items      WhiteboardItem[]
 
   @@index([chatRoomId])
+}
+
+model WhiteboardItem {
+  id           String     @id @default(cuid())
+  whiteboardId String
+  whiteboard   Whiteboard @relation(fields: [whiteboardId], references: [id], onDelete: Cascade)
+  type         String
+  content      String
+  position     String     // JSON string
+  size         String     // JSON string
+  style        String?    // JSON string
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([whiteboardId])
 }
 
 model GrowthTopic {
