@@ -196,7 +196,16 @@ export default function UserPublicProfilePage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {prompts.map((prompt) => (
-                <UserPromptCard key={prompt.id} prompt={prompt} />
+                <UserPromptCard 
+                  key={prompt.id} 
+                  prompt={{
+                    ...prompt,
+                    user: {
+                      ...prompt.user,
+                      name: prompt.user.name ?? undefined,
+                    }
+                  }} 
+                />
               ))}
             </div>
           )}
