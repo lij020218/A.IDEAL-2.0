@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import LeftSidebar from "@/components/LeftSidebar";
-import PromptCard from "@/components/PromptCard";
 import UserPromptCard from "@/components/UserPromptCard";
 import SearchFilters from "@/components/SearchFilters";
-import { samplePrompts } from "@/lib/data/prompts";
-import { FileText, Loader2, Filter, Search, Plus, ChevronDown, ChevronUp } from "lucide-react";
+import { FileText, Loader2, Filter, Plus, ChevronUp } from "lucide-react";
 import Link from "next/link";
 import { PromptCategory, AIProvider } from "@/types";
 
@@ -64,17 +62,9 @@ function PromptsListContent() {
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [isAIToolsExpanded, setIsAIToolsExpanded] = useState(false);
 
-  // Filter sample prompts by category (for example prompts only)
-  const filteredSamplePrompts = useMemo(() => {
-    return samplePrompts.filter((prompt) => {
-      if (selectedCategory === "all") return true;
-      return prompt.category === selectedCategory;
-    });
-  }, [selectedCategory]);
-
   // API에서 이미 필터링되고 정렬된 결과를 받으므로 그대로 사용
   const visibleSavedPrompts = savedPrompts;
-  const hasResults = visibleSavedPrompts.length > 0 || filteredSamplePrompts.length > 0;
+  const hasResults = visibleSavedPrompts.length > 0;
 
   useEffect(() => {
     const category = searchParams.get("category");
@@ -432,28 +422,14 @@ function PromptsListContent() {
             </div>
           ) : hasResults ? (
             <>
-              {visibleSavedPrompts.length > 0 && (
-                <div className="mb-12">
-                  <h3 className="text-xl font-semibold mb-4">등록된 프롬프트 ({visibleSavedPrompts.length}개)</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {visibleSavedPrompts.map((prompt) => (
-                      <UserPromptCard key={prompt.id} prompt={prompt} />
-                    ))}
-                  </div>
+              <div className="mb-12">
+                <h3 className="text-xl font-semibold mb-4">등록된 프롬프트 ({visibleSavedPrompts.length}개)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {visibleSavedPrompts.map((prompt) => (
+                    <UserPromptCard key={prompt.id} prompt={prompt} />
+                  ))}
                 </div>
-              )}
-
-              {/* Example Prompts (only show when no search/filters) */}
-              {!searchQuery && !aiProvider && selectedCategory === "all" && filteredSamplePrompts.length > 0 && (
-                <div>
-                  <h3 className="text-xl font-semibold mb-4">예시 프롬프트</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredSamplePrompts.map((prompt) => (
-                      <PromptCard key={prompt.id} prompt={prompt} />
-                    ))}
-                  </div>
-                </div>
-              )}
+              </div>
             </>
           ) : (
             <div className="text-center py-20">

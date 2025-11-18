@@ -4,12 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import LeftSidebar from "@/components/LeftSidebar";
-import PromptCard from "@/components/PromptCard";
 import UserPromptCard from "@/components/UserPromptCard";
-import CategoryFilter from "@/components/CategoryFilter";
-import { samplePrompts, getFeaturedPrompts } from "@/lib/data/prompts";
-import { PromptCategory } from "@/types";
-import { ArrowRight, Sparkles, Search, TrendingUp, FileText, Code, Lightbulb, Calendar } from "lucide-react";
+import { ArrowRight, Sparkles, FileText, Code, Lightbulb, Calendar } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/language-context";
 import { formatDistanceToNow } from "date-fns";
@@ -51,8 +47,6 @@ export default function Home() {
   const { t, translate, language } = useLanguage();
   const tr = translate;
   const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState<PromptCategory | "all">("all");
-  const [searchQuery, setSearchQuery] = useState("");
   const [topicInput, setTopicInput] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [savedPrompts, setSavedPrompts] = useState<SavedPrompt[]>([]);
@@ -87,17 +81,6 @@ export default function Home() {
     }
   };
 
-  const filteredPrompts = samplePrompts.filter((prompt) => {
-    const matchesCategory = selectedCategory === "all" || prompt.category === selectedCategory;
-    const matchesSearch =
-      searchQuery === "" ||
-      prompt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      prompt.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      prompt.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesCategory && matchesSearch;
-  });
-
-  const featuredPrompts = getFeaturedPrompts();
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -202,7 +185,7 @@ export default function Home() {
             {/* Stats */}
             <div className="flex justify-center gap-8 pt-8">
               <div className="text-center">
-                <div className="text-3xl font-bold text-foreground">{samplePrompts.length}+</div>
+                <div className="text-3xl font-bold text-foreground">{savedPrompts.length}+</div>
                 <div className="text-sm text-muted-foreground">{t.hero.statsPrompts}</div>
               </div>
               <div className="text-center">
@@ -240,17 +223,17 @@ export default function Home() {
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* User Created Prompts */}
-            {savedPrompts.slice(0, 3).map((prompt) => (
-              <UserPromptCard key={`user-${prompt.id}`} prompt={prompt} />
-            ))}
-
-            {/* Featured Example Prompts */}
-            {featuredPrompts.slice(0, 3).map((prompt) => (
-              <PromptCard key={`featured-${prompt.id}`} prompt={prompt} />
-            ))}
-          </div>
+          {savedPrompts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">{tr("등록된 프롬프트가 없습니다")}</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {savedPrompts.slice(0, 6).map((prompt) => (
+                <UserPromptCard key={`user-${prompt.id}`} prompt={prompt} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
