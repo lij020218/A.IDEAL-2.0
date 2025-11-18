@@ -292,7 +292,7 @@ export default function RefinePromptPage() {
           /* Two Column Layout - Chat Interface */
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Panel - Existing Prompt (Collapsible) */}
-            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-6 shadow-lg shadow-black/5 dark:shadow-black/15 max-h-[400px] overflow-y-auto sidebar-scroll">
+            <div className="bg-white/50 dark:bg-black/30 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-6 shadow-lg shadow-black/5 dark:shadow-black/15 max-h-[400px] overflow-y-auto sidebar-scroll">
               <div className="space-y-2 mb-4">
                 <div className="flex items-center gap-3">
                   <h2 className="text-xl font-bold">기존 프롬프트</h2>
@@ -313,7 +313,7 @@ export default function RefinePromptPage() {
             </div>
 
             {/* Right Panel - Chat Interface */}
-            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-6 shadow-lg shadow-black/5 dark:shadow-black/15 flex flex-col" style={{ height: "70vh", minHeight: "500px" }}>
+            <div className="bg-white/50 dark:bg-black/30 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-6 shadow-lg shadow-black/5 dark:shadow-black/15 flex flex-col" style={{ height: "70vh", minHeight: "500px" }}>
               <h2 className="text-xl font-bold mb-4">AI와 대화하기</h2>
 
               {/* Messages */}
@@ -399,7 +399,7 @@ export default function RefinePromptPage() {
           /* Result View - Same as PromptGenerator */
           <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
             {/* Generated Prompt */}
-            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-8 shadow-lg shadow-black/5 dark:shadow-black/15">
+            <div className="bg-white/50 dark:bg-black/30 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-8 shadow-lg shadow-black/5 dark:shadow-black/15">
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-3">
@@ -467,7 +467,7 @@ export default function RefinePromptPage() {
 
             {/* Recommended Tools */}
             {recommendedToolsData && recommendedToolsData.length > 0 && (
-              <div className="bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-8 shadow-lg shadow-black/5 dark:shadow-black/15">
+              <div className="bg-white/50 dark:bg-black/30 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-8 shadow-lg shadow-black/5 dark:shadow-black/15">
                 <h3 className="text-xl font-bold mb-4">추천 AI 도구</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {recommendedToolsData.map((tool) => (
