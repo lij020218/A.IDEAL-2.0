@@ -526,7 +526,7 @@ export default function LearnSessionPage({
                           // keep code blocks untouched (강조 마크다운은 유지)
                           if (/```[\s\S]*?```/.test(text)) return text;
                           // Split by sentence terminators while retaining delimiters (no lookbehind)
-                          const parts = text.split(/([\.!\?…]["”']?)/u);
+                          const parts = text.split(/([\.!\?…]["”']?)/);
                           const sentences: string[] = [];
                           for (let i = 0; i < parts.length; i += 2) {
                             const body = (parts[i] || "").trim();
