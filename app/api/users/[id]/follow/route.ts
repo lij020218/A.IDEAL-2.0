@@ -2,77 +2,30 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { generalLimiter } from "@/lib/rate-limiter";
 
-async function ensureFollowTable() {
-  try {
-    await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "Follow" (
-        id TEXT PRIMARY KEY,
-        "followerId" TEXT NOT NULL,
-        "followingId" TEXT NOT NULL,
-        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-    await prisma.$executeRawUnsafe(`
-      CREATE UNIQUE INDEX IF NOT EXISTS "Follow_follower_following" ON "Follow"("followerId", "followingId");
-    `);
-    await prisma.$executeRawUnsafe(`
-      CREATE INDEX IF NOT EXISTS "Follow_following_idx" ON "Follow"("followingId");
-    `);
-    await prisma.$executeRawUnsafe(`
-      CREATE INDEX IF NOT EXISTS "Follow_follower_idx" ON "Follow"("followerId");
-    `);
-  } catch (error) {
-    console.error("Error ensuring Follow table:", error);
-  }
-}
-
-const hasFollowModel = () =>
-  "follow" in prisma && typeof (prisma as any).follow?.create === "function";
-
+// Follow 모델이 Prisma schema에 정의되어 있으므로 직접 사용
 async function findFollow(followerId: string, followingId: string) {
-  if (hasFollowModel()) {
-    return (prisma as any).follow.findUnique({
-      where: {
-        followerId_followingId: {
-          followerId,
-          followingId,
-        },
+  return prisma.follow.findUnique({
+    where: {
+      followerId_followingId: {
+        followerId,
+        followingId,
       },
-    });
-  }
-
-  const rows = await prisma.$queryRaw<Array<{ id: string }>>`
-    SELECT id FROM "Follow" WHERE "followerId" = ${followerId} AND "followingId" = ${followingId} LIMIT 1
-  `;
-  return rows.length ? rows[0] : null;
+    },
+  });
 }
 
 async function createFollowRecord(followerId: string, followingId: string) {
-  if (hasFollowModel()) {
-    return (prisma as any).follow.create({
-      data: { followerId, followingId },
-    });
-  }
-
-  const { randomUUID } = await import("crypto");
-  const id = randomUUID();
-  await prisma.$executeRaw`
-    INSERT INTO "Follow" (id, "followerId", "followingId", "createdAt")
-    VALUES (${id}, ${followerId}, ${followingId}, NOW())
-  `;
+  return prisma.follow.create({
+    data: { followerId, followingId },
+  });
 }
 
 async function deleteFollowRecord(followerId: string, followingId: string) {
-  if (hasFollowModel()) {
-    return (prisma as any).follow.deleteMany({
-      where: { followerId, followingId },
-    });
-  }
-
-  await prisma.$executeRaw`
-    DELETE FROM "Follow" WHERE "followerId" = ${followerId} AND "followingId" = ${followingId}
-  `;
+  return prisma.follow.deleteMany({
+    where: { followerId, followingId },
+  });
 }
 
 // POST - Follow a user
@@ -81,8 +34,18 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    await ensureFollowTable();
     const session = await getServerSession(authOptions);
+
+    // Rate limiting
+    if (session?.user?.id) {
+      const rateLimitResult = await generalLimiter.check(`follow:${session.user.id}`);
+      if (!rateLimitResult.success) {
+        return NextResponse.json(
+          { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
+          { status: 429 }
+        );
+      }
+    }
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: "로그인이 필요합니다" },
@@ -141,7 +104,6 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    await ensureFollowTable();
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -171,7 +133,6 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    await ensureFollowTable();
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ isFollowing: false });

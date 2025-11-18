@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ensureGrowthContentAllowed } from "@/lib/plan";
 import { generateWithAI, UnifiedMessage } from "@/lib/ai-router";
+import { aiLimiter } from "@/lib/rate-limiter";
 
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-4-5-20250929";
 const MAX_AI_ATTEMPTS = 2;
@@ -644,6 +645,15 @@ export async function POST(req: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Rate limiting for AI requests
+    const rateLimitResult = await aiLimiter.check(`ai:${user.id}`);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: "AI 요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
+        { status: 429 }
+      );
     }
 
     const { topicId, dayNumber, force } = await req.json();

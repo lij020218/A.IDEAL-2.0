@@ -5,9 +5,44 @@ import { put } from "@vercel/blob";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { existsSync } from "fs";
+import { uploadLimiter } from "@/lib/rate-limiter";
 
 // 로컬 개발 환경인지 확인
 const isLocal = process.env.NODE_ENV === "development" && !process.env.VERCEL;
+
+// 허용된 파일 타입 정의
+const ALLOWED_FILE_TYPES: Record<string, string[]> = {
+  image: ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"],
+  document: ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
+  text: ["text/plain", "text/csv"],
+};
+
+const ALLOWED_MIME_TYPES = [
+  ...ALLOWED_FILE_TYPES.image,
+  ...ALLOWED_FILE_TYPES.document,
+  ...ALLOWED_FILE_TYPES.text,
+];
+
+// 파일 확장자 검증
+const ALLOWED_EXTENSIONS = [
+  ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg",
+  ".pdf", ".doc", ".docx",
+  ".txt", ".csv",
+];
+
+function isAllowedFileType(mimeType: string, filename: string): boolean {
+  const ext = path.extname(filename).toLowerCase();
+  return ALLOWED_MIME_TYPES.includes(mimeType) && ALLOWED_EXTENSIONS.includes(ext);
+}
+
+function getMimeTypeCategory(mimeType: string): string {
+  for (const [category, types] of Object.entries(ALLOWED_FILE_TYPES)) {
+    if (types.includes(mimeType)) {
+      return category;
+    }
+  }
+  return "unknown";
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,12 +55,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Rate limiting
+    const userId = (session.user as any).id || session.user.email;
+    const rateLimitResult = await uploadLimiter.check(`upload:${userId}`);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: "업로드 제한을 초과했습니다. 1시간 후 다시 시도해주세요." },
+        { status: 429 }
+      );
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
     if (!file) {
       return NextResponse.json(
         { error: "파일이 없습니다" },
+        { status: 400 }
+      );
+    }
+
+    // 파일 타입 검증
+    if (!isAllowedFileType(file.type, file.name)) {
+      return NextResponse.json(
+        {
+          error: "허용되지 않는 파일 형식입니다. 이미지(JPG, PNG, GIF, WebP, SVG), 문서(PDF, DOC, DOCX), 텍스트(TXT, CSV) 파일만 업로드 가능합니다."
+        },
         { status: 400 }
       );
     }

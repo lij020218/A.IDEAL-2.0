@@ -19,7 +19,9 @@ interface SavedPrompt {
   imageUrl?: string | null;
   createdAt: string;
   usageCount?: number;
-  viewCount?: number;
+  views?: number;
+  averageRating?: number | null;
+  ratingCount?: number;
   aiProvider?: AIProvider | null;
   aiModel?: string | null;
   user: {

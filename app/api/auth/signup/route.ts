@@ -1,12 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { authLimiter } from "@/lib/rate-limiter";
 
 // Password validation regex
 const PASSWORD_REGEX = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting by IP for signup attempts
+    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
+    const rateLimitResult = await authLimiter.check(`signup:${ip}`);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: "회원가입 시도가 너무 많습니다. 1시간 후 다시 시도해주세요." },
+        { status: 429 }
+      );
+    }
+
     const { email, password, name } = await req.json();
 
     // Validation

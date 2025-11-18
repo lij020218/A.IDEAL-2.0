@@ -21,6 +21,9 @@ interface SavedPrompt {
   createdAt: string;
   aiProvider?: string | null;
   aiModel?: string | null;
+  views?: number;
+  averageRating?: number | null;
+  ratingCount?: number;
   user: {
     id?: string;
     name?: string;

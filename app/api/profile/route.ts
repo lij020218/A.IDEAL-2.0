@@ -103,6 +103,9 @@ export async function GET(req: NextRequest) {
         aiProvider: true,
         aiModel: true,
         isPublic: true,
+        views: true,
+        averageRating: true,
+        ratingCount: true,
       },
     });
 

@@ -49,6 +49,9 @@ export async function GET(
         aiProvider: true,
         aiModel: true,
         isPublic: true,
+        views: true,
+        averageRating: true,
+        ratingCount: true,
       },
     });
 

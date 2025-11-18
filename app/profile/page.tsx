@@ -35,6 +35,9 @@ interface ProfilePrompt {
   aiProvider?: string | null;
   aiModel?: string | null;
   isPublic: boolean;
+  views?: number;
+  averageRating?: number | null;
+  ratingCount?: number;
   user: {
     id: string;
     name?: string | null;

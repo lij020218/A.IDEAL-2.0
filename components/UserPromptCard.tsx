@@ -1,9 +1,10 @@
  "use client";
 
-import { Star, TrendingUp, Tag, User } from "lucide-react";
+import { Star, Eye, Tag, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AIProviderBadge, isAIProvider, AI_PROVIDER_LABELS } from "@/components/AIProviderBadge";
+import { formatNumber } from "@/lib/utils";
 
 // 도구 이름에서 AI 모델을 감지하여 배경색 클래스 반환
 function getAIToolBgColor(toolName: string): { bg: string; text: string } {
@@ -39,6 +40,9 @@ interface UserPrompt {
   createdAt: string;
   aiProvider?: string | null;
   aiModel?: string | null;
+  views?: number;
+  averageRating?: number | null;
+  ratingCount?: number;
   user: {
     id?: string;
     name?: string;
@@ -124,11 +128,13 @@ export default function UserPromptCard({ prompt }: UserPromptCardProps) {
           <div className="flex items-center gap-4 text-sm text-muted-foreground dark:text-white/80">
             <div className="flex items-center gap-1">
               <Star className="h-4 w-4 text-[#FFDAB9] dark:text-[#0096FF] fill-[#FFDAB9] dark:fill-[#0096FF]" />
-              <span className="font-medium">0</span>
+              <span className="font-medium">
+                {prompt.averageRating ? prompt.averageRating.toFixed(1) : "0"}
+              </span>
             </div>
             <div className="flex items-center gap-1">
-              <TrendingUp className="h-4 w-4" />
-              <span>0 uses</span>
+              <Eye className="h-4 w-4" />
+              <span>{formatNumber(prompt.views || 0)}</span>
             </div>
           </div>
 
