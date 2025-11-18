@@ -292,7 +292,13 @@ export default function ProfilePage() {
                       비공개
                     </span>
                   )}
-                  <UserPromptCard prompt={prompt} />
+                  <UserPromptCard prompt={{
+                    ...prompt,
+                    user: {
+                      ...prompt.user,
+                      name: prompt.user.name ?? undefined,
+                    }
+                  }} />
                 </div>
               ))}
             </div>
