@@ -53,8 +53,9 @@ function checkRateLimit(key: string): { success: boolean; remaining: number; res
 // Cleanup old entries periodically
 setInterval(() => {
   const now = Date.now();
-  for (const [key, info] of rateLimitMap.entries()) {
-    if (info.resetTime < now) {
+  for (const key of Array.from(rateLimitMap.keys())) {
+    const info = rateLimitMap.get(key);
+    if (info && info.resetTime < now) {
       rateLimitMap.delete(key);
     }
   }

@@ -271,18 +271,6 @@ const stringCatalog: Record<
     en: "Back to prompt list",
   },
   "시작하기": { ko: "시작하기", en: "Get Started" },
-  "커뮤니티가 만든 최신 프롬프트": {
-    ko: "커뮤니티가 만든 최신 프롬프트",
-    en: "Latest prompts from the community",
-  },
-  "커뮤니티의 도전 과제": {
-    ko: "커뮤니티의 도전 과제",
-    en: "Community Challenges",
-  },
-  "커뮤니티의 도전 과제": {
-    ko: "커뮤니티의 도전 과제",
-    en: "Community challenges",
-  },
   "성장하기": { ko: "성장하기", en: "Growth" },
   "플랜 업그레이드": { ko: "플랜 업그레이드", en: "Upgrade Plan" },
   "설정": { ko: "설정", en: "Settings" },
@@ -316,16 +304,7 @@ const stringCatalog: Record<
     ko: "참여 중인 채팅방이 없습니다",
     en: "No chat rooms joined yet",
   },
-  "프롬프트 등록": { ko: "프롬프트 등록", en: "Submit Prompt" },
   "도전 참가 신청": { ko: "도전 참가 신청", en: "Manage Join Requests" },
-  "커뮤니티가 만든 최신 프롬프트": {
-    ko: "커뮤니티가 만든 최신 프롬프트",
-    en: "Latest prompts from the community",
-  },
-  "커뮤니티의 도전 과제": {
-    ko: "커뮤니티의 도전 과제",
-    en: "Community challenges",
-  },
   "방장": { ko: "방장", en: "Host" },
   "사용자": { ko: "사용자", en: "User" },
   "A.IDEAL SPACE": { ko: "A.IDEAL SPACE", en: "A.IDEAL SPACE" },

@@ -255,7 +255,7 @@ export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSid
                                   </h4>
                                   {hasRefinements && (
                                     <span className="px-1.5 py-0.5 text-foreground text-xs rounded-full font-semibold opacity-60 flex-shrink-0">
-                                      {prompt.refinements.length}
+                                      {prompt.refinements?.length || 0}
                                     </span>
                                   )}
                                   {provider && (
@@ -276,7 +276,7 @@ export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSid
                         </div>
 
                         {/* Child Refinements */}
-                        {hasRefinements && isExpanded && (
+                        {hasRefinements && isExpanded && prompt.refinements && (
                           <div className="ml-6 mt-1 space-y-1 border-l-2 border-border/30 dark:border-white/20 pl-2">
                             {prompt.refinements.map((refinement) => (
                               <Link

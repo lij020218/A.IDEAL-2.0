@@ -62,8 +62,9 @@ export class RateLimiter {
 
   private cleanup() {
     const now = Date.now();
-    for (const [key, info] of this.cache.entries()) {
-      if (info.resetTime < now) {
+    for (const key of Array.from(this.cache.keys())) {
+      const info = this.cache.get(key);
+      if (info && info.resetTime < now) {
         this.cache.delete(key);
       }
     }
