@@ -538,9 +538,36 @@ export default function LearnSessionPage({
 
                     <div className="flex-1 overflow-y-auto prose prose-invert max-w-none prose-lg">
                       {(() => {
-                        // Preprocess content to extract image descriptions
+                        // Preprocess content to extract image descriptions and key points
                         const raw = slides[currentSlide]?.content || '';
                         const isLastSlide = currentSlide === slides.length - 1;
+
+                        // Split content by horizontal rule (---) to separate main content from key points
+                        const hrSplit = raw.split(/\n---\n/);
+                        const mainContent = hrSplit[0] || '';
+                        const keyPointsSection = hrSplit.length > 1 ? hrSplit.slice(1).join('\n---\n') : '';
+
+                        // Extract key points if they exist (look for 📌 요점 정리:)
+                        let keyPoints: string[] = [];
+                        let contentToRender = mainContent;
+
+                        if (keyPointsSection.includes('📌 요점 정리')) {
+                          // Extract the key points content
+                          const keyPointsMatch = keyPointsSection.match(/📌 요점 정리[:\s]*\n([\s\S]*)/);
+                          if (keyPointsMatch) {
+                            const keyPointsText = keyPointsMatch[1].trim();
+                            // Split by middle dot (·) or bullet points
+                            keyPoints = keyPointsText
+                              .split(/\n/)
+                              .map(line => line.trim())
+                              .filter(line => line.startsWith('·') || line.startsWith('•') || line.startsWith('-'))
+                              .map(line => line.replace(/^[·•\-]\s*/, '').trim())
+                              .filter(Boolean);
+                          }
+                        } else {
+                          // No horizontal rule found, render all as main content
+                          contentToRender = raw;
+                        }
                         
                         // Extract important concepts (strong, blockquote, code blocks)
                         const extractImportantConcepts = (text: string) => {
@@ -625,7 +652,7 @@ export default function LearnSessionPage({
                           // keep code blocks untouched (강조 마크다운은 유지)
                           if (/```[\s\S]*?```/.test(text)) return text;
                           // Split by sentence terminators while retaining delimiters (no lookbehind)
-                          const parts = text.split(/([\.!\?…]["”']?)/);
+                          const parts = text.split(/([\.!\?…][""']?)/);
                           const sentences: string[] = [];
                           for (let i = 0; i < parts.length; i += 2) {
                             const body = (parts[i] || "").trim();
@@ -639,8 +666,8 @@ export default function LearnSessionPage({
                           }
                           return chunks.join("\n\n");
                         };
-                        
-                        const content = formatForReadability(raw);
+
+                        const content = formatForReadability(contentToRender);
                         
                         // Split content by lines and process
                         const lines = content.split('\n');
@@ -898,24 +925,26 @@ export default function LearnSessionPage({
                               >
                                 {content}
                               </ReactMarkdown>
-                              
-                              {/* 요점 정리 섹션 (모든 슬라이드에 표시) */}
-                              {summaryPoints.length > 0 && (
+
+                              {/* 요점 정리 섹션 - 에메랄드 카드 */}
+                              {keyPoints.length > 0 && (
                                 <>
                                   <hr className="my-6 border-t-2 border-primary/30 dark:border-white/20" />
-                                  <div className="mt-6">
-                                    <h3 className="text-lg font-bold mb-3 dark:text-white/90 flex items-center gap-2">
-                                      <Sparkles className="h-4 w-4 text-primary" />
-                                      요점 정리
-                                    </h3>
-                                    <p className="text-base leading-7 text-foreground/90 dark:text-white/80">
-                                      {summaryPoints.map((point, idx) => (
-                                        <span key={idx}>
-                                          {point}
-                                          {idx < summaryPoints.length - 1 && <span className="mx-2 text-primary/60 dark:text-primary/40">·</span>}
-                                        </span>
+                                  <div className="my-6 p-5 rounded-lg border-2 bg-emerald-50/90 dark:bg-emerald-900/20 border-emerald-300/70 dark:border-emerald-700/50 shadow-md">
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <span className="text-lg">📌</span>
+                                      <h3 className="text-base font-bold text-emerald-900 dark:text-emerald-100">
+                                        요점 정리
+                                      </h3>
+                                    </div>
+                                    <div className="space-y-2">
+                                      {keyPoints.map((point, idx) => (
+                                        <div key={idx} className="flex items-start gap-2 text-sm leading-relaxed">
+                                          <span className="text-emerald-600 dark:text-emerald-400 mt-0.5">·</span>
+                                          <span className="text-emerald-800 dark:text-emerald-100 flex-1">{point}</span>
+                                        </div>
                                       ))}
-                                    </p>
+                                    </div>
                                   </div>
                                 </>
                               )}
@@ -1151,24 +1180,26 @@ export default function LearnSessionPage({
                                 </ReactMarkdown>
                               );
                             })}
-                            
-                            {/* 요점 정리 섹션 (모든 슬라이드에 표시) */}
-                            {summaryPoints.length > 0 && (
+
+                            {/* 요점 정리 섹션 - 에메랄드 카드 */}
+                            {keyPoints.length > 0 && (
                               <>
                                 <hr className="my-6 border-t-2 border-primary/30 dark:border-white/20" />
-                                <div className="mt-6">
-                                  <h3 className="text-lg font-bold mb-3 dark:text-white/90 flex items-center gap-2">
-                                    <Sparkles className="h-4 w-4 text-primary" />
-                                    요점 정리
-                                  </h3>
-                                  <p className="text-base leading-7 text-foreground/90 dark:text-white/80">
-                                    {summaryPoints.map((point, idx) => (
-                                      <span key={idx}>
-                                        {point}
-                                        {idx < summaryPoints.length - 1 && <span className="mx-2 text-primary/60 dark:text-primary/40">·</span>}
-                                      </span>
+                                <div className="my-6 p-5 rounded-lg border-2 bg-emerald-50/90 dark:bg-emerald-900/20 border-emerald-300/70 dark:border-emerald-700/50 shadow-md">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <span className="text-lg">📌</span>
+                                    <h3 className="text-base font-bold text-emerald-900 dark:text-emerald-100">
+                                      요점 정리
+                                    </h3>
+                                  </div>
+                                  <div className="space-y-2">
+                                    {keyPoints.map((point, idx) => (
+                                      <div key={idx} className="flex items-start gap-2 text-sm leading-relaxed">
+                                        <span className="text-emerald-600 dark:text-emerald-400 mt-0.5">·</span>
+                                        <span className="text-emerald-800 dark:text-emerald-100 flex-1">{point}</span>
+                                      </div>
                                     ))}
-                                  </p>
+                                  </div>
                                 </div>
                               </>
                             )}
