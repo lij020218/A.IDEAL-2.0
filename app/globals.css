@@ -572,35 +572,21 @@
 
   /* ========== Component-Specific Enhancements ========== */
 
-  /* Sidebar Scrollbar */
+  /* Sidebar Scrollbar - Hidden but functional */
+  .sidebar-scroll {
+    scrollbar-width: none; /* Firefox */
+  }
+
   .sidebar-scroll::-webkit-scrollbar {
-    width: 8px;
+    display: none; /* Chrome/Safari/Edge */
   }
 
-  html.dark .sidebar-scroll::-webkit-scrollbar-thumb {
-    background: rgba(64, 248, 255, 0.25);
-    border: 2px solid rgba(0, 0, 0, 0.25);
-    box-shadow: 0 0 10px rgba(64, 248, 255, 0.4);
+  /* Chat textarea scrollbar - Hidden but functional */
+  .chat-textarea-scroll {
+    scrollbar-width: none; /* Firefox */
   }
 
-  html.dark .sidebar-scroll::-webkit-scrollbar-thumb:hover {
-    background: rgba(64, 248, 255, 0.4);
-  }
-
-  /* Chat textarea scrollbar */
   .chat-textarea-scroll::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .chat-textarea-scroll::-webkit-scrollbar-track {
-    background: var(--scroll-track);
-  }
-
-  html.dark .chat-textarea-scroll::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,0.45);
-  }
-
-  html.dark .chat-textarea-scroll::-webkit-scrollbar-thumb:hover {
-    background: rgba(0,0,0,0.7);
+    display: none; /* Chrome/Safari/Edge */
   }
 }
