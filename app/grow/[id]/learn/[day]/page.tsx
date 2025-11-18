@@ -644,14 +644,26 @@ export default function LearnSessionPage({
                         // Get summary from slide data (1-3 sentences)
                         // If summary doesn't exist, generate it from content
                         let slideSummary = slides[currentSlide]?.summary;
-                        if (!slideSummary && raw) {
+                        
+                        // If no summary, generate from content (use contentToRender which is the main content)
+                        if (!slideSummary && contentToRender) {
                           // Generate summary from content if not provided
+                          const sentences = contentToRender.split(/[\.!?…]/).filter(s => s.trim().length > 20);
+                          const keySentences = sentences.slice(0, 3);
+                          if (keySentences.length > 0) {
+                            slideSummary = keySentences.map(s => s.trim()).filter(Boolean).join('·');
+                          }
+                        }
+                        
+                        // If still no summary, try with raw content
+                        if (!slideSummary && raw) {
                           const sentences = raw.split(/[\.!?…]/).filter(s => s.trim().length > 20);
                           const keySentences = sentences.slice(0, 3);
                           if (keySentences.length > 0) {
                             slideSummary = keySentences.map(s => s.trim()).filter(Boolean).join('·');
                           }
                         }
+                        
                         const summaryPoints = slideSummary 
                           ? slideSummary.split('·').map(s => s.trim()).filter(Boolean).slice(0, 3)
                           : [];
