@@ -21,8 +21,8 @@ export default function PromptExecutor({
   const [userInput, setUserInput] = useState("");
   const [result, setResult] = useState<string | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState<"gpt" | "claude" | "grok">(
-    (defaultProvider && isAIProvider(defaultProvider) ? defaultProvider : "gpt") as "gpt" | "claude" | "grok"
+  const [selectedProvider, setSelectedProvider] = useState<"gpt" | "claude" | "grok" | "gemini">(
+    (defaultProvider && isAIProvider(defaultProvider) ? defaultProvider : "gpt") as "gpt" | "claude" | "grok" | "gemini"
   );
   const [executionTime, setExecutionTime] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
@@ -120,6 +120,8 @@ export default function PromptExecutor({
         return "#fdba74"; // orange-300
       case "grok":
         return "#000000"; // black
+      case "gemini":
+        return "#4285f4"; // Google blue
       default:
         return "#d1d5db"; // gray-300
     }
@@ -137,12 +139,13 @@ export default function PromptExecutor({
       {/* AI Provider Selection */}
       <div className="mb-4">
         <label className="block text-sm font-medium mb-2 text-foreground">AI 제공자 선택</label>
-        <div className="flex gap-2">
-          {(["gpt", "claude", "grok"] as const).map((provider) => {
+        <div className="flex gap-2 flex-wrap">
+          {(["gpt", "gemini", "claude", "grok"] as const).map((provider) => {
             const bgColor = getAIProviderBgColor(provider);
             const isSelected = selectedProvider === provider;
             const config = {
               gpt: { name: "GPT-5.1", icon: Sparkles, iconColor: "ai-icon-gpt" },
+              gemini: { name: "Gemini", icon: Sparkles, iconColor: "ai-icon-gemini" },
               claude: { name: "Claude", icon: Brain, iconColor: "ai-icon-claude" },
               grok: { name: "Grok", icon: Zap, iconColor: "ai-icon-grok" },
             }[provider];
@@ -152,10 +155,12 @@ export default function PromptExecutor({
               if (!isSelected) {
                 return "bg-white/50 dark:bg-white/5 border-white/40 dark:border-white/20 hover:bg-white/60 dark:hover:bg-white/10 shadow-black/8 dark:shadow-black/15";
               }
-              
+
               switch (provider) {
                 case "gpt":
                   return "bg-gradient-to-r from-[#F3D4DB] via-[#D0DFFC] to-[#E7D5F7] dark:from-[#F3D4DB]/40 dark:via-[#D0DFFC]/40 dark:to-[#E7D5F7]/40 border-[#E7D5F7] dark:border-[#E7D5F7]/60 shadow-[#E7D5F7]/30 dark:shadow-[#D0DFFC]/40";
+                case "gemini":
+                  return "bg-blue-500/30 dark:bg-blue-500/20 border-blue-500/50 dark:border-blue-500/40 shadow-blue-500/20 dark:shadow-blue-500/30";
                 case "claude":
                   return "bg-orange-500/30 dark:bg-orange-500/20 border-orange-500/50 dark:border-orange-500/40 shadow-orange-500/20 dark:shadow-orange-500/30";
                 case "grok":
@@ -171,6 +176,8 @@ export default function PromptExecutor({
               switch (provider) {
                 case "gpt":
                   return "text-black dark:text-white";
+                case "gemini":
+                  return "text-blue-700 dark:text-blue-300";
                 case "claude":
                   return "text-orange-700 dark:text-orange-300";
                 case "grok":
@@ -186,7 +193,7 @@ export default function PromptExecutor({
                 onClick={() => setSelectedProvider(provider)}
                 className={`px-4 py-2 rounded-lg border-2 backdrop-blur-md transition-all flex items-center gap-2 shadow-lg ${getSelectedStyle()}`}
               >
-                <Icon size={14} className={isSelected ? (provider === "grok" ? "text-white" : config.iconColor) : config.iconColor} />
+                <Icon size={14} className={isSelected ? (provider === "grok" ? "text-white" : provider === "gemini" ? "text-blue-600 dark:text-blue-300" : config.iconColor) : config.iconColor} />
                 <span className={`text-sm font-medium ${getTextColor()}`}>
                   {config.name}
                 </span>

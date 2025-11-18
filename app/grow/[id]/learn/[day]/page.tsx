@@ -568,141 +568,6 @@ export default function LearnSessionPage({
                           contentToRender = raw;
                         }
                         
-                        // Extract important concepts (strong, blockquote, code blocks)
-                        const extractImportantConcepts = (text: string) => {
-                          const concepts: Array<{ type: 'strong' | 'code' | 'blockquote' | 'formula'; content: string }> = [];
-                          
-                          // Extract code blocks
-                          const codeBlockRegex = /```[\s\S]*?```/g;
-                          let match;
-                          while ((match = codeBlockRegex.exec(text)) !== null) {
-                            concepts.push({
-                              type: 'code',
-                              content: match[0].replace(/```/g, '').trim()
-                            });
-                          }
-                          
-                          // Extract blockquotes (marked with >)
-                          const blockquoteRegex = />\s*(.+)/g;
-                          while ((match = blockquoteRegex.exec(text)) !== null) {
-                            const content = match[1].trim();
-                            if (content.length > 0 && content.length < 200) {
-                              concepts.push({
-                                type: 'blockquote',
-                                content
-                              });
-                            }
-                          }
-                          
-                          // Extract strong text (marked with **)
-                          const strongRegex = /\*\*([^*]+)\*\*/g;
-                          while ((match = strongRegex.exec(text)) !== null) {
-                            const content = match[1].trim();
-                            if (content.length > 0 && content.length < 100) {
-                              concepts.push({
-                                type: 'strong',
-                                content
-                              });
-                            }
-                          }
-                          
-                          // Extract formulas (marked with $ or contains =)
-                          const formulaRegex = /\$([^$]+)\$|([A-Za-z]+\s*=\s*[^\.]+)/g;
-                          while ((match = formulaRegex.exec(text)) !== null) {
-                            const content = (match[1] || match[2] || '').trim();
-                            if (content.length > 0 && content.length < 100) {
-                              concepts.push({
-                                type: 'formula',
-                                content
-                              });
-                            }
-                          }
-                          
-                          return concepts.slice(0, 5); // 최대 5개만
-                        };
-                        
-                        // Generate summary points (2-3 lines with middle dot)
-                        const generateSummary = (text: string, title: string) => {
-                          // Extract key sentences
-                          const sentences = text.split(/[\.!\?…]/).filter(s => s.trim().length > 20);
-                          const keySentences = sentences.slice(0, 3);
-                          
-                          if (keySentences.length === 0) {
-                            return [
-                              `${title}의 핵심 개념을 이해하는 것이 중요합니다`,
-                              `실제 예시와 함께 학습하면 더 효과적입니다`
-                            ];
-                          }
-                          
-                          return keySentences.map(s => s.trim()).filter(Boolean);
-                        };
-                        
-                        // Extract important concepts from content (for inline cards in body)
-                        const importantConcepts = extractImportantConcepts(raw);
-                        
-                        // Get summary from slide data (1-3 sentences)
-                        // If summary doesn't exist, generate it from content
-                        let slideSummary = slides[currentSlide]?.summary;
-                        
-                        // If no summary, generate from content (use contentToRender which is the main content)
-                        if (!slideSummary) {
-                          // Try contentToRender first (main content without key points section)
-                          const contentForSummary = contentToRender || mainContent || raw;
-                          if (contentForSummary && contentForSummary.trim()) {
-                            // Try to extract sentences (at least 15 characters)
-                            let sentences = contentForSummary.split(/[\.!?…]/).filter(s => s.trim().length >= 15);
-                            
-                            // If no sentences found, try splitting by newlines or other delimiters
-                            if (sentences.length === 0) {
-                              sentences = contentForSummary.split(/\n/).filter(s => s.trim().length >= 15);
-                            }
-                            
-                            // If still no sentences, use first 100 characters as summary
-                            if (sentences.length === 0 && contentForSummary.trim().length > 0) {
-                              const firstPart = contentForSummary.trim().substring(0, 100);
-                              sentences = [firstPart];
-                            }
-                            
-                            const keySentences = sentences.slice(0, 3);
-                            if (keySentences.length > 0) {
-                              slideSummary = keySentences.map(s => s.trim()).filter(Boolean).join('·');
-                            }
-                          }
-                        }
-                        
-                        // Parse summary: 가운뎃점(·)은 문장 시작을 나타내므로, 문장 단위로만 분리
-                        // 쉼표로 나열된 항목들은 하나의 문장으로 유지
-                        const parseSummary = (summary: string): string[] => {
-                          if (!summary) return [];
-                          
-                          // 가운뎃점으로 분리하되, 문장의 시작을 나타내는 가운뎃점만 분리
-                          // 문장 시작 가운뎃점: 줄 시작이나 공백 뒤에 오는 가운뎃점
-                          const sentences: string[] = [];
-                          const parts = summary.split(/(?<=[\.!?…])\s*·\s*/);
-                          
-                          for (const part of parts) {
-                            const trimmed = part.trim();
-                            if (trimmed) {
-                              // 첫 번째 항목이 가운뎃점으로 시작하면 제거, 아니면 그대로
-                              const cleaned = trimmed.startsWith('·') ? trimmed.substring(1).trim() : trimmed;
-                              if (cleaned) {
-                                sentences.push(cleaned);
-                              }
-                            }
-                          }
-                          
-                          // 가운뎃점이 없으면 원본을 그대로 반환
-                          if (sentences.length === 0 && summary.trim()) {
-                            return [summary.trim()];
-                          }
-                          
-                          return sentences.slice(0, 3);
-                        };
-                        
-                        const summaryPoints = slideSummary 
-                          ? parseSummary(slideSummary)
-                          : [];
-                        
                         // Readability formatting: keep markdown emphasis and reflow sentences into short paragraphs
                         const formatForReadability = (text: string) => {
                           // keep code blocks untouched (강조 마크다운은 유지)
@@ -934,20 +799,22 @@ export default function LearnSessionPage({
                                 {content}
                               </ReactMarkdown>
 
-                              {/* 요점 정리 섹션 - 에메랄드 투명 카드 */}
-                              {summaryPoints.length > 0 && (
+                              {/* 요점 정리 섹션 - 에메랄드 카드 */}
+                              {keyPoints.length > 0 && (
                                 <>
-                                  <hr className="my-6 border-t border-primary/30 dark:border-white/20" />
-                                  <div className="mt-6 p-4 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/10 border border-emerald-500/20 dark:border-emerald-500/20">
-                                    <h3 className="text-base font-semibold mb-2 text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
-                                      <Sparkles className="h-4 w-4" />
-                                      요점 정리
-                                    </h3>
-                                    <div className="space-y-1.5">
-                                      {summaryPoints.map((point, idx) => (
-                                        <div key={idx} className="text-sm leading-6 text-emerald-900 dark:text-emerald-100">
-                                          <span className="text-emerald-600 dark:text-emerald-400 mr-2">ㆍ</span>
-                                          <span className="whitespace-normal">{point}</span>
+                                  <hr className="my-6 border-t-2 border-primary/30 dark:border-white/20" />
+                                  <div className="my-6 p-5 rounded-lg border-2 bg-emerald-50/90 dark:bg-emerald-900/20 border-emerald-300/70 dark:border-emerald-700/50 shadow-md">
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <span className="text-lg">📌</span>
+                                      <h3 className="text-base font-bold text-emerald-900 dark:text-emerald-100">
+                                        요점 정리
+                                      </h3>
+                                    </div>
+                                    <div className="space-y-2">
+                                      {keyPoints.map((point, idx) => (
+                                        <div key={idx} className="flex items-start gap-2 text-sm leading-relaxed">
+                                          <span className="text-emerald-600 dark:text-emerald-400 mt-0.5">·</span>
+                                          <span className="text-emerald-800 dark:text-emerald-100 flex-1">{point}</span>
                                         </div>
                                       ))}
                                     </div>
@@ -956,10 +823,6 @@ export default function LearnSessionPage({
                               )}
                             </>
                           );
-                        }
-
-                        // This code path should not be reached, but keep for safety
-                        return null;
                       })()}
                     </div>
 

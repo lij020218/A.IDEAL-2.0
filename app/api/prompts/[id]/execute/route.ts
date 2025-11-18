@@ -69,11 +69,11 @@ export async function POST(
     }
 
     // Determine AI provider
-    let provider: "gpt" | "claude" | "grok" = "gpt";
+    let provider: "gpt" | "claude" | "grok" | "gemini" = "gpt";
     if (aiProvider) {
-      provider = aiProvider as "gpt" | "claude" | "grok";
+      provider = aiProvider as "gpt" | "claude" | "grok" | "gemini";
     } else if (prompt.aiProvider) {
-      provider = prompt.aiProvider as "gpt" | "claude" | "grok";
+      provider = prompt.aiProvider as "gpt" | "claude" | "grok" | "gemini";
     }
 
     // Execute prompt
@@ -102,18 +102,19 @@ export async function POST(
       try {
         response = await generateWithAI(provider, messages, {
           // temperature 옵션은 GPT-5에서는 무시됨 (항상 1로 고정)
-          // Claude나 Grok을 사용할 때만 적용됨
+          // Claude, Grok, Gemini를 사용할 때만 적용됨
           ...(provider !== "gpt" && { temperature: 0.7 }),
           // GPT-5는 max_completion_tokens를 사용하지 않음 (응답 시간은 길어질 수 있음)
-          // Claude와 Grok만 max_tokens 설정
+          // Claude, Grok, Gemini만 max_tokens 설정
           ...(provider === "claude" && { maxTokens: 8192 }),
           ...(provider === "grok" && { maxTokens: 3072 }),
+          ...(provider === "gemini" && { maxTokens: 8192 }),
         });
         console.log("[Prompt Execute] Generated with provider:", response.provider);
       } catch (aiError) {
         console.error("[Prompt Execute] AI generation error:", aiError);
-        // Grok이나 Claude가 실패하면 GPT로 폴백
-        if (provider === "grok" || provider === "claude") {
+        // Grok, Claude, Gemini가 실패하면 GPT로 폴백
+        if (provider === "grok" || provider === "claude" || provider === "gemini") {
           console.log("[Prompt Execute] Retrying with GPT as fallback...");
           response = await generateWithAI("gpt", messages, {
             temperature: 1, // GPT-5는 항상 1로 고정

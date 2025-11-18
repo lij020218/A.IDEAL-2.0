@@ -9,9 +9,10 @@
 
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // AI 제공자 타입
-export type AIProvider = "gpt" | "claude" | "grok";
+export type AIProvider = "gpt" | "claude" | "grok" | "gemini";
 
 // 작업 타입별 최적 AI 매핑
 export const AI_TASK_MAPPING = {
@@ -47,6 +48,11 @@ const grokClient = process.env.GROK_API_KEY
       apiKey: process.env.GROK_API_KEY,
       baseURL: "https://api.x.ai/v1",
     })
+  : null;
+
+// Gemini 클라이언트 (Google Generative AI 사용)
+const geminiClient = process.env.GEMINI_API_KEY
+  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
   : null;
 
 // 통합 메시지 타입
@@ -331,7 +337,7 @@ async function generateWithGrok(
     });
 
     const content = completion.choices[0]?.message?.content || "";
-    
+
     console.log("[AI Router] Grok response received");
     console.log("[AI Router] Content length:", content.length);
 
@@ -346,6 +352,91 @@ async function generateWithGrok(
     };
   } catch (error) {
     console.error("[AI Router] Grok API error:", error);
+    if (error instanceof Error) {
+      console.error("[AI Router] Error message:", error.message);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Gemini로 텍스트 생성
+ */
+async function generateWithGemini(
+  messages: UnifiedMessage[],
+  options: {
+    temperature?: number;
+    jsonMode?: boolean;
+    maxTokens?: number;
+  } = {}
+): Promise<UnifiedResponse> {
+  if (!geminiClient) {
+    throw new Error("Gemini API key not configured");
+  }
+
+  const modelName = process.env.GEMINI_MODEL || "gemini-2.0-flash-exp";
+  const model = geminiClient.getGenerativeModel({
+    model: modelName,
+    generationConfig: {
+      temperature: options.temperature ?? 1.0,
+      maxOutputTokens: options.maxTokens ?? 8192,
+      ...(options.jsonMode && { responseMimeType: "application/json" }),
+    },
+  });
+
+  console.log("[AI Router] Generating with Gemini");
+  console.log("[AI Router] Model:", modelName);
+  console.log("[AI Router] Temperature:", options.temperature ?? 1.0);
+  console.log("[AI Router] Max tokens:", options.maxTokens ?? 8192);
+  console.log("[AI Router] JSON Mode:", options.jsonMode || false);
+
+  try {
+    // Gemini 메시지 형식으로 변환
+    // system 메시지는 systemInstruction으로, 나머지는 contents로
+    const systemMessage = messages.find((m) => m.role === "system" || m.role === "developer");
+    const conversationMessages = messages.filter((m) => m.role !== "system" && m.role !== "developer");
+
+    // Gemini 형식으로 메시지 변환
+    const contents = conversationMessages.map((m) => ({
+      role: m.role === "user" ? "user" : "model",
+      parts: [{ text: m.content }],
+    }));
+
+    // 시스템 메시지가 있으면 모델 재생성 (systemInstruction 포함)
+    let finalModel = model;
+    if (systemMessage) {
+      finalModel = geminiClient.getGenerativeModel({
+        model: modelName,
+        systemInstruction: systemMessage.content,
+        generationConfig: {
+          temperature: options.temperature ?? 1.0,
+          maxOutputTokens: options.maxTokens ?? 8192,
+          ...(options.jsonMode && { responseMimeType: "application/json" }),
+        },
+      });
+    }
+
+    const result = await finalModel.generateContent({
+      contents,
+    });
+
+    const response = result.response;
+    const content = response.text();
+
+    console.log("[AI Router] Gemini response received");
+    console.log("[AI Router] Content length:", content.length);
+
+    if (!content) {
+      console.warn("[AI Router] Empty content from Gemini");
+    }
+
+    return {
+      content,
+      provider: "gemini",
+      model: modelName,
+    };
+  } catch (error) {
+    console.error("[AI Router] Gemini API error:", error);
     if (error instanceof Error) {
       console.error("[AI Router] Error message:", error.message);
     }
@@ -389,6 +480,14 @@ export async function generateWithAI(
         return generateWithGPT(messages, options);
       }
       return generateWithGrok(messages, options);
+
+    case "gemini":
+      // Gemini가 없으면 GPT로 폴백
+      if (!geminiClient) {
+        console.warn("Gemini API not configured, falling back to GPT");
+        return generateWithGPT(messages, options);
+      }
+      return generateWithGemini(messages, options);
 
     default:
       throw new Error(`Unknown AI provider: ${provider}`);
