@@ -524,11 +524,11 @@
 
   /* Dark mode scrollbar */
   .dark .sidebar-scroll {
-    scrollbar-color: rgba(64, 248, 255, 0.3) #000000;
+    scrollbar-color: rgba(64, 248, 255, 0.3) #000000 !important;
   }
 
   .dark .sidebar-scroll::-webkit-scrollbar-track {
-    background: #000000;
+    background: #000000 !important;
     border-radius: 4px;
   }
 
@@ -582,11 +582,11 @@
 
   /* Dark mode global scrollbar */
   .dark * {
-    scrollbar-color: rgba(0, 0, 0, 0.6) #000000;
+    scrollbar-color: rgba(0, 0, 0, 0.6) #000000 !important;
   }
 
   .dark *::-webkit-scrollbar-track {
-    background: #000000;
+    background: #000000 !important;
     border-radius: 10px;
   }
 
@@ -630,7 +630,7 @@
 
   /* Dark mode chat textarea scrollbar - Black */
   .dark .chat-textarea-scroll::-webkit-scrollbar-track {
-    background: #000000;
+    background: #000000 !important;
   }
 
   .dark .chat-textarea-scroll::-webkit-scrollbar-thumb {
