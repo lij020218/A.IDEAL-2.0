@@ -285,7 +285,7 @@ export default function RefinePromptPage() {
 
         {/* Title */}
         <h1 className="text-3xl font-bold mb-6">
-          프롬프트 <span className="bg-gradient-to-r from-[#F3D4DB] via-[#D0DFFC] to-[#E7D5F7] bg-clip-text text-transparent">개선하기</span>
+          프롬프트 개선하기
         </h1>
 
         {!refinedPrompt ? (
@@ -293,7 +293,7 @@ export default function RefinePromptPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Panel - Existing Prompt (Collapsible) */}
             <div className="bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-6 shadow-lg shadow-black/5 dark:shadow-black/15 max-h-[400px] overflow-y-auto">
-              <div className="sticky top-0 bg-white/50 dark:bg-white/5 backdrop-blur-md z-10 pb-2 mb-4 space-y-2">
+              <div className="space-y-2 mb-4">
                 <div className="flex items-center gap-3">
                   <h2 className="text-xl font-bold">기존 프롬프트</h2>
                   {originalProvider && (
@@ -307,7 +307,7 @@ export default function RefinePromptPage() {
                   </p>
                 )}
               </div>
-              <pre className="whitespace-pre-wrap font-mono text-sm bg-secondary/50 p-4 rounded-md">
+              <pre className="whitespace-pre-wrap font-mono text-sm bg-white/30 dark:bg-black/20 p-4 rounded-md border border-white/30 dark:border-white/10">
                 {prompt.prompt}
               </pre>
             </div>
@@ -324,10 +324,10 @@ export default function RefinePromptPage() {
                     className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`max-w-[80%] rounded-lg p-4 ${
+                      className={`max-w-[80%] rounded-lg p-4 transition-all ${
                         message.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary"
+                          ? "bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/30"
+                          : "bg-secondary hover:bg-gradient-to-br hover:from-[#F3D4DB]/20 hover:via-[#D0DFFC]/20 hover:to-[#E7D5F7]/20 hover:shadow-lg"
                       }`}
                     >
                       <p className="whitespace-pre-wrap text-sm">{message.content}</p>
@@ -380,7 +380,7 @@ export default function RefinePromptPage() {
                     }
                   }}
                   placeholder="메시지를 입력하세요... (Shift+Enter로 줄바꿈)"
-                  className="flex-1 px-4 py-3 rounded-lg bg-white/70 dark:bg-black/30 border border-white/40 dark:border-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none overflow-y-auto"
+                  className="flex-1 px-4 py-3 rounded-lg bg-white/70 dark:bg-black/30 border border-white/40 dark:border-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none overflow-y-auto chat-textarea-scroll"
                   style={{ minHeight: "48px", maxHeight: "120px" }}
                   rows={1}
                   disabled={isSending}
@@ -388,7 +388,7 @@ export default function RefinePromptPage() {
                 <button
                   type="submit"
                   disabled={isSending || !input.trim()}
-                  className="px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-primary/80 to-primary hover:from-primary hover:to-primary/80 text-white transition-all shadow-lg hover:shadow-xl"
+                  className="px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-white/60 dark:bg-white/10 backdrop-blur-md border-2 border-white/40 dark:border-white/20 text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15"
                 >
                   <Send className="h-5 w-5" />
                 </button>
