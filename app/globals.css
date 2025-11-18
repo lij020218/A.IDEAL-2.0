@@ -524,11 +524,11 @@
 
   /* Dark mode scrollbar */
   .dark .sidebar-scroll {
-    scrollbar-color: rgba(64, 248, 255, 0.3) rgba(0, 0, 0, 0.2);
+    scrollbar-color: rgba(64, 248, 255, 0.3) #000000;
   }
 
   .dark .sidebar-scroll::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
+    background: #000000;
     border-radius: 4px;
   }
 
