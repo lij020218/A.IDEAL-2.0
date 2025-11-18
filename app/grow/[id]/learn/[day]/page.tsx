@@ -804,25 +804,6 @@ export default function LearnSessionPage({
                                       ? props.children 
                                       : props.children?.[0] || '';
                                     
-                                    // "사례:", "예제:", "예시:" 형식인지 확인
-                                    if (content && /^(사례|예제|예시):/.test(content)) {
-                                      const match = content.match(/^(사례|예제|예시):\s*(.+)/);
-                                      if (match) {
-                                        const label = match[1];
-                                        const example = match[2].trim();
-                                        return (
-                                          <div className="my-3 p-3 rounded-lg border-2 bg-rose-50/80 dark:bg-rose-900/20 border-rose-200/60 dark:border-rose-700/40 shadow-sm">
-                                            <div className="text-xs font-semibold text-rose-700 dark:text-rose-300 mb-1 uppercase tracking-wide">
-                                              {label}
-                                            </div>
-                                            <div className="text-sm text-rose-900 dark:text-rose-100">
-                                              {example}
-                                            </div>
-                                          </div>
-                                        );
-                                      }
-                                    }
-                                    
                                     // "개념: 설명" 형식인지 확인
                                     if (content && content.includes(':')) {
                                       const parts = content.split(':');
