@@ -641,10 +641,10 @@ export default function LearnSessionPage({
                         // Extract important concepts from content (for inline cards in body)
                         const importantConcepts = extractImportantConcepts(raw);
                         
-                        // Get summary from slide data or generate it
+                        // Get summary from slide data (1-3 sentences)
                         const slideSummary = slides[currentSlide]?.summary;
                         const summaryPoints = slideSummary 
-                          ? slideSummary.split('·').map(s => s.trim()).filter(Boolean)
+                          ? slideSummary.split('·').map(s => s.trim()).filter(Boolean).slice(0, 3)
                           : [];
                         
                         // Readability formatting: keep markdown emphasis and reflow sentences into short paragraphs
@@ -926,25 +926,23 @@ export default function LearnSessionPage({
                                 {content}
                               </ReactMarkdown>
 
-                              {/* 요점 정리 섹션 - 에메랄드 카드 */}
-                              {keyPoints.length > 0 && (
+                              {/* 요점 정리 섹션 - 에메랄드 투명 카드 */}
+                              {summaryPoints.length > 0 && (
                                 <>
-                                  <hr className="my-6 border-t-2 border-primary/30 dark:border-white/20" />
-                                  <div className="my-6 p-5 rounded-lg border-2 bg-emerald-50/90 dark:bg-emerald-900/20 border-emerald-300/70 dark:border-emerald-700/50 shadow-md">
-                                    <div className="flex items-center gap-2 mb-3">
-                                      <span className="text-lg">📌</span>
-                                      <h3 className="text-base font-bold text-emerald-900 dark:text-emerald-100">
-                                        요점 정리
-                                      </h3>
-                                    </div>
-                                    <div className="space-y-2">
-                                      {keyPoints.map((point, idx) => (
-                                        <div key={idx} className="flex items-start gap-2 text-sm leading-relaxed">
-                                          <span className="text-emerald-600 dark:text-emerald-400 mt-0.5">·</span>
-                                          <span className="text-emerald-800 dark:text-emerald-100 flex-1">{point}</span>
-                                        </div>
+                                  <hr className="my-6 border-t border-primary/30 dark:border-white/20" />
+                                  <div className="mt-6 p-4 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/10 border border-emerald-500/20 dark:border-emerald-500/20">
+                                    <h3 className="text-base font-semibold mb-2 text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
+                                      <Sparkles className="h-4 w-4" />
+                                      요점 정리
+                                    </h3>
+                                    <p className="text-sm leading-6 text-emerald-900 dark:text-emerald-100">
+                                      {summaryPoints.map((point, idx) => (
+                                        <span key={idx}>
+                                          {point}
+                                          {idx < summaryPoints.length - 1 && <span className="mx-2 text-emerald-600 dark:text-emerald-400">·</span>}
+                                        </span>
                                       ))}
-                                    </div>
+                                    </p>
                                   </div>
                                 </>
                               )}
@@ -1181,25 +1179,23 @@ export default function LearnSessionPage({
                               );
                             })}
 
-                            {/* 요점 정리 섹션 - 에메랄드 카드 */}
-                            {keyPoints.length > 0 && (
+                            {/* 요점 정리 섹션 - 에메랄드 투명 카드 */}
+                            {summaryPoints.length > 0 && (
                               <>
-                                <hr className="my-6 border-t-2 border-primary/30 dark:border-white/20" />
-                                <div className="my-6 p-5 rounded-lg border-2 bg-emerald-50/90 dark:bg-emerald-900/20 border-emerald-300/70 dark:border-emerald-700/50 shadow-md">
-                                  <div className="flex items-center gap-2 mb-3">
-                                    <span className="text-lg">📌</span>
-                                    <h3 className="text-base font-bold text-emerald-900 dark:text-emerald-100">
-                                      요점 정리
-                                    </h3>
-                                  </div>
-                                  <div className="space-y-2">
-                                    {keyPoints.map((point, idx) => (
-                                      <div key={idx} className="flex items-start gap-2 text-sm leading-relaxed">
-                                        <span className="text-emerald-600 dark:text-emerald-400 mt-0.5">·</span>
-                                        <span className="text-emerald-800 dark:text-emerald-100 flex-1">{point}</span>
-                                      </div>
+                                <hr className="my-6 border-t border-primary/30 dark:border-white/20" />
+                                <div className="mt-6 p-4 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/10 border border-emerald-500/20 dark:border-emerald-500/20">
+                                  <h3 className="text-base font-semibold mb-2 text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
+                                    <Sparkles className="h-4 w-4" />
+                                    요점 정리
+                                  </h3>
+                                  <p className="text-sm leading-6 text-emerald-900 dark:text-emerald-100">
+                                    {summaryPoints.map((point, idx) => (
+                                      <span key={idx}>
+                                        {point}
+                                        {idx < summaryPoints.length - 1 && <span className="mx-2 text-emerald-600 dark:text-emerald-400">·</span>}
+                                      </span>
                                     ))}
-                                  </div>
+                                  </p>
                                 </div>
                               </>
                             )}
