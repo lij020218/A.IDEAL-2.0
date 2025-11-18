@@ -689,12 +689,54 @@ export default function LearnSessionPage({
                             <>
                               <ReactMarkdown
                                 components={{
-                                  ul: ({ node, ...props }) => (
-                                    <ul className="space-y-3 my-4" {...props} />
-                                  ),
-                                  li: ({ node, ...props }) => (
-                                    <li className="leading-relaxed" {...props} />
-                                  ),
+                                  ul: ({ node, ...props }: any) => {
+                                    const children = props.children;
+                                    // 리스트 항목들을 가운뎃점으로 연결된 형태로 렌더링
+                                    if (Array.isArray(children)) {
+                                      const items = children.filter((child: any) => child?.type === 'li');
+                                      if (items.length > 0 && items.length <= 5) {
+                                        // 짧은 리스트(5개 이하)는 가운뎃점으로 연결
+                                        return (
+                                          <div className="my-4">
+                                            <p className="text-base leading-7 text-foreground/90 dark:text-white/80">
+                                              {items.map((item: any, idx: number) => {
+                                                const text = typeof item.props?.children === 'string' 
+                                                  ? item.props.children 
+                                                  : typeof item.props?.children?.[0] === 'string'
+                                                  ? item.props.children[0]
+                                                  : '';
+                                                return (
+                                                  <span key={idx}>
+                                                    {text.replace(/^[-*•]\s*/, '').trim()}
+                                                    {idx < items.length - 1 && <span className="mx-2 text-primary/60 dark:text-primary/40">·</span>}
+                                                  </span>
+                                                );
+                                              })}
+                                            </p>
+                                          </div>
+                                        );
+                                      }
+                                    }
+                                    // 긴 리스트나 복잡한 구조는 기본 ul 사용
+                                    return <ul className="space-y-3 my-4" {...props} />;
+                                  },
+                                  li: ({ node, ...props }: any) => {
+                                    // 기본 li 렌더링 (ul에서 처리되지 않은 경우)
+                                    const children = props.children;
+                                    const text = typeof children === 'string' 
+                                      ? children 
+                                      : typeof children?.[0] === 'string'
+                                      ? children[0]
+                                      : '';
+                                    
+                                    // 짧은 항목은 인라인으로, 긴 항목은 블록으로
+                                    if (text && text.length < 100) {
+                                      return (
+                                        <li className="leading-relaxed inline" {...props} />
+                                      );
+                                    }
+                                    return <li className="leading-relaxed" {...props} />;
+                                  },
                                   strong: ({ node, ...props }) => (
                                     <strong className="text-primary font-bold bg-primary/10 px-1.5 py-0.5 rounded" {...props} />
                                   ),
@@ -716,9 +758,35 @@ export default function LearnSessionPage({
                                   hr: ({ node, ...props }) => (
                                     <hr className="my-6 border-primary/20" {...props} />
                                   ),
-                                  p: ({ node, ...props }) => (
-                                    <p className="my-4 leading-7 tracking-wide whitespace-pre-line text-base" {...props} />
-                                  ),
+                                  p: ({ node, ...props }: any) => {
+                                    const children = props.children;
+                                    const text = typeof children === 'string' 
+                                      ? children 
+                                      : typeof children?.[0] === 'string'
+                                      ? children[0]
+                                      : '';
+                                    
+                                    // 짧은 문장들이 연속되어 있을 때 가운뎃점으로 연결
+                                    if (text && text.length < 200) {
+                                      // 문장이 2-3개로 나뉘어 있고 짧을 때
+                                      const sentences = text.split(/[\.!?…]/).filter((s: string) => s.trim().length > 10 && s.trim().length < 80);
+                                      if (sentences.length >= 2 && sentences.length <= 4) {
+                                        return (
+                                          <p className="my-4 leading-7 tracking-wide text-base text-foreground/90 dark:text-white/80">
+                                            {sentences.map((sentence: string, idx: number) => (
+                                              <span key={idx}>
+                                                {sentence.trim()}
+                                                {idx < sentences.length - 1 && <span className="mx-2 text-primary/60 dark:text-primary/40">·</span>}
+                                              </span>
+                                            ))}
+                                          </p>
+                                        );
+                                      }
+                                    }
+                                    
+                                    // 기본 렌더링
+                                    return <p className="my-4 leading-7 tracking-wide whitespace-pre-line text-base" {...props} />;
+                                  },
                                   blockquote: ({ node, ...props }: any) => {
                                     const content = props.children;
                                     const text = typeof content === 'string'
@@ -866,12 +934,54 @@ export default function LearnSessionPage({
                                 <ReactMarkdown
                                   key={idx}
                                   components={{
-                                    ul: ({ node, ...props }) => (
-                                      <ul className="space-y-3 my-4" {...props} />
-                                    ),
-                                    li: ({ node, ...props }) => (
-                                      <li className="leading-relaxed" {...props} />
-                                    ),
+                                    ul: ({ node, ...props }: any) => {
+                                      const children = props.children;
+                                      // 리스트 항목들을 가운뎃점으로 연결된 형태로 렌더링
+                                      if (Array.isArray(children)) {
+                                        const items = children.filter((child: any) => child?.type === 'li');
+                                        if (items.length > 0 && items.length <= 5) {
+                                          // 짧은 리스트(5개 이하)는 가운뎃점으로 연결
+                                          return (
+                                            <div className="my-4">
+                                              <p className="text-base leading-7 text-foreground/90 dark:text-white/80">
+                                                {items.map((item: any, idx: number) => {
+                                                  const text = typeof item.props?.children === 'string' 
+                                                    ? item.props.children 
+                                                    : typeof item.props?.children?.[0] === 'string'
+                                                    ? item.props.children[0]
+                                                    : '';
+                                                  return (
+                                                    <span key={idx}>
+                                                      {text.replace(/^[-*•]\s*/, '').trim()}
+                                                      {idx < items.length - 1 && <span className="mx-2 text-primary/60 dark:text-primary/40">·</span>}
+                                                    </span>
+                                                  );
+                                                })}
+                                              </p>
+                                            </div>
+                                          );
+                                        }
+                                      }
+                                      // 긴 리스트나 복잡한 구조는 기본 ul 사용
+                                      return <ul className="space-y-3 my-4" {...props} />;
+                                    },
+                                    li: ({ node, ...props }: any) => {
+                                      // 기본 li 렌더링 (ul에서 처리되지 않은 경우)
+                                      const children = props.children;
+                                      const text = typeof children === 'string' 
+                                        ? children 
+                                        : typeof children?.[0] === 'string'
+                                        ? children[0]
+                                        : '';
+                                      
+                                      // 짧은 항목은 인라인으로, 긴 항목은 블록으로
+                                      if (text && text.length < 100) {
+                                        return (
+                                          <li className="leading-relaxed inline" {...props} />
+                                        );
+                                      }
+                                      return <li className="leading-relaxed" {...props} />;
+                                    },
                                     strong: ({ node, ...props }) => (
                                       <strong className="text-primary font-bold bg-primary/10 px-1.5 py-0.5 rounded" {...props} />
                                     ),
@@ -893,9 +1003,35 @@ export default function LearnSessionPage({
                                     hr: ({ node, ...props }) => (
                                       <hr className="my-6 border-primary/20" {...props} />
                                     ),
-                                    p: ({ node, ...props }) => (
-                                      <p className="my-4 leading-7 tracking-wide whitespace-pre-line text-base" {...props} />
-                                    ),
+                                    p: ({ node, ...props }: any) => {
+                                      const children = props.children;
+                                      const text = typeof children === 'string' 
+                                        ? children 
+                                        : typeof children?.[0] === 'string'
+                                        ? children[0]
+                                        : '';
+                                      
+                                      // 짧은 문장들이 연속되어 있을 때 가운뎃점으로 연결
+                                      if (text && text.length < 200) {
+                                        // 문장이 2-3개로 나뉘어 있고 짧을 때
+                                        const sentences = text.split(/[\.!?…]/).filter((s: string) => s.trim().length > 10 && s.trim().length < 80);
+                                        if (sentences.length >= 2 && sentences.length <= 4) {
+                                          return (
+                                            <p className="my-4 leading-7 tracking-wide text-base text-foreground/90 dark:text-white/80">
+                                              {sentences.map((sentence: string, idx: number) => (
+                                                <span key={idx}>
+                                                  {sentence.trim()}
+                                                  {idx < sentences.length - 1 && <span className="mx-2 text-primary/60 dark:text-primary/40">·</span>}
+                                                </span>
+                                              ))}
+                                            </p>
+                                          );
+                                        }
+                                      }
+                                      
+                                      // 기본 렌더링
+                                      return <p className="my-4 leading-7 tracking-wide whitespace-pre-line text-base" {...props} />;
+                                    },
                                     blockquote: ({ node, ...props }: any) => {
                                       const content = props.children;
                                       const text = typeof content === 'string'
