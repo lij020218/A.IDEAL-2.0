@@ -12,28 +12,28 @@ export async function GET(
     // Prisma Client가 promptId를 인식하지 못하므로 raw SQL 사용
     console.log("[Comments API] Fetching comments using raw SQL for prompt:", params.id);
     
-    // SQLite용 raw query - 모든 댓글 가져오기
+    // PostgreSQL용 raw query - 모든 댓글 가져오기
     const allComments = await prisma.$queryRaw<Array<{
       id: string;
       content: string;
       userId: string;
-      createdAt: string;
+      createdAt: Date;
       parentId: string | null;
       userName: string | null;
       userEmail: string;
     }>>`
-      SELECT 
+      SELECT
         c.id,
         c.content,
-        c.userId,
-        c.createdAt,
-        c.parentId,
-        u.name as userName,
-        u.email as userEmail
-      FROM Comment c
-      INNER JOIN User u ON c.userId = u.id
-      WHERE c.promptId = ${params.id}
-      ORDER BY c.createdAt ASC
+        c."userId",
+        c."createdAt",
+        c."parentId",
+        u.name as "userName",
+        u.email as "userEmail"
+      FROM "Comment" c
+      INNER JOIN "User" u ON c."userId" = u.id
+      WHERE c."promptId" = ${params.id}
+      ORDER BY c."createdAt" ASC
     `;
 
     // 부모-자식 관계 구성
@@ -44,9 +44,9 @@ export async function GET(
       const formattedComment = {
         id: comment.id,
         content: comment.content,
-        createdAt: typeof comment.createdAt === 'string' 
-          ? comment.createdAt 
-          : new Date(comment.createdAt as any).toISOString(),
+        createdAt: comment.createdAt instanceof Date
+          ? comment.createdAt.toISOString()
+          : new Date(comment.createdAt).toISOString(),
         user: {
           id: comment.userId,
           name: comment.userName,
@@ -129,9 +129,9 @@ export async function POST(
         id: string;
         promptId: string | null;
       }>>`
-        SELECT id, promptId
-        FROM Comment
-        WHERE id = ${parentId} AND promptId = ${params.id}
+        SELECT id, "promptId"
+        FROM "Comment"
+        WHERE id = ${parentId} AND "promptId" = ${params.id}
       `;
       
       if (rawParent.length === 0) {
@@ -152,8 +152,8 @@ export async function POST(
     const commentId = `c${timestamp}${random}`.substring(0, 25);
     
     await prisma.$executeRaw`
-      INSERT INTO Comment (id, promptId, userId, content, parentId, createdAt, updatedAt)
-      VALUES (${commentId}, ${params.id}, ${session.user.id}, ${content.trim()}, ${parentId || null}, datetime('now'), datetime('now'))
+      INSERT INTO "Comment" (id, "promptId", "userId", content, "parentId", "createdAt", "updatedAt")
+      VALUES (${commentId}, ${params.id}, ${session.user.id}, ${content.trim()}, ${parentId || null}, NOW(), NOW())
     `;
     
     // 생성된 댓글 조회
@@ -161,21 +161,21 @@ export async function POST(
       id: string;
       content: string;
       userId: string;
-      createdAt: string;
+      createdAt: Date;
       parentId: string | null;
       userName: string | null;
       userEmail: string;
     }>>`
-      SELECT 
+      SELECT
         c.id,
         c.content,
-        c.userId,
-        c.createdAt,
-        c.parentId,
-        u.name as userName,
-        u.email as userEmail
-      FROM Comment c
-      INNER JOIN User u ON c.userId = u.id
+        c."userId",
+        c."createdAt",
+        c."parentId",
+        u.name as "userName",
+        u.email as "userEmail"
+      FROM "Comment" c
+      INNER JOIN "User" u ON c."userId" = u.id
       WHERE c.id = ${commentId}
     `;
 
@@ -186,9 +186,9 @@ export async function POST(
     const comment = {
       id: createdComment[0].id,
       content: createdComment[0].content,
-      createdAt: typeof createdComment[0].createdAt === 'string'
-        ? createdComment[0].createdAt
-        : new Date(createdComment[0].createdAt as any).toISOString(),
+      createdAt: createdComment[0].createdAt instanceof Date
+        ? createdComment[0].createdAt.toISOString()
+        : new Date(createdComment[0].createdAt).toISOString(),
       user: {
         id: createdComment[0].userId,
         name: createdComment[0].userName,
