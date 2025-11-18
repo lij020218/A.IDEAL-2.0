@@ -132,13 +132,15 @@ async function getPlanRow(userId: string): Promise<PlanRow> {
 }
 
 async function updatePlanRow(userId: string, data: PlanRow) {
+  const promptResetAt = data.promptCopiesResetAt ? new Date(data.promptCopiesResetAt) : null;
+  const growthResetAt = data.growthContentResetAt ? new Date(data.growthContentResetAt) : null;
   await prisma.$executeRaw`
     UPDATE "User"
     SET plan = ${data.plan},
         "promptCopiesToday" = ${data.promptCopiesToday},
-        "promptCopiesResetAt" = ${data.promptCopiesResetAt},
+        "promptCopiesResetAt" = ${promptResetAt},
         "growthContentToday" = ${data.growthContentToday},
-        "growthContentResetAt" = ${data.growthContentResetAt}
+        "growthContentResetAt" = ${growthResetAt}
     WHERE id = ${userId}
   `;
 }
@@ -194,10 +196,11 @@ export async function ensurePromptCopyAllowed(userId: string) {
   }
 
   const newCount = promptCopiesToday + 1;
+  const todayDate = startOfToday();
   await prisma.$executeRaw`
     UPDATE "User"
     SET "promptCopiesToday" = ${newCount},
-        "promptCopiesResetAt" = COALESCE("promptCopiesResetAt", ${startOfToday().toISOString()})
+        "promptCopiesResetAt" = COALESCE("promptCopiesResetAt", ${todayDate})
     WHERE id = ${userId}
   `;
   await logUsage(userId, "prompt_copy", { total: newCount });
@@ -220,10 +223,11 @@ export async function ensureGrowthContentAllowed(userId: string) {
   }
 
   const newCount = growthContentToday + 1;
+  const todayDate = startOfToday();
   await prisma.$executeRaw`
     UPDATE "User"
     SET "growthContentToday" = ${newCount},
-        "growthContentResetAt" = COALESCE("growthContentResetAt", ${startOfToday().toISOString()})
+        "growthContentResetAt" = COALESCE("growthContentResetAt", ${todayDate})
     WHERE id = ${userId}
   `;
   await logUsage(userId, "growth_content", { total: newCount });
@@ -247,14 +251,14 @@ export async function getPlanStatus(userId: string) {
 
 export async function setUserPlan(userId: string, plan: PlanType) {
   await ensurePlanColumns();
-  const todayISO = startOfToday().toISOString();
+  const todayDate = startOfToday();
   await prisma.$executeRaw`
     UPDATE "User"
     SET plan = ${plan},
         "promptCopiesToday" = 0,
         "growthContentToday" = 0,
-        "promptCopiesResetAt" = ${todayISO},
-        "growthContentResetAt" = ${todayISO}
+        "promptCopiesResetAt" = ${todayDate},
+        "growthContentResetAt" = ${todayDate}
     WHERE id = ${userId}
   `;
 }
