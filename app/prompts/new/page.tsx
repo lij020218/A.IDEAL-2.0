@@ -106,7 +106,9 @@ function NewPromptContent() {
         form.append("file", imageFile);
         const upRes = await fetch("/api/upload", { method: "POST", body: form });
         if (!upRes.ok) {
-          throw new Error("이미지 업로드에 실패했습니다");
+          const errorData = await upRes.json().catch(() => ({}));
+          const errorMessage = errorData.error || errorData.details || "이미지 업로드에 실패했습니다";
+          throw new Error(errorMessage);
         }
         const upJson = await upRes.json();
         imageUrl = upJson.url;

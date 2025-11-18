@@ -202,7 +202,9 @@ export default function NewGrowthTopicPage() {
         });
 
         if (!response.ok) {
-          throw new Error(`파일 업로드 실패: ${file.name}`);
+          const errorData = await response.json().catch(() => ({}));
+          const errorMessage = errorData.error || errorData.details || `파일 업로드 실패: ${file.name}`;
+          throw new Error(errorMessage);
         }
 
         return response.json();
@@ -213,8 +215,9 @@ export default function NewGrowthTopicPage() {
       setExamFiles([]);
       return results;
     } catch (err) {
-      console.error(err);
-      setError(err instanceof Error ? err.message : "파일 업로드에 실패했습니다.");
+      console.error("File upload error:", err);
+      const errorMessage = err instanceof Error ? err.message : "파일 업로드에 실패했습니다.";
+      setError(errorMessage);
       return [];
     } finally {
       setIsUploading(false);

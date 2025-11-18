@@ -184,7 +184,9 @@ export default function ChatRoomPage() {
           fileName = uploadData.filename;
           fileType = uploadData.type;
         } else {
-          alert("파일 업로드에 실패했습니다");
+          const errorData = await uploadResponse.json().catch(() => ({}));
+          const errorMessage = errorData.error || errorData.details || "파일 업로드에 실패했습니다";
+          alert(errorMessage);
           setIsSending(false);
           setIsUploading(false);
           return;
