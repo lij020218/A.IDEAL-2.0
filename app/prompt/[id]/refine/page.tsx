@@ -292,7 +292,7 @@ export default function RefinePromptPage() {
           /* Two Column Layout - Chat Interface */
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Panel - Existing Prompt (Collapsible) */}
-            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-6 shadow-lg shadow-black/5 dark:shadow-black/15 max-h-[400px] overflow-y-auto">
+            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-6 shadow-lg shadow-black/5 dark:shadow-black/15 max-h-[400px] overflow-y-auto sidebar-scroll">
               <div className="space-y-2 mb-4">
                 <div className="flex items-center gap-3">
                   <h2 className="text-xl font-bold">기존 프롬프트</h2>
@@ -317,7 +317,7 @@ export default function RefinePromptPage() {
               <h2 className="text-xl font-bold mb-4">AI와 대화하기</h2>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto mb-4 space-y-4">
+              <div className="flex-1 overflow-y-auto mb-4 space-y-4 sidebar-scroll">
                 {messages.map((message, index) => (
                   <div
                     key={index}
