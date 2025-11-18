@@ -544,6 +544,10 @@
     border: 2px solid rgba(0, 0, 0, 0.3);
   }
 
+  /* ============================================ */
+  /* LIGHT MODE SCROLLBAR STYLES (declared first) */
+  /* ============================================ */
+
   /* Global Glassmorphism Scrollbar */
   * {
     scrollbar-width: thin;
@@ -580,6 +584,30 @@
     border-color: rgba(255, 255, 255, 0.3);
   }
 
+  /* Chat Textarea Scrollbar - Compact and integrated */
+  .chat-textarea-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .chat-textarea-scroll::-webkit-scrollbar-track {
+    background: #ffffff;
+    margin: 4px 0;
+  }
+
+  .chat-textarea-scroll::-webkit-scrollbar-thumb {
+    background: rgba(147, 197, 253, 0.3);
+    border-radius: 3px;
+    border: none;
+  }
+
+  .chat-textarea-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(147, 197, 253, 0.5);
+  }
+
+  /* ============================================ */
+  /* DARK MODE SCROLLBAR STYLES (declared last to properly override) */
+  /* ============================================ */
+
   /* Dark mode global scrollbar */
   .dark * {
     scrollbar-color: rgba(0, 0, 0, 0.6) #000000 !important;
@@ -606,26 +634,6 @@
       0 2px 12px rgba(0, 0, 0, 0.5),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.1);
-  }
-
-  /* Chat Textarea Scrollbar - Compact and integrated */
-  .chat-textarea-scroll::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .chat-textarea-scroll::-webkit-scrollbar-track {
-    background: #ffffff;
-    margin: 4px 0;
-  }
-
-  .chat-textarea-scroll::-webkit-scrollbar-thumb {
-    background: rgba(147, 197, 253, 0.3);
-    border-radius: 3px;
-    border: none;
-  }
-
-  .chat-textarea-scroll::-webkit-scrollbar-thumb:hover {
-    background: rgba(147, 197, 253, 0.5);
   }
 
   /* Dark mode chat textarea scrollbar - Black */
