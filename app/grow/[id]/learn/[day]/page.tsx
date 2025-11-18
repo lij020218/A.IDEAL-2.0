@@ -963,14 +963,14 @@ export default function LearnSessionPage({
                                       <Sparkles className="h-4 w-4" />
                                       요점 정리
                                     </h3>
-                                    <p className="text-sm leading-6 text-emerald-900 dark:text-emerald-100">
+                                    <div className="space-y-1.5">
                                       {summaryPoints.map((point, idx) => (
-                                        <span key={idx}>
+                                        <div key={idx} className="text-sm leading-6 text-emerald-900 dark:text-emerald-100">
+                                          <span className="text-emerald-600 dark:text-emerald-400 mr-2">ㆍ</span>
                                           {point}
-                                          {idx < summaryPoints.length - 1 && <span className="mx-2 text-emerald-600 dark:text-emerald-400">·</span>}
-                                        </span>
+                                        </div>
                                       ))}
-                                    </p>
+                                    </div>
                                   </div>
                                 </>
                               )}
@@ -1216,14 +1216,14 @@ export default function LearnSessionPage({
                                     <Sparkles className="h-4 w-4" />
                                     요점 정리
                                   </h3>
-                                  <p className="text-sm leading-6 text-emerald-900 dark:text-emerald-100">
+                                  <div className="space-y-1.5">
                                     {summaryPoints.map((point, idx) => (
-                                      <span key={idx}>
+                                      <div key={idx} className="text-sm leading-6 text-emerald-900 dark:text-emerald-100">
+                                        <span className="text-emerald-600 dark:text-emerald-400 mr-2">ㆍ</span>
                                         {point}
-                                        {idx < summaryPoints.length - 1 && <span className="mx-2 text-emerald-600 dark:text-emerald-400">·</span>}
-                                      </span>
+                                      </div>
                                     ))}
-                                  </p>
+                                  </div>
                                 </div>
                               </>
                             )}
