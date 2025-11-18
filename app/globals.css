@@ -497,6 +497,10 @@
     }
   }
 
+  /* ============================================ */
+  /* LIGHT MODE SCROLLBAR STYLES (declared first) */
+  /* ============================================ */
+
   /* Sidebar scrollbar styling */
   .sidebar-scroll {
     scrollbar-width: thin;
@@ -521,32 +525,6 @@
   .sidebar-scroll::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.25);
   }
-
-  /* Dark mode scrollbar */
-  .dark .sidebar-scroll {
-    scrollbar-color: rgba(64, 248, 255, 0.3) #000000 !important;
-  }
-
-  .dark .sidebar-scroll::-webkit-scrollbar-track {
-    background: #000000 !important;
-    border-radius: 4px;
-  }
-
-  .dark .sidebar-scroll::-webkit-scrollbar-thumb {
-    background: rgba(64, 248, 255, 0.2);
-    box-shadow: 0 0 8px rgba(64, 248, 255, 0.3);
-    border: 2px solid rgba(0, 0, 0, 0.2);
-  }
-
-  .dark .sidebar-scroll::-webkit-scrollbar-thumb:hover {
-    background: rgba(64, 248, 255, 0.35);
-    box-shadow: 0 0 12px rgba(64, 248, 255, 0.5);
-    border: 2px solid rgba(0, 0, 0, 0.3);
-  }
-
-  /* ============================================ */
-  /* LIGHT MODE SCROLLBAR STYLES (declared first) */
-  /* ============================================ */
 
   /* Global Glassmorphism Scrollbar */
   * {
@@ -636,9 +614,33 @@
     border-color: rgba(255, 255, 255, 0.1);
   }
 
+  /* Dark mode sidebar scrollbar - Force pure black track */
+  .dark .sidebar-scroll {
+    scrollbar-color: rgba(64, 248, 255, 0.3) #000000 !important;
+  }
+
+  .dark .sidebar-scroll::-webkit-scrollbar-track {
+    background: #000000 !important;
+    opacity: 1 !important;
+    border-radius: 4px;
+  }
+
+  .dark .sidebar-scroll::-webkit-scrollbar-thumb {
+    background: rgba(64, 248, 255, 0.2);
+    box-shadow: 0 0 8px rgba(64, 248, 255, 0.3);
+    border: 2px solid rgba(0, 0, 0, 0.2);
+  }
+
+  .dark .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(64, 248, 255, 0.35);
+    box-shadow: 0 0 12px rgba(64, 248, 255, 0.5);
+    border: 2px solid rgba(0, 0, 0, 0.3);
+  }
+
   /* Dark mode chat textarea scrollbar - Black */
   .dark .chat-textarea-scroll::-webkit-scrollbar-track {
     background: #000000 !important;
+    opacity: 1 !important;
   }
 
   .dark .chat-textarea-scroll::-webkit-scrollbar-thumb {
