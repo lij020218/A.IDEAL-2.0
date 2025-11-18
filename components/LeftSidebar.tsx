@@ -15,6 +15,7 @@ import {
   CreditCard,
   Settings,
   ChevronUp,
+  Shield,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko, enUS } from "date-fns/locale";
@@ -419,6 +420,19 @@ export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSid
 
           {showFooterMenu && (
             <div className="absolute left-4 right-4 bottom-16 bg-white dark:bg-[#0b0d1b] backdrop-blur-xl border border-white/40 dark:border-white/20 rounded-xl shadow-xl shadow-black/20 dark:shadow-black/50 py-2 z-10">
+              {session.user?.role === "admin" && (
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-white/80 dark:hover:bg-white/10 transition-colors text-foreground dark:text-white"
+                  onClick={() => {
+                    setShowFooterMenu(false);
+                    onClose?.();
+                  }}
+                >
+                  <Shield className="h-4 w-4" />
+                  {translate("관리자 페이지")}
+                </Link>
+              )}
               <Link
                 href="/billing"
                 className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-white/80 dark:hover:bg-white/10 transition-colors text-foreground dark:text-white"
