@@ -582,12 +582,12 @@ async function saveLearningContent(curriculumId: string, data: LearningContentPa
   const resourcesStr = data.resources?.length ? JSON.stringify(data.resources) : null;
 
   await prisma.$executeRaw`
-    UPDATE Curriculum
+    UPDATE "Curriculum"
     SET content = ${slidesStr},
         objectives = ${objectivesStr},
         exercises = ${quizStr},
         resources = ${resourcesStr},
-        updatedAt = CURRENT_TIMESTAMP
+        "updatedAt" = NOW()
     WHERE id = ${curriculumId}
   `;
 }

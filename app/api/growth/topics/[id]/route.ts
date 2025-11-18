@@ -67,7 +67,7 @@ export async function GET(
         if (!contentValue) {
           try {
             const result = await prisma.$queryRaw<Array<{ content: string | null; resources: string | null }>>`
-              SELECT content, resources FROM Curriculum WHERE id = ${item.id}
+              SELECT content, resources FROM "Curriculum" WHERE id = ${item.id}
             `;
             if (result && result.length > 0) {
               contentValue = result[0].content;

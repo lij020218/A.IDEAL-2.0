@@ -31,7 +31,7 @@ async function ensureLearningProgressColumns() {
     }
   };
 
-  await addColumn`ALTER TABLE "LearningProgress" ADD COLUMN "date" DATETIME;`;
+  await addColumn`ALTER TABLE "LearningProgress" ADD COLUMN "date" TIMESTAMP;`;
   await addColumn`ALTER TABLE "LearningProgress" ADD COLUMN "notes" TEXT;`;
   await addColumn`ALTER TABLE "LearningProgress" ADD COLUMN "chatHistory" TEXT;`;
 
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
 
     const existing = await prisma.$queryRaw<Array<{ id: string }>>`
       SELECT id FROM "LearningProgress"
-      WHERE userId = ${user.id} AND topicId = ${topicId} AND dayNumber = ${dayNumber}
+      WHERE "userId" = ${user.id} AND "topicId" = ${topicId} AND "dayNumber" = ${dayNumber}
       LIMIT 1
     `;
 
@@ -110,28 +110,28 @@ export async function POST(req: NextRequest) {
       await prisma.$executeRaw`
         UPDATE "LearningProgress"
         SET status = ${normalizedStatus},
-            timeSpent = ${normalizedTime},
+            "timeSpent" = ${normalizedTime},
             notes = ${normalizedNotes},
-            chatHistory = ${normalizedChatHistory},
-            completedAt = ${completedAt},
-            updatedAt = ${now}
+            "chatHistory" = ${normalizedChatHistory},
+            "completedAt" = ${completedAt},
+            "updatedAt" = ${now}
         WHERE id = ${existing[0].id}
       `;
     } else {
       await prisma.$executeRaw`
         INSERT INTO "LearningProgress" (
           id,
-          userId,
-          topicId,
-          dayNumber,
+          "userId",
+          "topicId",
+          "dayNumber",
           date,
           status,
-          timeSpent,
+          "timeSpent",
           notes,
-          chatHistory,
-          completedAt,
-          createdAt,
-          updatedAt
+          "chatHistory",
+          "completedAt",
+          "createdAt",
+          "updatedAt"
         ) VALUES (
           ${randomUUID()},
           ${user.id},
@@ -150,9 +150,9 @@ export async function POST(req: NextRequest) {
     }
 
     const progress = await prisma.$queryRaw<Array<any>>`
-      SELECT id, topicId, dayNumber, status, timeSpent, completedAt, date, updatedAt
+      SELECT id, "topicId", "dayNumber", status, "timeSpent", "completedAt", date, "updatedAt"
       FROM "LearningProgress"
-      WHERE userId = ${user.id} AND topicId = ${topicId} AND dayNumber = ${dayNumber}
+      WHERE "userId" = ${user.id} AND "topicId" = ${topicId} AND "dayNumber" = ${dayNumber}
       LIMIT 1
     `;
 
@@ -207,10 +207,10 @@ export async function GET(req: NextRequest) {
     await ensureLearningProgressColumns();
 
     const progress = await prisma.$queryRaw<Array<any>>`
-      SELECT id, dayNumber, status, timeSpent, completedAt, date
+      SELECT id, "dayNumber", status, "timeSpent", "completedAt", date
       FROM "LearningProgress"
-      WHERE topicId = ${topicId} AND userId = ${user.id}
-      ORDER BY dayNumber ASC
+      WHERE "topicId" = ${topicId} AND "userId" = ${user.id}
+      ORDER BY "dayNumber" ASC
     `;
 
     const normalized = progress.map((p) => ({

@@ -32,29 +32,35 @@ let usageTableEnsured = false;
 async function ensurePlanColumns() {
   if (planColumnsEnsured) return;
   try {
-    const columns = await prisma.$queryRaw<Array<{ name: string }>>`
-      PRAGMA table_info("User")
+    // PostgreSQL: information_schema를 사용하여 컬럼 존재 여부 확인
+    const columns = await prisma.$queryRaw<Array<{ column_name: string }>>`
+      SELECT column_name FROM information_schema.columns
+      WHERE table_name = 'User'
     `;
-    const names = new Set(columns.map((col) => col.name.toLowerCase()));
+    const names = new Set(columns.map((col) => col.column_name.toLowerCase()));
 
     const addColumn = async (sql: string) => {
-      await prisma.$executeRawUnsafe(sql);
+      try {
+        await prisma.$executeRawUnsafe(sql);
+      } catch (error) {
+        // 컬럼이 이미 존재하는 경우 무시
+      }
     };
 
     if (!names.has("plan")) {
-      await addColumn(`ALTER TABLE "User" ADD COLUMN plan TEXT NOT NULL DEFAULT 'free'`);
+      await addColumn(`ALTER TABLE "User" ADD COLUMN plan TEXT DEFAULT 'free'`);
     }
     if (!names.has("promptcopiestoday")) {
-      await addColumn(`ALTER TABLE "User" ADD COLUMN promptCopiesToday INTEGER NOT NULL DEFAULT 0`);
+      await addColumn(`ALTER TABLE "User" ADD COLUMN "promptCopiesToday" INTEGER DEFAULT 0`);
     }
     if (!names.has("promptcopiesresetat")) {
-      await addColumn(`ALTER TABLE "User" ADD COLUMN promptCopiesResetAt DATETIME`);
+      await addColumn(`ALTER TABLE "User" ADD COLUMN "promptCopiesResetAt" TIMESTAMP`);
     }
     if (!names.has("growthcontenttoday")) {
-      await addColumn(`ALTER TABLE "User" ADD COLUMN growthContentToday INTEGER NOT NULL DEFAULT 0`);
+      await addColumn(`ALTER TABLE "User" ADD COLUMN "growthContentToday" INTEGER DEFAULT 0`);
     }
     if (!names.has("growthcontentresetat")) {
-      await addColumn(`ALTER TABLE "User" ADD COLUMN growthContentResetAt DATETIME`);
+      await addColumn(`ALTER TABLE "User" ADD COLUMN "growthContentResetAt" TIMESTAMP`);
     }
 
     planColumnsEnsured = true;
@@ -69,14 +75,14 @@ async function ensureUsageTable() {
     await prisma.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS "UsageLog" (
         id TEXT PRIMARY KEY,
-        userId TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
         type TEXT NOT NULL,
         metadata TEXT,
-        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
     await prisma.$executeRawUnsafe(`
-      CREATE INDEX IF NOT EXISTS idx_usage_user ON "UsageLog"(userId, createdAt DESC)
+      CREATE INDEX IF NOT EXISTS idx_usage_user ON "UsageLog"("userId", "createdAt" DESC)
     `);
     usageTableEnsured = true;
   } catch (error) {
@@ -95,8 +101,8 @@ async function logUsage(
   const id = randomUUID();
   const metaJson = metadata ? JSON.stringify(metadata) : null;
   await prisma.$executeRaw`
-    INSERT INTO "UsageLog"(id, userId, type, metadata, createdAt)
-    VALUES (${id}, ${userId}, ${type}, ${metaJson}, datetime('now'))
+    INSERT INTO "UsageLog"(id, "userId", type, metadata, "createdAt")
+    VALUES (${id}, ${userId}, ${type}, ${metaJson}, NOW())
   `;
 }
 
@@ -112,10 +118,10 @@ async function getPlanRow(userId: string): Promise<PlanRow> {
   await ensurePlanColumns();
   const rows = await prisma.$queryRaw<Array<PlanRow>>`
     SELECT plan,
-           promptCopiesToday,
-           promptCopiesResetAt,
-           growthContentToday,
-           growthContentResetAt
+           "promptCopiesToday",
+           "promptCopiesResetAt",
+           "growthContentToday",
+           "growthContentResetAt"
     FROM "User"
     WHERE id = ${userId}
   `;
@@ -129,10 +135,10 @@ async function updatePlanRow(userId: string, data: PlanRow) {
   await prisma.$executeRaw`
     UPDATE "User"
     SET plan = ${data.plan},
-        promptCopiesToday = ${data.promptCopiesToday},
-        promptCopiesResetAt = ${data.promptCopiesResetAt},
-        growthContentToday = ${data.growthContentToday},
-        growthContentResetAt = ${data.growthContentResetAt}
+        "promptCopiesToday" = ${data.promptCopiesToday},
+        "promptCopiesResetAt" = ${data.promptCopiesResetAt},
+        "growthContentToday" = ${data.growthContentToday},
+        "growthContentResetAt" = ${data.growthContentResetAt}
     WHERE id = ${userId}
   `;
 }
@@ -190,8 +196,8 @@ export async function ensurePromptCopyAllowed(userId: string) {
   const newCount = promptCopiesToday + 1;
   await prisma.$executeRaw`
     UPDATE "User"
-    SET promptCopiesToday = ${newCount},
-        promptCopiesResetAt = COALESCE(promptCopiesResetAt, ${startOfToday().toISOString()})
+    SET "promptCopiesToday" = ${newCount},
+        "promptCopiesResetAt" = COALESCE("promptCopiesResetAt", ${startOfToday().toISOString()})
     WHERE id = ${userId}
   `;
   await logUsage(userId, "prompt_copy", { total: newCount });
@@ -216,8 +222,8 @@ export async function ensureGrowthContentAllowed(userId: string) {
   const newCount = growthContentToday + 1;
   await prisma.$executeRaw`
     UPDATE "User"
-    SET growthContentToday = ${newCount},
-        growthContentResetAt = COALESCE(growthContentResetAt, ${startOfToday().toISOString()})
+    SET "growthContentToday" = ${newCount},
+        "growthContentResetAt" = COALESCE("growthContentResetAt", ${startOfToday().toISOString()})
     WHERE id = ${userId}
   `;
   await logUsage(userId, "growth_content", { total: newCount });
@@ -245,10 +251,10 @@ export async function setUserPlan(userId: string, plan: PlanType) {
   await prisma.$executeRaw`
     UPDATE "User"
     SET plan = ${plan},
-        promptCopiesToday = 0,
-        growthContentToday = 0,
-        promptCopiesResetAt = ${todayISO},
-        growthContentResetAt = ${todayISO}
+        "promptCopiesToday" = 0,
+        "growthContentToday" = 0,
+        "promptCopiesResetAt" = ${todayISO},
+        "growthContentResetAt" = ${todayISO}
     WHERE id = ${userId}
   `;
 }
@@ -261,10 +267,10 @@ export async function getUsageLogs(userId: string, limit = 20) {
     metadata: string | null;
     createdAt: string;
   }>>`
-    SELECT id, type, metadata, createdAt
+    SELECT id, type, metadata, "createdAt"
     FROM "UsageLog"
-    WHERE userId = ${userId}
-    ORDER BY datetime(createdAt) DESC
+    WHERE "userId" = ${userId}
+    ORDER BY "createdAt" DESC
     LIMIT ${limit}
   `;
   return rows.map((row) => ({

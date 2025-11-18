@@ -27,8 +27,8 @@ export async function DELETE(
       promptId: string | null;
       challengeId: string | null;
     }>>`
-      SELECT id, userId, promptId, challengeId
-      FROM Comment
+      SELECT id, "userId", "promptId", "challengeId"
+      FROM "Comment"
       WHERE id = ${params.commentId}
     `;
     
@@ -53,7 +53,7 @@ export async function DELETE(
     let promptOwnerId: string | null = null;
     if (comment.promptId) {
       const prompt = await prisma.$queryRaw<Array<{ userId: string }>>`
-        SELECT userId FROM Prompt WHERE id = ${comment.promptId}
+        SELECT "userId" FROM "Prompt" WHERE id = ${comment.promptId}
       `;
       if (prompt.length > 0) {
         promptOwnerId = prompt[0].userId;
@@ -73,7 +73,7 @@ export async function DELETE(
 
     // Delete the comment (replies will be deleted due to cascade)
     await prisma.$executeRaw`
-      DELETE FROM Comment WHERE id = ${params.commentId}
+      DELETE FROM "Comment" WHERE id = ${params.commentId}
     `;
 
     return NextResponse.json({ success: true });

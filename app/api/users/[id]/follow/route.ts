@@ -6,21 +6,21 @@ import { prisma } from "@/lib/prisma";
 async function ensureFollowTable() {
   try {
     await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS Follow (
+      CREATE TABLE IF NOT EXISTS "Follow" (
         id TEXT PRIMARY KEY,
-        followerId TEXT NOT NULL,
-        followingId TEXT NOT NULL,
-        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+        "followerId" TEXT NOT NULL,
+        "followingId" TEXT NOT NULL,
+        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
     await prisma.$executeRawUnsafe(`
-      CREATE UNIQUE INDEX IF NOT EXISTS Follow_follower_following ON Follow(followerId, followingId);
+      CREATE UNIQUE INDEX IF NOT EXISTS "Follow_follower_following" ON "Follow"("followerId", "followingId");
     `);
     await prisma.$executeRawUnsafe(`
-      CREATE INDEX IF NOT EXISTS Follow_following_idx ON Follow(followingId);
+      CREATE INDEX IF NOT EXISTS "Follow_following_idx" ON "Follow"("followingId");
     `);
     await prisma.$executeRawUnsafe(`
-      CREATE INDEX IF NOT EXISTS Follow_follower_idx ON Follow(followerId);
+      CREATE INDEX IF NOT EXISTS "Follow_follower_idx" ON "Follow"("followerId");
     `);
   } catch (error) {
     console.error("Error ensuring Follow table:", error);
@@ -43,7 +43,7 @@ async function findFollow(followerId: string, followingId: string) {
   }
 
   const rows = await prisma.$queryRaw<Array<{ id: string }>>`
-    SELECT id FROM Follow WHERE followerId = ${followerId} AND followingId = ${followingId} LIMIT 1
+    SELECT id FROM "Follow" WHERE "followerId" = ${followerId} AND "followingId" = ${followingId} LIMIT 1
   `;
   return rows.length ? rows[0] : null;
 }
@@ -58,8 +58,8 @@ async function createFollowRecord(followerId: string, followingId: string) {
   const { randomUUID } = await import("crypto");
   const id = randomUUID();
   await prisma.$executeRaw`
-    INSERT INTO Follow (id, followerId, followingId, createdAt)
-    VALUES (${id}, ${followerId}, ${followingId}, datetime('now'))
+    INSERT INTO "Follow" (id, "followerId", "followingId", "createdAt")
+    VALUES (${id}, ${followerId}, ${followingId}, NOW())
   `;
 }
 
@@ -71,7 +71,7 @@ async function deleteFollowRecord(followerId: string, followingId: string) {
   }
 
   await prisma.$executeRaw`
-    DELETE FROM Follow WHERE followerId = ${followerId} AND followingId = ${followingId}
+    DELETE FROM "Follow" WHERE "followerId" = ${followerId} AND "followingId" = ${followingId}
   `;
 }
 
