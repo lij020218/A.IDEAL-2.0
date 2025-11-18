@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, ChangeEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Header from "@/components/Header";
@@ -62,6 +62,7 @@ export default function ChatRoomPage() {
   const [messageToAddToWhiteboard, setMessageToAddToWhiteboard] = useState<{ content: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (session && params.id) {
@@ -135,6 +136,19 @@ export default function ChatRoomPage() {
     }
   };
 
+  const handleTextareaChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    setNewMessage(e.target.value);
+
+    // Auto-resize textarea
+    const textarea = e.target;
+    textarea.style.height = "auto";
+    const lineHeight = 24; // approximate line height in pixels
+    const maxLines = 5;
+    const maxHeight = lineHeight * maxLines;
+    const newHeight = Math.min(textarea.scrollHeight, maxHeight);
+    textarea.style.height = `${newHeight}px`;
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if ((!newMessage.trim() && !selectedFile) || isSending) return;
@@ -142,6 +156,11 @@ export default function ChatRoomPage() {
     const messageContent = newMessage.trim();
     setNewMessage("");
     setIsSending(true);
+
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
 
     try {
       let fileUrl = null;
@@ -544,8 +563,9 @@ export default function ChatRoomPage() {
                     )}
                   </div>
                   <textarea
+                    ref={textareaRef}
                     value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
+                    onChange={handleTextareaChange}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
@@ -553,7 +573,9 @@ export default function ChatRoomPage() {
                       }
                     }}
                     placeholder="메시지를 입력하세요... (Shift+Enter로 줄바꿈)"
-                    className="input-aurora flex-1 px-4 py-3 rounded-lg resize-none h-[52px]"
+                    className="flex-1 px-4 py-3 rounded-lg resize-none overflow-y-auto bg-white/70 dark:bg-black/30 border border-white/40 dark:border-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    style={{ minHeight: "48px", maxHeight: "120px" }}
+                    rows={1}
                     disabled={isSending || isUploading}
                   />
                   <button

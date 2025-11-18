@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, ChangeEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Header from "@/components/Header";
@@ -42,6 +42,7 @@ export default function RefinePromptPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (session && params.id) {
@@ -108,6 +109,11 @@ export default function RefinePromptPage() {
     setMessages([...messages, { role: "user", content: userMessage }]);
     setIsSending(true);
 
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
+
     try {
       const response = await fetch("/api/chat/refine", {
         method: "POST",
@@ -132,6 +138,19 @@ export default function RefinePromptPage() {
     } finally {
       setIsSending(false);
     }
+  };
+
+  const handleTextareaChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+
+    // Auto-resize textarea
+    const textarea = e.target;
+    textarea.style.height = "auto";
+    const lineHeight = 24; // approximate line height in pixels
+    const maxLines = 5;
+    const maxHeight = lineHeight * maxLines;
+    const newHeight = Math.min(textarea.scrollHeight, maxHeight);
+    textarea.style.height = `${newHeight}px`;
   };
 
   const handleGenerateRefinedPrompt = async () => {
@@ -224,10 +243,14 @@ export default function RefinePromptPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background relative">
+        {/* Global Background Effects */}
+        <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
+        <div className="fixed inset-0 hero-grain pointer-events-none"></div>
+
         <Header onToggleSidebar={toggleSidebar} />
         <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <div className="container mx-auto px-4 py-12 text-center">
+        <div className="container mx-auto px-4 py-12 text-center relative z-10">
           <p className="text-muted-foreground">로딩 중...</p>
         </div>
       </div>
@@ -242,11 +265,15 @@ export default function RefinePromptPage() {
   const originalProviderLabel = originalProvider ? AI_PROVIDER_LABELS[originalProvider] : null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Global Background Effects */}
+      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
+      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
+
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 relative z-10">
         {/* Back Button */}
         <button
           onClick={() => router.push(`/prompt/${params.id}`)}
@@ -265,8 +292,8 @@ export default function RefinePromptPage() {
           /* Two Column Layout - Chat Interface */
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Panel - Existing Prompt (Collapsible) */}
-            <div className="card-aurora rounded-xl p-6 max-h-[400px] overflow-y-auto">
-              <div className="sticky top-0 bg-card z-10 pb-2 mb-4 space-y-2">
+            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-6 shadow-lg shadow-black/5 dark:shadow-black/15 max-h-[400px] overflow-y-auto">
+              <div className="sticky top-0 bg-white/50 dark:bg-white/5 backdrop-blur-md z-10 pb-2 mb-4 space-y-2">
                 <div className="flex items-center gap-3">
                   <h2 className="text-xl font-bold">기존 프롬프트</h2>
                   {originalProvider && (
@@ -286,7 +313,7 @@ export default function RefinePromptPage() {
             </div>
 
             {/* Right Panel - Chat Interface */}
-            <div className="card-aurora rounded-xl p-6 flex flex-col" style={{ height: "70vh", minHeight: "500px" }}>
+            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-6 shadow-lg shadow-black/5 dark:shadow-black/15 flex flex-col" style={{ height: "70vh", minHeight: "500px" }}>
               <h2 className="text-xl font-bold mb-4">AI와 대화하기</h2>
 
               {/* Messages */}
@@ -323,7 +350,7 @@ export default function RefinePromptPage() {
                   <button
                     onClick={handleGenerateRefinedPrompt}
                     disabled={isGenerating}
-                    className="btn-aurora w-full px-6 py-3 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-6 py-3 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-primary/80 to-primary hover:from-primary hover:to-primary/80 text-white transition-all shadow-lg hover:shadow-xl"
                   >
                     {isGenerating ? (
                       <>
@@ -341,19 +368,27 @@ export default function RefinePromptPage() {
               )}
 
               {/* Input Form */}
-              <form onSubmit={handleSendMessage} className="flex gap-2">
-                <input
-                  type="text"
+              <form onSubmit={handleSendMessage} className="flex gap-2 items-end">
+                <textarea
+                  ref={textareaRef}
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="메시지를 입력하세요..."
-                  className="input-aurora flex-1 px-4 py-3 rounded-lg"
+                  onChange={handleTextareaChange}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage(e);
+                    }
+                  }}
+                  placeholder="메시지를 입력하세요... (Shift+Enter로 줄바꿈)"
+                  className="flex-1 px-4 py-3 rounded-lg bg-white/70 dark:bg-black/30 border border-white/40 dark:border-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none overflow-y-auto"
+                  style={{ minHeight: "48px", maxHeight: "120px" }}
+                  rows={1}
                   disabled={isSending}
                 />
                 <button
                   type="submit"
                   disabled={isSending || !input.trim()}
-                  className="btn-aurora px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-primary/80 to-primary hover:from-primary hover:to-primary/80 text-white transition-all shadow-lg hover:shadow-xl"
                 >
                   <Send className="h-5 w-5" />
                 </button>
@@ -364,7 +399,7 @@ export default function RefinePromptPage() {
           /* Result View - Same as PromptGenerator */
           <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
             {/* Generated Prompt */}
-            <div className="bg-card border rounded-lg p-8">
+            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-8 shadow-lg shadow-black/5 dark:shadow-black/15">
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-3">
@@ -388,7 +423,7 @@ export default function RefinePromptPage() {
                   <button
                     onClick={handleSavePrompt}
                     disabled={isSaving || isSaved}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 shadow-lg hover:shadow-xl"
                   >
                     {isSaved ? (
                       <>
@@ -409,7 +444,7 @@ export default function RefinePromptPage() {
                   </button>
                   <button
                     onClick={handleCopy}
-                    className="btn-aurora px-4 py-2 rounded-lg flex items-center gap-2"
+                    className="px-4 py-2 rounded-lg flex items-center gap-2 bg-gradient-to-r from-primary/80 to-primary hover:from-primary hover:to-primary/80 text-white transition-all shadow-lg hover:shadow-xl"
                   >
                     {copied ? (
                       <>
@@ -432,7 +467,7 @@ export default function RefinePromptPage() {
 
             {/* Recommended Tools */}
             {recommendedToolsData && recommendedToolsData.length > 0 && (
-              <div className="bg-card border rounded-lg p-8">
+              <div className="bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-8 shadow-lg shadow-black/5 dark:shadow-black/15">
                 <h3 className="text-xl font-bold mb-4">추천 AI 도구</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {recommendedToolsData.map((tool) => (
@@ -460,7 +495,7 @@ export default function RefinePromptPage() {
 
             {/* Tips */}
             {refinedPrompt.tips && refinedPrompt.tips.length > 0 && (
-              <div className="bg-primary/5 border border-primary/20 rounded-lg p-6">
+              <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-lg p-6">
                 <h3 className="text-lg font-semibold mb-3">💡 사용 팁</h3>
                 <ul className="space-y-2">
                   {refinedPrompt.tips.map((tip, index) => (
@@ -476,7 +511,7 @@ export default function RefinePromptPage() {
             <div className="flex gap-4">
               <button
                 onClick={handleReset}
-                className="flex-1 px-6 py-3 border rounded-lg hover:bg-secondary transition-colors"
+                className="flex-1 px-6 py-3 border border-white/40 dark:border-white/20 rounded-lg hover:bg-white/30 dark:hover:bg-white/10 transition-colors backdrop-blur-sm"
               >
                 다시 개선하기
               </button>

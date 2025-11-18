@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, ChangeEvent } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
@@ -79,6 +79,7 @@ export default function LearnSessionPage({
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Time tracking
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -334,6 +335,19 @@ export default function LearnSessionPage({
     }
   };
 
+  const handleTextareaChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+
+    // Auto-resize textarea
+    const textarea = e.target;
+    textarea.style.height = "auto";
+    const lineHeight = 24; // approximate line height in pixels
+    const maxLines = 5;
+    const maxHeight = lineHeight * maxLines;
+    const newHeight = Math.min(textarea.scrollHeight, maxHeight);
+    textarea.style.height = `${newHeight}px`;
+  };
+
   const sendMessage = async () => {
     if (!input.trim() || isSending) return;
 
@@ -345,6 +359,11 @@ export default function LearnSessionPage({
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsSending(true);
+
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
 
     try {
       const response = await fetch("/api/growth/chat", {
@@ -903,14 +922,16 @@ export default function LearnSessionPage({
                 </div>
 
                 {/* Input */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-end">
                   <Textarea
-                    placeholder="질문을 입력하세요..."
+                    ref={textareaRef}
+                    placeholder="질문을 입력하세요... (Shift+Enter로 줄바꿈)"
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
+                    onChange={handleTextareaChange}
                     onKeyPress={handleKeyPress}
-                    rows={2}
-                    className="resize-none text-sm input-aurora text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-white/60"
+                    rows={1}
+                    className="resize-none text-sm overflow-y-auto bg-white/70 dark:bg-black/30 border border-white/40 dark:border-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-white/60"
+                    style={{ minHeight: "48px", maxHeight: "120px" }}
                   />
                   <Button
                     size="icon"
