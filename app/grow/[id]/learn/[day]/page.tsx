@@ -671,8 +671,37 @@ export default function LearnSessionPage({
                           }
                         }
                         
+                        // Parse summary: 가운뎃점(·)은 문장 시작을 나타내므로, 문장 단위로만 분리
+                        // 쉼표로 나열된 항목들은 하나의 문장으로 유지
+                        const parseSummary = (summary: string): string[] => {
+                          if (!summary) return [];
+                          
+                          // 가운뎃점으로 분리하되, 문장의 시작을 나타내는 가운뎃점만 분리
+                          // 문장 시작 가운뎃점: 줄 시작이나 공백 뒤에 오는 가운뎃점
+                          const sentences: string[] = [];
+                          const parts = summary.split(/(?<=[\.!?…])\s*·\s*/);
+                          
+                          for (const part of parts) {
+                            const trimmed = part.trim();
+                            if (trimmed) {
+                              // 첫 번째 항목이 가운뎃점으로 시작하면 제거, 아니면 그대로
+                              const cleaned = trimmed.startsWith('·') ? trimmed.substring(1).trim() : trimmed;
+                              if (cleaned) {
+                                sentences.push(cleaned);
+                              }
+                            }
+                          }
+                          
+                          // 가운뎃점이 없으면 원본을 그대로 반환
+                          if (sentences.length === 0 && summary.trim()) {
+                            return [summary.trim()];
+                          }
+                          
+                          return sentences.slice(0, 3);
+                        };
+                        
                         const summaryPoints = slideSummary 
-                          ? slideSummary.split('·').map(s => s.trim()).filter(Boolean).slice(0, 3)
+                          ? parseSummary(slideSummary)
                           : [];
                         
                         // Readability formatting: keep markdown emphasis and reflow sentences into short paragraphs
@@ -968,7 +997,7 @@ export default function LearnSessionPage({
                                       {summaryPoints.map((point, idx) => (
                                         <div key={idx} className="text-sm leading-6 text-emerald-900 dark:text-emerald-100">
                                           <span className="text-emerald-600 dark:text-emerald-400 mr-2">ㆍ</span>
-                                          {point}
+                                          <span className="whitespace-normal">{point}</span>
                                         </div>
                                       ))}
                                     </div>
