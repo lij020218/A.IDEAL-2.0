@@ -107,3 +107,4 @@ npx prisma db push
 - Vercel Postgres의 방화벽 설정 확인
 - 연결 문자열의 호스트와 포트 확인
 
+

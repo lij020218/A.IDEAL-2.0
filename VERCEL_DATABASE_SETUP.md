@@ -66,3 +66,4 @@ npx prisma migrate deploy
 2. **환경 변수**: Vercel Dashboard에서 `DATABASE_URL` 환경 변수를 설정해야 합니다.
 3. **마이그레이션**: 배포 후 첫 실행 시 데이터베이스 마이그레이션이 필요합니다.
 
+

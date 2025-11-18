@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { put } from "@vercel/blob";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { existsSync } from "fs";
+
+// 로컬 개발 환경인지 확인
+const isLocal = process.env.NODE_ENV === "development" && !process.env.VERCEL;
 
 export async function POST(req: NextRequest) {
   try {
@@ -38,24 +42,31 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // 업로드 디렉토리 생성
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "chat");
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
-
     // 고유한 파일명 생성
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 15);
     const ext = path.extname(file.name);
     const filename = `${timestamp}-${randomString}${ext}`;
-    const filepath = path.join(uploadDir, filename);
 
-    // 파일 저장
-    await writeFile(filepath, buffer);
+    let fileUrl: string;
 
-    // 공개 URL 생성
-    const fileUrl = `/uploads/chat/${filename}`;
+    if (isLocal) {
+      // 로컬 개발 환경: 파일 시스템 사용
+      const uploadDir = path.join(process.cwd(), "public", "uploads", "chat");
+      if (!existsSync(uploadDir)) {
+        await mkdir(uploadDir, { recursive: true });
+      }
+      const filepath = path.join(uploadDir, filename);
+      await writeFile(filepath, buffer);
+      fileUrl = `/uploads/chat/${filename}`;
+    } else {
+      // 프로덕션 환경: Vercel Blob Storage 사용
+      const blob = await put(`chat/${filename}`, buffer, {
+        access: "public",
+        contentType: file.type,
+      });
+      fileUrl = blob.url;
+    }
 
     return NextResponse.json({
       url: fileUrl,
