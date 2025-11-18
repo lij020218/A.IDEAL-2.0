@@ -43,6 +43,7 @@ interface UserPrompt {
     id?: string;
     name?: string;
     email: string;
+    role?: string;
   };
 }
 
@@ -98,7 +99,7 @@ export default function UserPromptCard({ prompt }: UserPromptCardProps) {
             className="inline-flex items-center gap-1 text-xs text-muted-foreground dark:text-white/80 hover:opacity-80 transition-colors"
           >
             <User className="h-3 w-3" />
-            {prompt.user.name || prompt.user.email.split("@")[0]}
+            {prompt.user.role === "admin" ? "관리자" : (prompt.user.name || prompt.user.email.split("@")[0])}
           </span>
         )}
         <div>
