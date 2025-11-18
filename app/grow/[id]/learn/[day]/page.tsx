@@ -675,6 +675,44 @@ export default function LearnSessionPage({
                           ? slideSummary.split('·').map(s => s.trim()).filter(Boolean).slice(0, 3)
                           : [];
                         
+                        // Extract example/case sections and wrap them in special markers
+                        const extractExamples = (text: string) => {
+                          // Pattern: "예시", "사례", "예제" followed by optional number and content
+                          // Matches: "예시 2)", "사례 1)", "예제:", "예시:", etc.
+                          const examplePattern = /(예시|사례|예제)\s*\d*[\):]?\s*[^\n]*(?:\n(?:·|•|-|\*)\s*[^\n]*)*/g;
+                          let processed = text;
+                          const examples: Array<{ start: number; end: number; content: string; label: string }> = [];
+                          
+                          let match;
+                          while ((match = examplePattern.exec(text)) !== null) {
+                            const start = match.index;
+                            const fullMatch = match[0];
+                            // Find where this example ends (next paragraph or end of text)
+                            const afterMatch = text.substring(start + fullMatch.length);
+                            const nextParagraph = afterMatch.match(/^\n\n|\n(?:예시|사례|예제|##|###|$)/);
+                            const end = nextParagraph 
+                              ? start + fullMatch.length + (nextParagraph.index || 0)
+                              : start + fullMatch.length;
+                            
+                            const exampleContent = text.substring(start, end).trim();
+                            const labelMatch = exampleContent.match(/^(예시|사례|예제)/);
+                            const label = labelMatch ? labelMatch[1] : '예시';
+                            
+                            examples.push({ start, end, content: exampleContent, label });
+                          }
+                          
+                          // Replace examples with special markers
+                          let result = text;
+                          for (let i = examples.length - 1; i >= 0; i--) {
+                            const ex = examples[i];
+                            result = result.substring(0, ex.start) + 
+                              `\n\n> **${ex.label}:** ${ex.content.replace(/^[^\n]*\n/, '').trim()}\n\n` + 
+                              result.substring(ex.end);
+                          }
+                          
+                          return { processed: result, examples };
+                        };
+                        
                         // Readability formatting: keep markdown emphasis and reflow sentences into short paragraphs
                         const formatForReadability = (text: string) => {
                           // keep code blocks untouched (강조 마크다운은 유지)
@@ -695,7 +733,9 @@ export default function LearnSessionPage({
                           return chunks.join("\n\n");
                         };
 
-                        const content = formatForReadability(contentToRender);
+                        // Extract examples first
+                        const { processed: contentWithExamples } = extractExamples(contentToRender);
+                        const content = formatForReadability(contentWithExamples);
                         
                         // Split content by lines and process
                         const lines = content.split('\n');
@@ -889,6 +929,29 @@ export default function LearnSessionPage({
                                       : typeof children?.[0] === 'string'
                                       ? children[0]
                                       : '';
+                                    
+                                    // "예시", "사례", "예제"로 시작하는 문단인지 확인 (여러 줄 포함)
+                                    if (text && /^(예시|사례|예제)\s*\d*[\):]/.test(text)) {
+                                      const lines = text.split('\n');
+                                      const firstLine = lines[0];
+                                      const match = firstLine.match(/^(예시|사례|예제)\s*(\d+)?[\):]?\s*(.+)/);
+                                      if (match) {
+                                        const label = match[1];
+                                        const number = match[2] || '';
+                                        const restLines = lines.slice(1);
+                                        return (
+                                          <div className="my-4 p-4 rounded-lg border-2 bg-rose-50/80 dark:bg-rose-900/20 border-rose-200/60 dark:border-rose-700/40 shadow-sm">
+                                            <div className="text-xs font-semibold text-rose-700 dark:text-rose-300 mb-2 uppercase tracking-wide">
+                                              {label}{number ? ` ${number}` : ''}
+                                            </div>
+                                            <div className="text-sm text-rose-900 dark:text-rose-100 whitespace-pre-line">
+                                              {match[3]?.trim()}
+                                              {restLines.length > 0 && '\n' + restLines.join('\n')}
+                                            </div>
+                                          </div>
+                                        );
+                                      }
+                                    }
                                     
                                     // 가운뎃점이 있으면 줄바꿈 처리
                                     if (text && text.includes('·')) {
@@ -1181,55 +1244,55 @@ export default function LearnSessionPage({
                                       // 기본 렌더링
                                       return <p className="my-3 leading-6 tracking-wide whitespace-pre-line text-sm" {...props} />;
                                     },
-                                    blockquote: ({ node, ...props }: any) => {
-                                      const content = props.children;
-                                      const text = typeof content === 'string'
-                                        ? content
-                                        : content?.props?.children || '';
-                                      const textStr = typeof text === 'string' ? text : text?.toString() || '';
-                                      const isVeryShort = textStr.length < 20; // 매우 짧은 텍스트 (단어나 짧은 구)
+                                  blockquote: ({ node, ...props }: any) => {
+                                    const content = props.children;
+                                    const text = typeof content === 'string'
+                                      ? content
+                                      : content?.props?.children || '';
+                                    const textStr = typeof text === 'string' ? text : text?.toString() || '';
+                                    const isVeryShort = textStr.length < 20; // 매우 짧은 텍스트 (단어나 짧은 구)
 
-                                      // "사례:", "예제:", "예시:"로 시작하는 경우 루비색 카드로 표시
-                                      if (textStr && /^(사례|예제|예시):/.test(textStr)) {
-                                        const match = textStr.match(/^(사례|예제|예시):\s*(.+)/);
-                                        if (match) {
-                                          const label = match[1];
-                                          const example = match[2].trim();
-                                          return (
-                                            <div className="my-4 p-4 rounded-lg border-2 bg-rose-50/80 dark:bg-rose-900/20 border-rose-200/60 dark:border-rose-700/40 shadow-sm">
-                                              <div className="text-xs font-semibold text-rose-700 dark:text-rose-300 mb-2 uppercase tracking-wide">
-                                                {label}
-                                              </div>
-                                              <div className="text-base text-rose-900 dark:text-rose-100">
-                                                {example}
-                                              </div>
-                                            </div>
-                                          );
-                                        }
-                                      }
-
-                                      // 매우 짧은 텍스트는 인라인 강조만 (박스 없음)
-                                      if (isVeryShort) {
+                                    // "사례:", "예제:", "예시:" 또는 "**사례:**", "**예제:**", "**예시:**"로 시작하는 경우 루비색 카드로 표시
+                                    if (textStr && /^(?:\*\*)?(사례|예제|예시)[:：]\s*(.+)/.test(textStr)) {
+                                      const match = textStr.match(/^(?:\*\*)?(사례|예제|예시)[:：]\s*(.+)/);
+                                      if (match) {
+                                        const label = match[1];
+                                        const example = match[2].replace(/\*\*/g, '').trim();
                                         return (
-                                          <span
-                                            className="inline text-emerald-400 font-bold bg-emerald-400/10 px-2 py-1 rounded"
-                                            {...props}
-                                          />
+                                          <div className="my-4 p-4 rounded-lg border-2 bg-rose-50/80 dark:bg-rose-900/20 border-rose-200/60 dark:border-rose-700/40 shadow-sm">
+                                            <div className="text-xs font-semibold text-rose-700 dark:text-rose-300 mb-2 uppercase tracking-wide">
+                                              {label}
+                                            </div>
+                                            <div className="text-sm text-rose-900 dark:text-rose-100 whitespace-pre-line">
+                                              {example}
+                                            </div>
+                                          </div>
                                         );
                                       }
+                                    }
 
-                                      // 긴 텍스트는 카드 형태로 표시
+                                    // 매우 짧은 텍스트는 인라인 강조만 (박스 없음)
+                                    if (isVeryShort) {
                                       return (
-                                        <div className="my-4 p-4 rounded-lg border-2 bg-sky-50/80 dark:bg-sky-900/20 border-sky-200/60 dark:border-sky-700/40 shadow-sm">
-                                          <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-2 uppercase tracking-wide">
-                                            중요 내용
-                                          </div>
-                                          <div className="text-base text-sky-900 dark:text-sky-100 italic">
-                                            {textStr}
-                                          </div>
-                                        </div>
+                                        <span
+                                          className="inline text-emerald-400 font-bold bg-emerald-400/10 px-2 py-1 rounded"
+                                          {...props}
+                                        />
                                       );
-                                    },
+                                    }
+
+                                    // 긴 텍스트는 카드 형태로 표시
+                                    return (
+                                      <div className="my-4 p-4 rounded-lg border-2 bg-sky-50/80 dark:bg-sky-900/20 border-sky-200/60 dark:border-sky-700/40 shadow-sm">
+                                        <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-2 uppercase tracking-wide">
+                                          중요 내용
+                                        </div>
+                                        <div className="text-base text-sky-900 dark:text-sky-100 italic">
+                                          {textStr}
+                                        </div>
+                                      </div>
+                                    );
+                                  },
                                     img: ({ node, ...props }: any) => {
                                       return (
                                         <img
