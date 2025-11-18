@@ -24,6 +24,7 @@ import ReactMarkdown from "react-markdown";
 interface Slide {
   title: string;
   content: string;
+  summary?: string;
 }
 
 interface Quiz {
@@ -610,8 +611,14 @@ export default function LearnSessionPage({
                           return keySentences.map(s => s.trim()).filter(Boolean);
                         };
                         
-                        const importantConcepts = isLastSlide ? extractImportantConcepts(raw) : [];
-                        const summaryPoints = isLastSlide ? generateSummary(raw, slides[currentSlide]?.title || '') : [];
+                        // Extract important concepts from content (for inline cards in body)
+                        const importantConcepts = extractImportantConcepts(raw);
+                        
+                        // Get summary from slide data or generate it
+                        const slideSummary = slides[currentSlide]?.summary;
+                        const summaryPoints = slideSummary 
+                          ? slideSummary.split('·').map(s => s.trim()).filter(Boolean)
+                          : [];
                         
                         // Readability formatting: keep markdown emphasis and reflow sentences into short paragraphs
                         const formatForReadability = (text: string) => {
@@ -737,24 +744,55 @@ export default function LearnSessionPage({
                                     }
                                     return <li className="leading-relaxed" {...props} />;
                                   },
-                                  strong: ({ node, ...props }) => (
-                                    <strong className="text-primary font-bold bg-primary/10 px-1.5 py-0.5 rounded" {...props} />
-                                  ),
+                                  strong: ({ node, ...props }: any) => {
+                                    const content = typeof props.children === 'string' 
+                                      ? props.children 
+                                      : props.children?.[0] || '';
+                                    // 핵심 개념(단일 단어 또는 짧은 구)은 카드로 표시
+                                    if (content && content.length > 0 && content.length < 50 && !content.includes(' ')) {
+                                      return (
+                                        <div className="inline-block my-2 p-3 rounded-lg border-2 bg-sky-50/80 dark:bg-sky-900/20 border-sky-200/60 dark:border-sky-700/40 shadow-sm">
+                                          <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-1 uppercase tracking-wide">
+                                            핵심 개념
+                                          </div>
+                                          <div className="text-base text-sky-900 dark:text-sky-100 font-bold">
+                                            {content}
+                                          </div>
+                                        </div>
+                                      );
+                                    }
+                                    // 일반 강조는 기본 스타일
+                                    return (
+                                      <strong className="text-primary font-bold bg-primary/10 px-1.5 py-0.5 rounded" {...props} />
+                                    );
+                                  },
                                   em: ({ node, ...props }) => (
                                     <em className="text-amber-400 font-semibold not-italic bg-amber-400/10 px-1.5 py-0.5 rounded" {...props} />
                                   ),
-                                  code: ({ node, inline, ...props }: any) =>
-                                    inline ? (
-                                      <code
-                                        className="bg-primary/10 text-primary px-2 py-0.5 rounded text-sm"
-                                        {...props}
-                                      />
-                                    ) : (
-                                      <code
-                                        className="block bg-secondary/50 p-4 rounded-lg my-4"
-                                        {...props}
-                                      />
-                                    ),
+                                  code: ({ node, inline, ...props }: any) => {
+                                    if (inline) {
+                                      return (
+                                        <code
+                                          className="bg-primary/10 text-primary px-2 py-0.5 rounded text-sm"
+                                          {...props}
+                                        />
+                                      );
+                                    }
+                                    // 코드 블록을 카드 형태로 표시
+                                    const codeContent = typeof props.children === 'string' 
+                                      ? props.children 
+                                      : props.children?.[0] || '';
+                                    return (
+                                      <div className="my-4 p-4 rounded-lg border-2 bg-sky-50/80 dark:bg-sky-900/20 border-sky-200/60 dark:border-sky-700/40 shadow-sm">
+                                        <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-2 uppercase tracking-wide">
+                                          코드 예시
+                                        </div>
+                                        <code className="block text-sm text-sky-900 dark:text-sky-100 font-mono bg-sky-100/50 dark:bg-sky-900/30 p-2 rounded">
+                                          {codeContent}
+                                        </code>
+                                      </div>
+                                    );
+                                  },
                                   hr: ({ node, ...props }) => (
                                     <hr className="my-6 border-primary/20" {...props} />
                                   ),
@@ -805,12 +843,16 @@ export default function LearnSessionPage({
                                       );
                                     }
 
-                                    // 긴 텍스트는 약간 큰 폰트와 색상으로
+                                    // 긴 텍스트는 카드 형태로 표시
                                     return (
-                                      <span
-                                        className="inline text-base font-bold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded"
-                                        {...props}
-                                      />
+                                      <div className="my-4 p-4 rounded-lg border-2 bg-sky-50/80 dark:bg-sky-900/20 border-sky-200/60 dark:border-sky-700/40 shadow-sm">
+                                        <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-2 uppercase tracking-wide">
+                                          중요 내용
+                                        </div>
+                                        <div className="text-base text-sky-900 dark:text-sky-100 italic">
+                                          {textStr}
+                                        </div>
+                                      </div>
                                     );
                                   },
                                   img: ({ node, ...props }: any) => {
@@ -827,82 +869,23 @@ export default function LearnSessionPage({
                                 {content}
                               </ReactMarkdown>
                               
-                              {/* 요점 정리 섹션 (마지막 슬라이드일 때만) */}
-                              {isLastSlide && (
+                              {/* 요점 정리 섹션 (모든 슬라이드에 표시) */}
+                              {summaryPoints.length > 0 && (
                                 <>
-                                  <hr className="my-8 border-t-2 border-primary/30 dark:border-white/20" />
-                                  <div className="mt-8">
-                                    <h3 className="text-xl font-bold mb-4 dark:text-white/90 flex items-center gap-2">
-                                      <Sparkles className="h-5 w-5 text-primary" />
+                                  <hr className="my-6 border-t-2 border-primary/30 dark:border-white/20" />
+                                  <div className="mt-6">
+                                    <h3 className="text-lg font-bold mb-3 dark:text-white/90 flex items-center gap-2">
+                                      <Sparkles className="h-4 w-4 text-primary" />
                                       요점 정리
                                     </h3>
-                                    
-                                    {/* 요약 포인트 */}
-                                    {summaryPoints.length > 0 && (
-                                      <div className="mb-6">
-                                        <p className="text-base leading-7 text-foreground/90 dark:text-white/80">
-                                          {summaryPoints.map((point, idx) => (
-                                            <span key={idx}>
-                                              {point}
-                                              {idx < summaryPoints.length - 1 && <span className="mx-2 text-primary/60">·</span>}
-                                            </span>
-                                          ))}
-                                        </p>
-                                      </div>
-                                    )}
-                                    
-                                    {/* 중요 개념 카드 */}
-                                    {importantConcepts.length > 0 && (
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                                        {importantConcepts.map((concept, idx) => (
-                                          <div
-                                            key={idx}
-                                            className="p-4 rounded-lg border-2 bg-sky-50/80 dark:bg-sky-900/20 border-sky-200/60 dark:border-sky-700/40 shadow-sm"
-                                          >
-                                            {concept.type === 'code' && (
-                                              <div>
-                                                <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-2 uppercase tracking-wide">
-                                                  코드 예시
-                                                </div>
-                                                <code className="block text-sm text-sky-900 dark:text-sky-100 font-mono bg-sky-100/50 dark:bg-sky-900/30 p-2 rounded">
-                                                  {concept.content}
-                                                </code>
-                                              </div>
-                                            )}
-                                            {concept.type === 'formula' && (
-                                              <div>
-                                                <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-2 uppercase tracking-wide">
-                                                  수식
-                                                </div>
-                                                <div className="text-base text-sky-900 dark:text-sky-100 font-semibold font-mono">
-                                                  {concept.content}
-                                                </div>
-                                              </div>
-                                            )}
-                                            {concept.type === 'strong' && (
-                                              <div>
-                                                <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-2 uppercase tracking-wide">
-                                                  핵심 개념
-                                                </div>
-                                                <div className="text-base text-sky-900 dark:text-sky-100 font-bold">
-                                                  {concept.content}
-                                                </div>
-                                              </div>
-                                            )}
-                                            {concept.type === 'blockquote' && (
-                                              <div>
-                                                <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-2 uppercase tracking-wide">
-                                                  중요 내용
-                                                </div>
-                                                <div className="text-base text-sky-900 dark:text-sky-100 italic">
-                                                  {concept.content}
-                                                </div>
-                                              </div>
-                                            )}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
+                                    <p className="text-base leading-7 text-foreground/90 dark:text-white/80">
+                                      {summaryPoints.map((point, idx) => (
+                                        <span key={idx}>
+                                          {point}
+                                          {idx < summaryPoints.length - 1 && <span className="mx-2 text-primary/60 dark:text-primary/40">·</span>}
+                                        </span>
+                                      ))}
+                                    </p>
                                   </div>
                                 </>
                               )}
@@ -982,24 +965,55 @@ export default function LearnSessionPage({
                                       }
                                       return <li className="leading-relaxed" {...props} />;
                                     },
-                                    strong: ({ node, ...props }) => (
-                                      <strong className="text-primary font-bold bg-primary/10 px-1.5 py-0.5 rounded" {...props} />
-                                    ),
+                                    strong: ({ node, ...props }: any) => {
+                                      const content = typeof props.children === 'string' 
+                                        ? props.children 
+                                        : props.children?.[0] || '';
+                                      // 핵심 개념(단일 단어 또는 짧은 구)은 카드로 표시
+                                      if (content && content.length > 0 && content.length < 50 && !content.includes(' ')) {
+                                        return (
+                                          <div className="inline-block my-2 p-3 rounded-lg border-2 bg-sky-50/80 dark:bg-sky-900/20 border-sky-200/60 dark:border-sky-700/40 shadow-sm">
+                                            <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-1 uppercase tracking-wide">
+                                              핵심 개념
+                                            </div>
+                                            <div className="text-base text-sky-900 dark:text-sky-100 font-bold">
+                                              {content}
+                                            </div>
+                                          </div>
+                                        );
+                                      }
+                                      // 일반 강조는 기본 스타일
+                                      return (
+                                        <strong className="text-primary font-bold bg-primary/10 px-1.5 py-0.5 rounded" {...props} />
+                                      );
+                                    },
                                     em: ({ node, ...props }) => (
                                       <em className="text-amber-400 font-semibold not-italic bg-amber-400/10 px-1.5 py-0.5 rounded" {...props} />
                                     ),
-                                    code: ({ node, inline, ...props }: any) =>
-                                      inline ? (
-                                        <code
-                                          className="bg-primary/10 text-primary px-2 py-0.5 rounded text-sm"
-                                          {...props}
-                                        />
-                                      ) : (
-                                        <code
-                                          className="block bg-secondary/50 p-4 rounded-lg my-4"
-                                          {...props}
-                                        />
-                                      ),
+                                    code: ({ node, inline, ...props }: any) => {
+                                      if (inline) {
+                                        return (
+                                          <code
+                                            className="bg-primary/10 text-primary px-2 py-0.5 rounded text-sm"
+                                            {...props}
+                                          />
+                                        );
+                                      }
+                                      // 코드 블록을 카드 형태로 표시
+                                      const codeContent = typeof props.children === 'string' 
+                                        ? props.children 
+                                        : props.children?.[0] || '';
+                                      return (
+                                        <div className="my-4 p-4 rounded-lg border-2 bg-sky-50/80 dark:bg-sky-900/20 border-sky-200/60 dark:border-sky-700/40 shadow-sm">
+                                          <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-2 uppercase tracking-wide">
+                                            코드 예시
+                                          </div>
+                                          <code className="block text-sm text-sky-900 dark:text-sky-100 font-mono bg-sky-100/50 dark:bg-sky-900/30 p-2 rounded">
+                                            {codeContent}
+                                          </code>
+                                        </div>
+                                      );
+                                    },
                                     hr: ({ node, ...props }) => (
                                       <hr className="my-6 border-primary/20" {...props} />
                                     ),
@@ -1038,17 +1052,28 @@ export default function LearnSessionPage({
                                         ? content
                                         : content?.props?.children || '';
                                       const textStr = typeof text === 'string' ? text : text?.toString() || '';
-                                      const isShort = textStr.length < 100;
+                                      const isVeryShort = textStr.length < 20; // 매우 짧은 텍스트 (단어나 짧은 구)
 
+                                      // 매우 짧은 텍스트는 인라인 강조만 (박스 없음)
+                                      if (isVeryShort) {
+                                        return (
+                                          <span
+                                            className="inline text-emerald-400 font-bold bg-emerald-400/10 px-2 py-1 rounded"
+                                            {...props}
+                                          />
+                                        );
+                                      }
+
+                                      // 긴 텍스트는 카드 형태로 표시
                                       return (
-                                        <span
-                                          className={`inline font-bold ${
-                                            isShort
-                                              ? 'text-lg text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded'
-                                              : 'text-base text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded'
-                                          }`}
-                                          {...props}
-                                        />
+                                        <div className="my-4 p-4 rounded-lg border-2 bg-sky-50/80 dark:bg-sky-900/20 border-sky-200/60 dark:border-sky-700/40 shadow-sm">
+                                          <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-2 uppercase tracking-wide">
+                                            중요 내용
+                                          </div>
+                                          <div className="text-base text-sky-900 dark:text-sky-100 italic">
+                                            {textStr}
+                                          </div>
+                                        </div>
                                       );
                                     },
                                     img: ({ node, ...props }: any) => {
@@ -1067,82 +1092,23 @@ export default function LearnSessionPage({
                               );
                             })}
                             
-                            {/* 요점 정리 섹션 (마지막 슬라이드일 때만) */}
-                            {isLastSlide && (
+                            {/* 요점 정리 섹션 (모든 슬라이드에 표시) */}
+                            {summaryPoints.length > 0 && (
                               <>
-                                <hr className="my-8 border-t-2 border-primary/30 dark:border-white/20" />
-                                <div className="mt-8">
-                                  <h3 className="text-xl font-bold mb-4 dark:text-white/90 flex items-center gap-2">
-                                    <Sparkles className="h-5 w-5 text-primary" />
+                                <hr className="my-6 border-t-2 border-primary/30 dark:border-white/20" />
+                                <div className="mt-6">
+                                  <h3 className="text-lg font-bold mb-3 dark:text-white/90 flex items-center gap-2">
+                                    <Sparkles className="h-4 w-4 text-primary" />
                                     요점 정리
                                   </h3>
-                                  
-                                  {/* 요약 포인트 */}
-                                  {summaryPoints.length > 0 && (
-                                    <div className="mb-6">
-                                      <p className="text-base leading-7 text-foreground/90 dark:text-white/80">
-                                        {summaryPoints.map((point, idx) => (
-                                          <span key={idx}>
-                                            {point}
-                                            {idx < summaryPoints.length - 1 && <span className="mx-2 text-primary/60">·</span>}
-                                          </span>
-                                        ))}
-                                      </p>
-                                    </div>
-                                  )}
-                                  
-                                  {/* 중요 개념 카드 */}
-                                  {importantConcepts.length > 0 && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                                      {importantConcepts.map((concept, idx) => (
-                                        <div
-                                          key={idx}
-                                          className="p-4 rounded-lg border-2 bg-sky-50/80 dark:bg-sky-900/20 border-sky-200/60 dark:border-sky-700/40 shadow-sm"
-                                        >
-                                          {concept.type === 'code' && (
-                                            <div>
-                                              <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-2 uppercase tracking-wide">
-                                                코드 예시
-                                              </div>
-                                              <code className="block text-sm text-sky-900 dark:text-sky-100 font-mono bg-sky-100/50 dark:bg-sky-900/30 p-2 rounded">
-                                                {concept.content}
-                                              </code>
-                                            </div>
-                                          )}
-                                          {concept.type === 'formula' && (
-                                            <div>
-                                              <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-2 uppercase tracking-wide">
-                                                수식
-                                              </div>
-                                              <div className="text-base text-sky-900 dark:text-sky-100 font-semibold font-mono">
-                                                {concept.content}
-                                              </div>
-                                            </div>
-                                          )}
-                                          {concept.type === 'strong' && (
-                                            <div>
-                                              <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-2 uppercase tracking-wide">
-                                                핵심 개념
-                                              </div>
-                                              <div className="text-base text-sky-900 dark:text-sky-100 font-bold">
-                                                {concept.content}
-                                              </div>
-                                            </div>
-                                          )}
-                                          {concept.type === 'blockquote' && (
-                                            <div>
-                                              <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-2 uppercase tracking-wide">
-                                                중요 내용
-                                              </div>
-                                              <div className="text-base text-sky-900 dark:text-sky-100 italic">
-                                                {concept.content}
-                                              </div>
-                                            </div>
-                                          )}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
+                                  <p className="text-base leading-7 text-foreground/90 dark:text-white/80">
+                                    {summaryPoints.map((point, idx) => (
+                                      <span key={idx}>
+                                        {point}
+                                        {idx < summaryPoints.length - 1 && <span className="mx-2 text-primary/60 dark:text-primary/40">·</span>}
+                                      </span>
+                                    ))}
+                                  </p>
                                 </div>
                               </>
                             )}

@@ -12,10 +12,11 @@ const FALLBACK_MODEL_NAME = "structured-fallback";
 
 const AI_SYSTEM_PROMPT = `너는 세계 최고 수준의 교수(Professor)이자 커리큘럼 디자이너다.
 - 학습자의 수준과 목표를 고려해 내용을 '연결된 흐름'으로 설계한다. (도입 → 배경/맥락 → 핵심 개념 → 예시/사례 → 적용/실습 → 점검/리플렉션 → 마무리)
-- 각 슬라이드는 140~180단어, 과도한 수식·감탄사 없이 명확한 문장으로 설명한다. (절대 300단어 초과 금지)
+- 각 슬라이드는 250~350단어로 충분히 상세하고 깊이 있는 내용을 제공한다. 내용이 부실하지 않도록 구체적인 예시, 설명, 실무 적용 사례를 풍부하게 포함한다.
 - 실무/현장/일상에서의 적절한 예시/사례를 반드시 포함한다. 코드 수업이 아닌 경우에도 사례 중심 설명을 유지한다.
 - 존댓말(합니다체)로 정중하고 명확하게 설명한다.
 - 중요 개념은 마크다운 굵게(**개념**)로, 중요한 문장은 기울임(*문장*)으로 표시한다. (프론트엔드에서 각각 보라/황금 색상으로 강조 표시됨)
+- 각 슬라이드마다 2-3줄의 요점 정리(summary)를 포함한다. 요점 정리는 가운뎃점(·)으로 구분하여 간결하게 작성한다.
 - 결과물은 항상 JSON 객체 하나이며, 코드 블록(\`\`\`)이나 주석/설명 문장을 절대 추가하지 않는다. (JSON-only)
 - 한국어로 작성하되 필요한 기술 용어는 정확한 영문 원문을 병기한다.`;
 
@@ -64,7 +65,7 @@ const CODE_KEYWORDS: string[] = [
 ];
 
 type LearningContentPayload = {
-  slides: Array<{ title: string; content: string }>;
+  slides: Array<{ title: string; content: string; summary?: string }>;
   objectives: string[];
   quiz: Array<{
     question: string;
@@ -112,10 +113,11 @@ function truncateToMaxWords(text: string, maxWords: number): string {
   return words.slice(0, maxWords).join(" ");
 }
 
-function enforceSlideLengthCap(data: LearningContentPayload, cap = 300): LearningContentPayload {
+function enforceSlideLengthCap(data: LearningContentPayload, cap = 500): LearningContentPayload {
   const adjustedSlides = data.slides.map((s) => ({
     title: s.title,
     content: truncateToMaxWords(s.content, cap),
+    summary: s.summary, // 요점 정리 유지
   }));
   return { ...data, slides: adjustedSlides };
 }
@@ -208,24 +210,28 @@ ${
 }${filesSection}
 
 ### 작성 규칙
-1. 슬라이드 수: 최소 13장(60분 기준), 가능하면 ${estimatedSlides}장을 맞추되 ±2장 범위에서 조정 (슬라이드당 140~180단어 권장, 절대 300단어 초과 금지)
-2. 구조: 도입 → 핵심 개념 → 실무/사례 → 적용 및 질문 흐름으로 연결
-3. 금지 표현: "X는 뭘까? X는 X야" 같은 반복, 과도한 감탄사, 표면적 설명
-4. 표현 방식 (매우 중요):
+1. 슬라이드 수: 최소 13장(60분 기준), 가능하면 ${estimatedSlides}장을 맞추되 ±2장 범위에서 조정
+2. **슬라이드당 단어 수: 250~350단어로 충분히 상세하고 깊이 있는 내용을 제공하세요. 내용이 부실하지 않도록 구체적인 예시, 설명, 실무 적용 사례를 풍부하게 포함하세요.**
+3. 구조: 도입 → 핵심 개념 → 실무/사례 → 적용 및 질문 흐름으로 연결
+4. 금지 표현: "X는 뭘까? X는 X야" 같은 반복, 과도한 감탄사, 표면적 설명
+5. 표현 방식 (매우 중요):
    - 존댓말(합니다체) 사용
    - 중요 개념은 굵게(**개념**)로, 중요한 문장은 기울임(*문장*)으로 표시 (프론트에서 각각 보라/황금 색상으로 강조)
    - 문장 사이에 빈 줄을 두고, 핵심 문장은 독립 문단으로 분리해 가독성을 높일 것
    - 이미지 또는 이미지 설명 금지 (텍스트와 코드만 사용)
    - 코드나 명령어는 \`\`\`block\`\`\` 로 표기
-5. **퀴즈 2~3개**: 이해도/적용도 확인, 각 보기 4개, 정답 인덱스와 설명 포함
-6. **참고 자료 2개 이상**: 실제로 도움이 될 만한 자료명 + 한줄 설명
+   - **중요 개념, 예시, 수식 등은 본문에서 카드 형태로 강조 표시되므로 마크다운 형식으로 명확히 표기하세요**
+6. **각 슬라이드마다 요점 정리 필수**: summary 필드에 2-3줄의 핵심 요약을 가운뎃점(·)으로 구분하여 작성하세요
+7. **퀴즈 2~3개**: 이해도/적용도 확인, 각 보기 4개, 정답 인덱스와 설명 포함
+8. **참고 자료 2개 이상**: 실제로 도움이 될 만한 자료명 + 한줄 설명
 
 ### 반드시 JSON으로만 응답
 {
   "slides": [
     {
       "title": "슬라이드 제목",
-      "content": "마크다운 본문 (140~180단어 권장, 이미지 언급 없이 텍스트와 코드만 사용). 단어 단위 강조 금지, 문단/소제목/구분선으로 강조"
+      "content": "마크다운 본문 (250~350단어로 충분히 상세하고 깊이 있는 내용, 이미지 언급 없이 텍스트와 코드만 사용). 중요 개념은 **굵게**, 예시는 *기울임*으로 표시. 코드는 \`\`\`block\`\`\`로 표기",
+      "summary": "핵심 요점 1 · 핵심 요점 2 · 핵심 요점 3 (2-3줄, 가운뎃점으로 구분)"
     }
   ],
   "objectives": ["학습 목표1", "학습 목표2"],
@@ -728,8 +734,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 슬라이드 길이 상한(300단어) 강제
-    const cappedData = enforceSlideLengthCap(generationResult.data, 300);
+    // 슬라이드 길이 상한(500단어) 강제
+    const cappedData = enforceSlideLengthCap(generationResult.data, 500);
 
     await ensureCurriculumColumns();
     await saveLearningContent(currentCurriculum.id, cappedData);
