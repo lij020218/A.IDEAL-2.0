@@ -34,10 +34,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       setThemeState(stored);
       applyThemeClass(stored);
     } else {
-      const prefersDark =
-        typeof window !== "undefined" &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const defaultTheme: Theme = prefersDark ? "dark" : "light";
+      // 기본값: 라이트 모드
+      const defaultTheme: Theme = "light";
       setThemeState(defaultTheme);
       applyThemeClass(defaultTheme);
     }
