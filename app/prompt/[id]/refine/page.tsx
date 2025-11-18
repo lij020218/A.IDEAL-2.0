@@ -285,7 +285,7 @@ export default function RefinePromptPage() {
 
         {/* Title */}
         <h1 className="text-3xl font-bold mb-6">
-          프롬프트 <span className="gradient-text">개선하기</span>
+          프롬프트 <span className="bg-gradient-to-r from-[#F3D4DB] via-[#D0DFFC] to-[#E7D5F7] bg-clip-text text-transparent">개선하기</span>
         </h1>
 
         {!refinedPrompt ? (
