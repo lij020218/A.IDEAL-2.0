@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import LeftSidebar from "@/components/LeftSidebar";
@@ -51,7 +51,7 @@ const categoryLabels: Record<string, string> = {
   creative: "창작",
 };
 
-export default function PromptsListPage() {
+function PromptsListContent() {
   const searchParams = useSearchParams();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [savedPrompts, setSavedPrompts] = useState<SavedPrompt[]>([]);
@@ -475,5 +475,20 @@ export default function PromptsListPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function PromptsListPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <FileText className="h-8 w-8 animate-pulse mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">로딩 중...</p>
+        </div>
+      </div>
+    }>
+      <PromptsListContent />
+    </Suspense>
   );
 }

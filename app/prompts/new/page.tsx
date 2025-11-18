@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Header from "@/components/Header";
@@ -10,7 +10,7 @@ import Image from "next/image";
 import { FileText, Upload, X, Sparkles, ArrowLeft, Image as ImageIcon, Loader2, Tag } from "lucide-react";
 import { PromptCategory } from "@/types";
 
-export default function NewPromptPage() {
+function NewPromptContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const promptId = searchParams.get("promptId");
@@ -435,6 +435,21 @@ export default function NewPromptPage() {
       </div>
       </section>
     </div>
+  );
+}
+
+export default function NewPromptPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <FileText className="h-8 w-8 animate-pulse mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">로딩 중...</p>
+        </div>
+      </div>
+    }>
+      <NewPromptContent />
+    </Suspense>
   );
 }
 

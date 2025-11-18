@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import PromptGenerator from "@/components/PromptGenerator";
@@ -18,7 +18,7 @@ interface ExistingPromptData {
   aiModel?: string | null;
 }
 
-export default function GeneratePage() {
+function GenerateContent() {
   const { t } = useLanguage();
   const searchParams = useSearchParams();
   const initialTopic = searchParams.get("topic") || "";
@@ -103,5 +103,20 @@ export default function GeneratePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function GeneratePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Sparkles className="h-8 w-8 animate-pulse mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">로딩 중...</p>
+        </div>
+      </div>
+    }>
+      <GenerateContent />
+    </Suspense>
   );
 }
