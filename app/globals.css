@@ -628,6 +628,10 @@
   }
 
   /* Dark mode chat textarea scrollbar - Black */
+  .dark .chat-textarea-scroll::-webkit-scrollbar-track {
+    background: #000000;
+  }
+
   .dark .chat-textarea-scroll::-webkit-scrollbar-thumb {
     background: rgba(0, 0, 0, 0.4);
   }
