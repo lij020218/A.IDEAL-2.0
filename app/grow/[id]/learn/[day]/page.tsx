@@ -804,13 +804,33 @@ export default function LearnSessionPage({
                                       ? props.children 
                                       : props.children?.[0] || '';
                                     
+                                    // "사례:", "예제:", "예시:" 형식인지 확인
+                                    if (content && /^(사례|예제|예시):/.test(content)) {
+                                      const match = content.match(/^(사례|예제|예시):\s*(.+)/);
+                                      if (match) {
+                                        const label = match[1];
+                                        const example = match[2].trim();
+                                        return (
+                                          <div className="my-3 p-3 rounded-lg border-2 bg-rose-50/80 dark:bg-rose-900/20 border-rose-200/60 dark:border-rose-700/40 shadow-sm">
+                                            <div className="text-xs font-semibold text-rose-700 dark:text-rose-300 mb-1 uppercase tracking-wide">
+                                              {label}
+                                            </div>
+                                            <div className="text-sm text-rose-900 dark:text-rose-100">
+                                              {example}
+                                            </div>
+                                          </div>
+                                        );
+                                      }
+                                    }
+                                    
                                     // "개념: 설명" 형식인지 확인
                                     if (content && content.includes(':')) {
                                       const parts = content.split(':');
                                       if (parts.length >= 2) {
                                         const concept = parts[0].trim();
                                         const explanation = parts.slice(1).join(':').trim();
-                                        if (concept.length > 0 && explanation.length > 0) {
+                                        // 사례/예제가 아닌 경우에만 핵심 개념으로 처리
+                                        if (concept.length > 0 && explanation.length > 0 && !/^(사례|예제|예시)$/.test(concept)) {
                                           return (
                                             <div className="my-3 p-3 rounded-lg border-2 bg-sky-50/80 dark:bg-sky-900/20 border-sky-200/60 dark:border-sky-700/40 shadow-sm">
                                               <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-1 uppercase tracking-wide">
@@ -1168,6 +1188,25 @@ export default function LearnSessionPage({
                                         : content?.props?.children || '';
                                       const textStr = typeof text === 'string' ? text : text?.toString() || '';
                                       const isVeryShort = textStr.length < 20; // 매우 짧은 텍스트 (단어나 짧은 구)
+
+                                      // "사례:", "예제:", "예시:"로 시작하는 경우 루비색 카드로 표시
+                                      if (textStr && /^(사례|예제|예시):/.test(textStr)) {
+                                        const match = textStr.match(/^(사례|예제|예시):\s*(.+)/);
+                                        if (match) {
+                                          const label = match[1];
+                                          const example = match[2].trim();
+                                          return (
+                                            <div className="my-4 p-4 rounded-lg border-2 bg-rose-50/80 dark:bg-rose-900/20 border-rose-200/60 dark:border-rose-700/40 shadow-sm">
+                                              <div className="text-xs font-semibold text-rose-700 dark:text-rose-300 mb-2 uppercase tracking-wide">
+                                                {label}
+                                              </div>
+                                              <div className="text-base text-rose-900 dark:text-rose-100">
+                                                {example}
+                                              </div>
+                                            </div>
+                                          );
+                                        }
+                                      }
 
                                       // 매우 짧은 텍스트는 인라인 강조만 (박스 없음)
                                       if (isVeryShort) {
