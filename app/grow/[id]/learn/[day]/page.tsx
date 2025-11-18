@@ -649,8 +649,21 @@ export default function LearnSessionPage({
                         if (!slideSummary) {
                           // Try contentToRender first (main content without key points section)
                           const contentForSummary = contentToRender || mainContent || raw;
-                          if (contentForSummary) {
-                            const sentences = contentForSummary.split(/[\.!?…]/).filter(s => s.trim().length > 20);
+                          if (contentForSummary && contentForSummary.trim()) {
+                            // Try to extract sentences (at least 15 characters)
+                            let sentences = contentForSummary.split(/[\.!?…]/).filter(s => s.trim().length >= 15);
+                            
+                            // If no sentences found, try splitting by newlines or other delimiters
+                            if (sentences.length === 0) {
+                              sentences = contentForSummary.split(/\n/).filter(s => s.trim().length >= 15);
+                            }
+                            
+                            // If still no sentences, use first 100 characters as summary
+                            if (sentences.length === 0 && contentForSummary.trim().length > 0) {
+                              const firstPart = contentForSummary.trim().substring(0, 100);
+                              sentences = [firstPart];
+                            }
+                            
                             const keySentences = sentences.slice(0, 3);
                             if (keySentences.length > 0) {
                               slideSummary = keySentences.map(s => s.trim()).filter(Boolean).join('·');
