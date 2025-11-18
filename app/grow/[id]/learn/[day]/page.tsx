@@ -748,19 +748,30 @@ export default function LearnSessionPage({
                                     const content = typeof props.children === 'string' 
                                       ? props.children 
                                       : props.children?.[0] || '';
-                                    // 핵심 개념(단일 단어 또는 짧은 구)은 카드로 표시
-                                    if (content && content.length > 0 && content.length < 50 && !content.includes(' ')) {
-                                      return (
-                                        <div className="inline-block my-2 p-3 rounded-lg border-2 bg-sky-50/80 dark:bg-sky-900/20 border-sky-200/60 dark:border-sky-700/40 shadow-sm">
-                                          <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-1 uppercase tracking-wide">
-                                            핵심 개념
-                                          </div>
-                                          <div className="text-base text-sky-900 dark:text-sky-100 font-bold">
-                                            {content}
-                                          </div>
-                                        </div>
-                                      );
+                                    
+                                    // "개념: 설명" 형식인지 확인
+                                    if (content && content.includes(':')) {
+                                      const parts = content.split(':');
+                                      if (parts.length >= 2) {
+                                        const concept = parts[0].trim();
+                                        const explanation = parts.slice(1).join(':').trim();
+                                        if (concept.length > 0 && explanation.length > 0) {
+                                          return (
+                                            <div className="my-3 p-3 rounded-lg border-2 bg-sky-50/80 dark:bg-sky-900/20 border-sky-200/60 dark:border-sky-700/40 shadow-sm">
+                                              <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-1 uppercase tracking-wide">
+                                                핵심 개념
+                                              </div>
+                                              <div className="text-sm">
+                                                <span className="text-sky-900 dark:text-sky-100 font-bold">{concept}</span>
+                                                <span className="text-sky-700 dark:text-sky-200 mx-2">:</span>
+                                                <span className="text-sky-800 dark:text-sky-100">{explanation}</span>
+                                              </div>
+                                            </div>
+                                          );
+                                        }
+                                      }
                                     }
+                                    
                                     // 일반 강조는 기본 스타일
                                     return (
                                       <strong className="text-primary font-bold bg-primary/10 px-1.5 py-0.5 rounded" {...props} />
@@ -804,17 +815,36 @@ export default function LearnSessionPage({
                                       ? children[0]
                                       : '';
                                     
+                                    // 가운뎃점이 있으면 줄바꿈 처리
+                                    if (text && text.includes('·')) {
+                                      const parts = text.split('·');
+                                      return (
+                                        <p className="my-3 leading-6 tracking-wide text-sm text-foreground/90 dark:text-white/80">
+                                          {parts.map((part: string, idx: number) => {
+                                            const trimmed = part.trim();
+                                            if (!trimmed) return null;
+                                            return (
+                                              <span key={idx} className="block">
+                                                {idx > 0 && <span className="text-primary/60 dark:text-primary/40 mr-2">·</span>}
+                                                {trimmed}
+                                              </span>
+                                            );
+                                          })}
+                                        </p>
+                                      );
+                                    }
+                                    
                                     // 짧은 문장들이 연속되어 있을 때 가운뎃점으로 연결
                                     if (text && text.length < 200) {
                                       // 문장이 2-3개로 나뉘어 있고 짧을 때
                                       const sentences = text.split(/[\.!?…]/).filter((s: string) => s.trim().length > 10 && s.trim().length < 80);
                                       if (sentences.length >= 2 && sentences.length <= 4) {
                                         return (
-                                          <p className="my-4 leading-7 tracking-wide text-base text-foreground/90 dark:text-white/80">
+                                          <p className="my-3 leading-6 tracking-wide text-sm text-foreground/90 dark:text-white/80">
                                             {sentences.map((sentence: string, idx: number) => (
-                                              <span key={idx}>
+                                              <span key={idx} className="block">
+                                                {idx > 0 && <span className="text-primary/60 dark:text-primary/40 mr-2">·</span>}
                                                 {sentence.trim()}
-                                                {idx < sentences.length - 1 && <span className="mx-2 text-primary/60 dark:text-primary/40">·</span>}
                                               </span>
                                             ))}
                                           </p>
@@ -823,7 +853,7 @@ export default function LearnSessionPage({
                                     }
                                     
                                     // 기본 렌더링
-                                    return <p className="my-4 leading-7 tracking-wide whitespace-pre-line text-base" {...props} />;
+                                    return <p className="my-3 leading-6 tracking-wide whitespace-pre-line text-sm" {...props} />;
                                   },
                                   blockquote: ({ node, ...props }: any) => {
                                     const content = props.children;
@@ -969,19 +999,30 @@ export default function LearnSessionPage({
                                       const content = typeof props.children === 'string' 
                                         ? props.children 
                                         : props.children?.[0] || '';
-                                      // 핵심 개념(단일 단어 또는 짧은 구)은 카드로 표시
-                                      if (content && content.length > 0 && content.length < 50 && !content.includes(' ')) {
-                                        return (
-                                          <div className="inline-block my-2 p-3 rounded-lg border-2 bg-sky-50/80 dark:bg-sky-900/20 border-sky-200/60 dark:border-sky-700/40 shadow-sm">
-                                            <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-1 uppercase tracking-wide">
-                                              핵심 개념
-                                            </div>
-                                            <div className="text-base text-sky-900 dark:text-sky-100 font-bold">
-                                              {content}
-                                            </div>
-                                          </div>
-                                        );
+                                      
+                                      // "개념: 설명" 형식인지 확인
+                                      if (content && content.includes(':')) {
+                                        const parts = content.split(':');
+                                        if (parts.length >= 2) {
+                                          const concept = parts[0].trim();
+                                          const explanation = parts.slice(1).join(':').trim();
+                                          if (concept.length > 0 && explanation.length > 0) {
+                                            return (
+                                              <div className="my-3 p-3 rounded-lg border-2 bg-sky-50/80 dark:bg-sky-900/20 border-sky-200/60 dark:border-sky-700/40 shadow-sm">
+                                                <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 mb-1 uppercase tracking-wide">
+                                                  핵심 개념
+                                                </div>
+                                                <div className="text-sm">
+                                                  <span className="text-sky-900 dark:text-sky-100 font-bold">{concept}</span>
+                                                  <span className="text-sky-700 dark:text-sky-200 mx-2">:</span>
+                                                  <span className="text-sky-800 dark:text-sky-100">{explanation}</span>
+                                                </div>
+                                              </div>
+                                            );
+                                          }
+                                        }
                                       }
+                                      
                                       // 일반 강조는 기본 스타일
                                       return (
                                         <strong className="text-primary font-bold bg-primary/10 px-1.5 py-0.5 rounded" {...props} />
@@ -1025,17 +1066,36 @@ export default function LearnSessionPage({
                                         ? children[0]
                                         : '';
                                       
+                                      // 가운뎃점이 있으면 줄바꿈 처리
+                                      if (text && text.includes('·')) {
+                                        const parts = text.split('·');
+                                        return (
+                                          <p className="my-3 leading-6 tracking-wide text-sm text-foreground/90 dark:text-white/80">
+                                            {parts.map((part: string, idx: number) => {
+                                              const trimmed = part.trim();
+                                              if (!trimmed) return null;
+                                              return (
+                                                <span key={idx} className="block">
+                                                  {idx > 0 && <span className="text-primary/60 dark:text-primary/40 mr-2">·</span>}
+                                                  {trimmed}
+                                                </span>
+                                              );
+                                            })}
+                                          </p>
+                                        );
+                                      }
+                                      
                                       // 짧은 문장들이 연속되어 있을 때 가운뎃점으로 연결
                                       if (text && text.length < 200) {
                                         // 문장이 2-3개로 나뉘어 있고 짧을 때
                                         const sentences = text.split(/[\.!?…]/).filter((s: string) => s.trim().length > 10 && s.trim().length < 80);
                                         if (sentences.length >= 2 && sentences.length <= 4) {
                                           return (
-                                            <p className="my-4 leading-7 tracking-wide text-base text-foreground/90 dark:text-white/80">
+                                            <p className="my-3 leading-6 tracking-wide text-sm text-foreground/90 dark:text-white/80">
                                               {sentences.map((sentence: string, idx: number) => (
-                                                <span key={idx}>
+                                                <span key={idx} className="block">
+                                                  {idx > 0 && <span className="text-primary/60 dark:text-primary/40 mr-2">·</span>}
                                                   {sentence.trim()}
-                                                  {idx < sentences.length - 1 && <span className="mx-2 text-primary/60 dark:text-primary/40">·</span>}
                                                 </span>
                                               ))}
                                             </p>
@@ -1044,7 +1104,7 @@ export default function LearnSessionPage({
                                       }
                                       
                                       // 기본 렌더링
-                                      return <p className="my-4 leading-7 tracking-wide whitespace-pre-line text-base" {...props} />;
+                                      return <p className="my-3 leading-6 tracking-wide whitespace-pre-line text-sm" {...props} />;
                                     },
                                     blockquote: ({ node, ...props }: any) => {
                                       const content = props.children;
