@@ -155,7 +155,7 @@ export default function PromptExecutor({
               
               switch (provider) {
                 case "gpt":
-                  return "bg-gradient-to-r from-[#F3D4DB] via-[#D0DFFC] to-[#E7D5F7] dark:from-[#F3D4DB]/40 dark:via-[#D0DFFC]/40 dark:to-[#E7D5F7]/40 border-[#F3BFB3]/60 dark:border-[#D0DFFC]/50 shadow-[#E7D5F7]/30 dark:shadow-[#D0DFFC]/40";
+                  return "bg-gradient-to-r from-[#F3D4DB] via-[#D0DFFC] to-[#E7D5F7] dark:from-[#F3D4DB]/40 dark:via-[#D0DFFC]/40 dark:to-[#E7D5F7]/40 border-[#E7D5F7] dark:border-[#E7D5F7]/60 shadow-[#E7D5F7]/30 dark:shadow-[#D0DFFC]/40";
                 case "claude":
                   return "bg-orange-500/30 dark:bg-orange-500/20 border-orange-500/50 dark:border-orange-500/40 shadow-orange-500/20 dark:shadow-orange-500/30";
                 case "grok":
@@ -170,7 +170,7 @@ export default function PromptExecutor({
 
               switch (provider) {
                 case "gpt":
-                  return "text-purple-800 dark:text-purple-200";
+                  return "text-black dark:text-white";
                 case "claude":
                   return "text-orange-700 dark:text-orange-300";
                 case "grok":
