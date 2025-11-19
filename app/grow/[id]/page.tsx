@@ -454,57 +454,61 @@ export default function GrowthTopicDetailPage({ params }: { params: { id: string
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t">
+          <div className="flex flex-wrap gap-2 md:gap-3 mt-6 pt-6 border-t">
             {topic.status === "active" && (
               <Button
                 variant="outline"
-                className="gap-2"
+                className="gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-4"
                 onClick={() => handleStatusChange("paused")}
                 disabled={isUpdating}
               >
-                <Pause className="h-4 w-4" />
-                일시정지
+                <Pause className="h-3 w-3 md:h-4 md:w-4" />
+                <span className="hidden sm:inline">일시정지</span>
+                <span className="sm:hidden">정지</span>
               </Button>
             )}
             {topic.status === "paused" && (
               <Button
                 variant="outline"
-                className="gap-2"
+                className="gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-4"
                 onClick={() => handleStatusChange("active")}
                 disabled={isUpdating}
               >
-                <Play className="h-4 w-4" />
-                재개하기
+                <Play className="h-3 w-3 md:h-4 md:w-4" />
+                <span className="hidden sm:inline">재개하기</span>
+                <span className="sm:hidden">재개</span>
               </Button>
             )}
             {topic.status !== "completed" && (
               <Button
                 variant="outline"
-                className="gap-2"
+                className="gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-4"
                 onClick={() => handleStatusChange("completed")}
                 disabled={isUpdating}
               >
-                <CheckCircle2 className="h-4 w-4" />
-                완료 처리
+                <CheckCircle2 className="h-3 w-3 md:h-4 md:w-4" />
+                <span className="hidden sm:inline">완료 처리</span>
+                <span className="sm:hidden">완료</span>
               </Button>
             )}
             {isExamTopic && (
               <Button
                 variant="outline"
-                className="gap-2"
+                className="gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-4"
                 onClick={() => setShowUploadModal(true)}
                 disabled={isUpdating}
               >
-                <Upload className="h-4 w-4" />
-                추가 파일 업로드
+                <Upload className="h-3 w-3 md:h-4 md:w-4" />
+                <span className="hidden sm:inline">추가 파일 업로드</span>
+                <span className="sm:hidden">업로드</span>
               </Button>
             )}
             <Button
               variant="outline"
-              className="gap-2 text-red-500 hover:text-red-600 ml-auto"
+              className="gap-1 md:gap-2 text-red-500 hover:text-red-600 ml-auto text-xs md:text-sm px-2 md:px-4"
               onClick={handleDelete}
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
               삭제
             </Button>
           </div>

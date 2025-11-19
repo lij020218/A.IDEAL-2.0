@@ -194,7 +194,7 @@ export default function ChallengeDetailPage() {
         </div>
 
         {/* Tags and Action Buttons */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           {challenge.tags.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {challenge.tags.map((tag, index) => (
@@ -211,18 +211,19 @@ export default function ChallengeDetailPage() {
           )}
 
           {session && session.user?.id === challenge.userId && (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => router.push(`/challengers/${params.id}/requests`)}
-                className="px-4 py-2 rounded-2xl border border-purple-200/50 bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md text-purple-500 hover:from-purple-100/80 hover:to-pink-100/80 dark:from-purple-500/20 dark:to-pink-500/20 dark:border-purple-400/30 dark:text-purple-400 dark:hover:from-purple-500/30 dark:hover:to-pink-500/30 transition-all font-semibold text-sm shadow-lg shadow-purple-500/20 flex items-center gap-2"
+                className="px-3 py-2 md:px-4 rounded-2xl border border-purple-200/50 bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md text-purple-500 hover:from-purple-100/80 hover:to-pink-100/80 dark:from-purple-500/20 dark:to-pink-500/20 dark:border-purple-400/30 dark:text-purple-400 dark:hover:from-purple-500/30 dark:hover:to-pink-500/30 transition-all font-semibold text-xs md:text-sm shadow-lg shadow-purple-500/20 flex items-center gap-2"
               >
                 <Users className="h-4 w-4" />
-                참가 신청 관리
+                <span className="hidden sm:inline">참가 신청 관리</span>
+                <span className="sm:hidden">신청 관리</span>
               </button>
               <button
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="px-4 py-2 rounded-lg border-2 border-red-500/40 dark:border-red-500/30 bg-red-500/20 dark:bg-red-500/10 backdrop-blur-md text-red-600 dark:text-red-400 hover:bg-red-500/30 dark:hover:bg-red-500/20 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-2 md:px-4 rounded-lg border-2 border-red-500/40 dark:border-red-500/30 bg-red-500/20 dark:bg-red-500/10 backdrop-blur-md text-red-600 dark:text-red-400 hover:bg-red-500/30 dark:hover:bg-red-500/20 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs md:text-sm"
               >
                 <Trash2 className="h-4 w-4" />
                 {isDeleting ? "삭제 중..." : "삭제"}
