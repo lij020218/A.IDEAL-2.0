@@ -214,7 +214,7 @@ export default function Home() {
                     type="submit"
                     aria-label={tr("전송")}
                     disabled={!topicInput.trim()}
-                    className="absolute top-1/2 -translate-y-1/2 right-1.5 h-10 w-10 rounded-full btn-aurora p-0 flex items-center justify-center border-0 bg-gradient-to-r from-[#ADD8E6]/60 via-[#DDA0DD]/60 to-[#FFDAB9]/60 dark:from-[#00FFC8]/60 dark:via-[#FF0099]/60 dark:to-[#0096FF]/60"
+                    className="absolute top-1/2 -translate-y-1/2 right-1.5 h-10 w-10 rounded-full p-0 flex items-center justify-center bg-gradient-to-r from-[#ADD8E6] via-[#DDA0DD] to-[#FFDAB9] dark:from-[#00FFC8] dark:via-[#FF0099] dark:to-[#0096FF] text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     <ArrowRight className="h-5 w-5" />
                   </button>
