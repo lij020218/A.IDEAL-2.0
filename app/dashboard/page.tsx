@@ -55,6 +55,11 @@ export default function DashboardPage() {
   const fetchDashboardData = async () => {
     try {
       const response = await fetch("/api/dashboard");
+      if (response.status === 401) {
+        // 세션 만료 - 로그인 페이지로 이동
+        router.push("/auth/signin");
+        return;
+      }
       if (response.ok) {
         const data = await response.json();
         setStats(data);

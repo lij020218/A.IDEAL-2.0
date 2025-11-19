@@ -27,8 +27,8 @@ export default function NotificationBell() {
 
   useEffect(() => {
     fetchNotifications();
-    // Poll for new notifications every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
+    // Poll for new notifications every 60 seconds
+    const interval = setInterval(fetchNotifications, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -46,6 +46,10 @@ export default function NotificationBell() {
   const fetchNotifications = async () => {
     try {
       const response = await fetch("/api/notifications?limit=20");
+      if (response.status === 401) {
+        // 세션 만료 - 조용히 실패 처리
+        return;
+      }
       if (response.ok) {
         const data = await response.json();
         setNotifications(data.notifications);
