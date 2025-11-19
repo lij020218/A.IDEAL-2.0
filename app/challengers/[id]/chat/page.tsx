@@ -284,14 +284,23 @@ export default function ChatRoomPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50/30 to-purple-50/30 relative">
       {/* Global Background Effects */}
-      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
-      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-200/40 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-200/40 rounded-full blur-3xl" />
+      </div>
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className="container mx-auto px-4 py-8 max-w-6xl relative z-10">
+        {/* Center Top Icon */}
+        <div className="flex justify-center mb-6">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md border border-purple-200/50 flex items-center justify-center shadow-lg">
+            <Users className="h-8 w-8 text-purple-500" />
+          </div>
+        </div>
+
         {/* Back Button */}
         <button
           onClick={() => router.push(`/challengers/${params.id}`)}
@@ -334,14 +343,14 @@ export default function ChatRoomPage() {
           <div className="lg:col-span-1 flex">
             <div className="card-aurora rounded-xl p-6 flex flex-col w-full" style={{ height: "70vh", minHeight: "500px" }}>
               <div className="flex items-center gap-2 mb-4">
-                <Users className="h-5 w-5 text-primary" />
+                <Users className="h-5 w-5 text-purple-500" />
                 <h2 className="text-lg font-bold text-foreground dark:text-white/90">팀원 ({members.length})</h2>
               </div>
               <div className="flex-1 overflow-y-auto space-y-3 mb-4">
                 {members.map((member) => (
                   <div key={member.id} className="p-3 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-lg shadow-lg shadow-black/5 dark:shadow-black/15">
                     <div className="flex items-start gap-2">
-                      <UserCircle className="h-5 w-5 text-muted-foreground dark:text-white/80 flex-shrink-0 mt-0.5" />
+                      <UserCircle className="h-5 w-5 text-purple-500 flex-shrink-0 mt-0.5" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-sm truncate text-foreground dark:text-white/90">
@@ -381,7 +390,7 @@ export default function ChatRoomPage() {
               {/* GitHub Integration */}
               <div className="p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-lg shadow-lg shadow-black/5 dark:shadow-black/15">
                 <div className="flex items-center gap-2 mb-3">
-                  <Github className="h-5 w-5 text-primary" />
+                  <Github className="h-5 w-5 text-purple-500" />
                   <h3 className="text-sm font-bold text-foreground dark:text-white/90">GitHub 연동</h3>
                 </div>
                 <p className="text-xs text-muted-foreground dark:text-white/80 mb-3">
@@ -583,7 +592,7 @@ export default function ChatRoomPage() {
                   <button
                     type="submit"
                     disabled={isSending || isUploading || (!newMessage.trim() && !selectedFile)}
-                    className="h-[52px] px-6 rounded-lg flex items-center justify-center gap-2 border-2 border-white/40 dark:border-white/20 bg-white/60 dark:bg-white/10 backdrop-blur-md text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="h-[52px] px-6 rounded-lg flex items-center justify-center gap-2 border border-purple-200/50 bg-gradient-to-br from-purple-100/70 to-pink-100/70 text-purple-500 hover:from-purple-100/80 hover:to-pink-100/80 dark:from-purple-500/20 dark:to-pink-500/20 dark:border-purple-400/30 dark:text-purple-400 dark:hover:from-purple-500/30 dark:hover:to-pink-500/30 backdrop-blur-md transition-all shadow-lg shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSending || isUploading ? (
                       <>
