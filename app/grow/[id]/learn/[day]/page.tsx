@@ -51,6 +51,12 @@ interface Curriculum {
   estimatedTime: number;
 }
 
+interface Topic {
+  id: string;
+  title: string;
+  description: string | null;
+}
+
 export default function LearnSessionPage({
   params,
 }: {
@@ -62,12 +68,23 @@ export default function LearnSessionPage({
 
   // Data states
   const [curriculum, setCurriculum] = useState<Curriculum | null>(null);
+  const [topic, setTopic] = useState<Topic | null>(null);
   const [slides, setSlides] = useState<Slide[]>([]);
   const [objectives, setObjectives] = useState<string[]>([]);
   const [quiz, setQuiz] = useState<Quiz[]>([]);
   const [resources, setResources] = useState<string[]>([]);
   const [aiProvider, setAiProvider] = useState<string>("");
   const [aiModel, setAiModel] = useState<string>("");
+
+  // 시험 공부 주제인지 확인
+  const isExamTopic = topic?.description ? (() => {
+    try {
+      const parsed = JSON.parse(topic.description);
+      return Array.isArray(parsed) && parsed.length > 0 && parsed[0].url;
+    } catch {
+      return false;
+    }
+  })() : false;
 
   // UI states
   const [isLoading, setIsLoading] = useState(true);
@@ -139,6 +156,12 @@ export default function LearnSessionPage({
       }
 
       const topicData = await topicResponse.json();
+      setTopic({
+        id: topicData.topic.id,
+        title: topicData.topic.title,
+        description: topicData.topic.description,
+      });
+
       const dayNumber = parseInt(params.day);
       const curriculumItem = topicData.topic.curriculum.find(
         (c: any) => c.dayNumber === dayNumber
@@ -447,27 +470,39 @@ export default function LearnSessionPage({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cyan-50/50 via-blue-50/30 to-white relative">
+    <div className={`min-h-screen ${isExamTopic ? 'bg-gradient-to-b from-blue-50/50 via-cyan-50/30 to-white' : 'bg-gradient-to-b from-cyan-50/50 via-blue-50/30 to-white'} relative`}>
       {/* Global Background Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-100/40 rounded-full blur-3xl" />
-        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-blue-100/40 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-sky-100/30 rounded-full blur-3xl" />
+        {isExamTopic ? (
+          <>
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-100/40 rounded-full blur-3xl" />
+            <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-cyan-100/40 rounded-full blur-3xl" />
+            <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-blue-100/30 rounded-full blur-3xl" />
+          </>
+        ) : (
+          <>
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-100/40 rounded-full blur-3xl" />
+            <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-blue-100/40 rounded-full blur-3xl" />
+            <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-sky-100/30 rounded-full blur-3xl" />
+          </>
+        )}
       </div>
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <main className="container mx-auto px-4 py-12 max-w-7xl relative z-10">
-        {/* Header */}
-        <div className="mb-8">
-          <Link
-            href={`/grow/${params.id}`}
-            className="inline-flex items-center gap-2 text-muted-foreground dark:text-white/80 hover:text-primary transition-colors mb-4"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            캘린더로 돌아가기
-          </Link>
-        </div>
+        {/* 중앙 상단 아이콘 */}
+        {!sessionStarted && (
+          <div className="flex justify-center mb-8">
+            <div className={`w-16 h-16 rounded-2xl ${isExamTopic ? 'bg-gradient-to-br from-blue-100/70 to-cyan-100/70 border-blue-200/50' : 'bg-gradient-to-br from-cyan-100/70 to-blue-100/70 border-cyan-200/50'} backdrop-blur-md border flex items-center justify-center shadow-lg`}>
+              {isExamTopic ? (
+                <GraduationCap className="h-8 w-8 text-blue-500" />
+              ) : (
+                <Rocket className="h-8 w-8 text-cyan-500" />
+              )}
+            </div>
+          </div>
+        )}
 
         {!sessionStarted ? (
           /* Start Screen */
@@ -480,10 +515,16 @@ export default function LearnSessionPage({
                     <>
                       {/* 각 아이콘 - 현재 인덱스만 표시 */}
                       {[
-                        // 성장하기 - Rocket
-                        <div key="rocket" className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center shadow-lg">
-                          <Rocket className="h-10 w-10 text-cyan-500" />
-                        </div>,
+                        // 첫 번째 아이콘은 주제 타입에 따라 결정
+                        isExamTopic ? (
+                          <div key="graduation" className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-100/70 to-cyan-100/70 backdrop-blur-md border border-blue-200/50 flex items-center justify-center shadow-lg">
+                            <GraduationCap className="h-10 w-10 text-blue-500" />
+                          </div>
+                        ) : (
+                          <div key="rocket" className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center shadow-lg">
+                            <Rocket className="h-10 w-10 text-cyan-500" />
+                          </div>
+                        ),
                         // 프롬프트 모음 - MessageSquare
                         <div key="message" className="w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-100/70 to-amber-100/70 backdrop-blur-md border border-orange-200/50 flex items-center justify-center shadow-lg">
                           <MessageSquare className="h-10 w-10 text-orange-500" />
@@ -542,9 +583,13 @@ export default function LearnSessionPage({
                 ) : (
                   <button
                     onClick={startSession}
-                    className="w-full px-6 py-4 rounded-2xl border border-cyan-200/50 bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md text-cyan-500 hover:from-cyan-100/80 hover:to-blue-100/80 dark:from-cyan-500/20 dark:to-blue-500/20 dark:border-cyan-400/30 dark:text-cyan-400 dark:hover:from-cyan-500/30 dark:hover:to-blue-500/30 transition-all font-semibold text-lg shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-3"
+                    className={`w-full px-6 py-4 rounded-2xl border ${isExamTopic ? 'border-blue-200/50 bg-gradient-to-br from-blue-100/70 to-cyan-100/70 text-blue-500 hover:from-blue-100/80 hover:to-cyan-100/80 dark:from-blue-500/20 dark:to-cyan-500/20 dark:border-blue-400/30 dark:text-blue-400 dark:hover:from-blue-500/30 dark:hover:to-cyan-500/30 shadow-lg shadow-blue-500/20' : 'border-cyan-200/50 bg-gradient-to-br from-cyan-100/70 to-blue-100/70 text-cyan-500 hover:from-cyan-100/80 hover:to-blue-100/80 dark:from-cyan-500/20 dark:to-blue-500/20 dark:border-cyan-400/30 dark:text-cyan-400 dark:hover:from-cyan-500/30 dark:hover:to-blue-500/30 shadow-lg shadow-cyan-500/20'} backdrop-blur-md transition-all font-semibold text-lg flex items-center justify-center gap-3`}
                   >
-                    <Rocket className="h-5 w-5" />
+                    {isExamTopic ? (
+                      <GraduationCap className="h-5 w-5" />
+                    ) : (
+                      <Rocket className="h-5 w-5" />
+                    )}
                     학습 시작하기
                   </button>
                 )}
@@ -556,14 +601,20 @@ export default function LearnSessionPage({
             {/* Main Content - Slides */}
             <div className="lg:col-span-2">
               <div className="card-aurora rounded-xl p-8 min-h-[600px] flex flex-col">
-                {/* Regenerate toolbar */}
-                <div className="flex items-center justify-end mb-4">
-                  <Button
-                    variant="outline"
-                    className="gap-2 border-2 border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md text-foreground hover:bg-white/60 dark:hover:bg-white/10 transition-all shadow-lg shadow-black/8 dark:shadow-black/15"
+                {/* Toolbar - 캘린더로 돌아가기 & 다시 생성 */}
+                <div className="flex items-center justify-between mb-4">
+                  <Link
+                    href={`/grow/${params.id}`}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm border-2 border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md text-muted-foreground dark:text-white/80 hover:bg-white/60 dark:hover:bg-white/10 hover:text-foreground dark:hover:text-white transition-all shadow-lg shadow-black/8 dark:shadow-black/15"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    캘린더로 돌아가기
+                  </Link>
+                  <button
                     onClick={regenerateContent}
                     disabled={isRegenerating}
                     title="이 날의 학습 내용을 다시 생성합니다"
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border ${isExamTopic ? 'border-blue-200/50 bg-gradient-to-br from-blue-100/70 to-cyan-100/70 text-blue-500 hover:from-blue-100/80 hover:to-cyan-100/80 dark:from-blue-500/20 dark:to-cyan-500/20 dark:border-blue-400/30 dark:text-blue-400 dark:hover:from-blue-500/30 dark:hover:to-cyan-500/30 shadow-lg shadow-blue-500/20' : 'border-cyan-200/50 bg-gradient-to-br from-cyan-100/70 to-blue-100/70 text-cyan-500 hover:from-cyan-100/80 hover:to-blue-100/80 dark:from-cyan-500/20 dark:to-blue-500/20 dark:border-cyan-400/30 dark:text-cyan-400 dark:hover:from-cyan-500/30 dark:hover:to-blue-500/30 shadow-lg shadow-cyan-500/20'} backdrop-blur-md transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     {isRegenerating ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -571,7 +622,7 @@ export default function LearnSessionPage({
                       <Sparkles className="h-4 w-4" />
                     )}
                     다시 생성
-                  </Button>
+                  </button>
                 </div>
                 {!showQuiz ? (
                   /* Slide View */
