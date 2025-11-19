@@ -15,12 +15,36 @@ export async function GET() {
         level: true,
         duration: true,
         goal: true,
-        progress: true,
         createdAt: true,
+        progress: {
+          select: {
+            status: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json({ topics });
+    // Calculate progress percentage for each topic
+    const topicsWithProgress = topics.map((topic) => {
+      const totalDays = topic.duration;
+      const completedDays = topic.progress.filter(
+        (p) => p.status === "completed"
+      ).length;
+      const progressPercentage = totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
+
+      return {
+        id: topic.id,
+        title: topic.title,
+        description: topic.description,
+        level: topic.level,
+        duration: topic.duration,
+        goal: topic.goal,
+        createdAt: topic.createdAt,
+        progress: progressPercentage,
+      };
+    });
+
+    return NextResponse.json({ topics: topicsWithProgress });
   } catch (error) {
     console.error("Error fetching public growth topics:", error);
     return NextResponse.json(
