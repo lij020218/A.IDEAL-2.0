@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Header from "@/components/Header";
 import LeftSidebar from "@/components/LeftSidebar";
-import { Send, Loader2, ArrowLeft, Users, UserCircle, Paperclip, X, File, FileImage, Calendar, Plus, Square, Github } from "lucide-react";
+import { Send, Loader2, ArrowLeft, Users, UserCircle, Paperclip, X, File, FileImage, Calendar, Plus, Square, Github, Lightbulb } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import CalendarModal from "@/components/CalendarModal";
@@ -284,7 +284,7 @@ export default function ChatRoomPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50/30 to-purple-50/30 relative">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50/30 to-pink-50/30 relative">
       {/* Global Background Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-200/40 rounded-full blur-3xl" />
@@ -296,8 +296,8 @@ export default function ChatRoomPage() {
       <div className="container mx-auto px-4 py-8 max-w-6xl relative z-10">
         {/* Center Top Icon */}
         <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md border border-purple-200/50 flex items-center justify-center shadow-lg">
-            <Users className="h-8 w-8 text-purple-500" />
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-100/70 to-purple-100/70 backdrop-blur-md border border-pink-200/50 flex items-center justify-center shadow-lg">
+            <Lightbulb className="h-8 w-8 text-pink-500" />
           </div>
         </div>
 
