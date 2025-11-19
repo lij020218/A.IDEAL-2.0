@@ -146,19 +146,19 @@ export default function Home() {
             {/* subtle top badge (Framer 스타일 참고, 우리 톤 적용) */}
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/50 backdrop-blur-md text-foreground border-2 border-white/40 shadow-lg shadow-black/5 dark:bg-white/10 dark:backdrop-blur-md dark:border-white/20 dark:text-foreground dark:shadow-[0_0_18px_rgba(0,255,200,0.3)] text-sm font-medium">
               <div className="relative">
-                <Sparkles 
-                  className="h-4 w-4 dark:hidden" 
-                  style={{ 
+                <Sparkles
+                  className="h-4 w-4 dark:hidden"
+                  style={{
                     stroke: 'url(#sparkles-gradient-light)',
                     strokeWidth: 2,
-                  }} 
+                  }}
                 />
-                <Sparkles 
-                  className="h-4 w-4 hidden dark:block" 
-                  style={{ 
+                <Sparkles
+                  className="h-4 w-4 hidden dark:block"
+                  style={{
                     stroke: 'url(#sparkles-gradient-dark)',
                     strokeWidth: 2,
-                  }} 
+                  }}
                 />
                 <svg className="absolute w-0 h-0">
                   <defs>
@@ -214,7 +214,7 @@ export default function Home() {
                     type="submit"
                     aria-label={tr("전송")}
                     disabled={!topicInput.trim()}
-                    className="absolute top-1/2 -translate-y-1/2 right-1.5 h-10 w-10 rounded-full bg-gradient-to-r from-[#ADD8E6]/60 via-[#DDA0DD]/60 to-[#FFDAB9]/60 dark:from-[#00FFC8]/60 dark:via-[#FF0099]/60 dark:to-[#0096FF]/60 backdrop-blur-md border-2 border-[#ADD8E6]/50 dark:border-[#00FFC8]/50 text-foreground dark:text-white hover:from-[#ADD8E6]/70 hover:via-[#DDA0DD]/70 hover:to-[#FFDAB9]/70 dark:hover:from-[#00FFC8]/70 dark:hover:via-[#FF0099]/70 dark:hover:to-[#0096FF]/70 transition-all shadow-lg shadow-[#ADD8E6]/20 dark:shadow-[#00FFC8]/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                    className="absolute top-1/2 -translate-y-1/2 right-1.5 h-10 w-10 rounded-full btn-aurora p-0 flex items-center justify-center border-0 bg-gradient-to-r from-[#ADD8E6]/60 via-[#DDA0DD]/60 to-[#FFDAB9]/60 dark:from-[#00FFC8]/60 dark:via-[#FF0099]/60 dark:to-[#0096FF]/60"
                   >
                     <ArrowRight className="h-5 w-5" />
                   </button>
@@ -312,7 +312,7 @@ export default function Home() {
               <p className="text-muted-foreground">{tr("나만의 학습 경로를 시작해보세요")}</p>
               <Link
                 href="/grow/new"
-                className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 rounded-2xl border border-cyan-200/50 bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md text-cyan-500 hover:from-cyan-100/80 hover:to-blue-100/80 dark:from-cyan-500/20 dark:to-blue-500/20 dark:border-cyan-400/30 dark:text-cyan-400 dark:hover:from-cyan-500/30 dark:hover:to-blue-500/30 transition-all font-semibold text-sm shadow-lg shadow-cyan-500/20"
+                className="inline-flex items-center gap-2 mt-4 btn-aurora text-cyan-500 hover:text-cyan-600 dark:text-cyan-400"
               >
                 {tr("새 학습 시작하기")}
                 <ArrowRight className="h-4 w-4" />
@@ -431,68 +431,68 @@ export default function Home() {
                   href={`/challengers/${challenge.id}`}
                   className="card-aurora rounded-xl p-6 hover:shadow-lg transition-all block"
                 >
-                    <div className="mb-4">
-                      <h3 className="text-xl font-bold mb-2 line-clamp-2">
-                        {challenge.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-3">
-                        {challenge.description}
-                      </p>
-                    </div>
+                  <div className="mb-4">
+                    <h3 className="text-xl font-bold mb-2 line-clamp-2">
+                      {challenge.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground line-clamp-3">
+                      {challenge.description}
+                    </p>
+                  </div>
 
-                    {/* Icons for content types */}
-                    <div className="flex gap-2 mb-4">
-                      {challenge.codeSnippet && (
-                        <div className="px-2 py-1 bg-foreground/10 text-foreground rounded text-xs flex items-center gap-1">
-                          <Code className="h-3 w-3" />
-                          {tr("코드")}
-                        </div>
-                      )}
-                      {challenge.ideaDetails && (
-                        <div className="px-2 py-1 bg-foreground/10 text-foreground rounded text-xs flex items-center gap-1">
-                          <Lightbulb className="h-3 w-3" />
-                          {tr("아이디어")}
-                        </div>
-                      )}
-                      {challenge.resumeUrl && (
-                        <div className="px-2 py-1 bg-foreground/10 text-foreground rounded text-xs flex items-center gap-1">
-                          <FileText className="h-3 w-3" />
-                          {tr("이력서")}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Tags */}
-                    {challenge.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {challenge.tags.slice(0, 3).map((tag, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-secondary text-xs rounded"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
+                  {/* Icons for content types */}
+                  <div className="flex gap-2 mb-4">
+                    {challenge.codeSnippet && (
+                      <div className="px-2 py-1 bg-foreground/10 text-foreground rounded text-xs flex items-center gap-1">
+                        <Code className="h-3 w-3" />
+                        {tr("코드")}
                       </div>
                     )}
+                    {challenge.ideaDetails && (
+                      <div className="px-2 py-1 bg-foreground/10 text-foreground rounded text-xs flex items-center gap-1">
+                        <Lightbulb className="h-3 w-3" />
+                        {tr("아이디어")}
+                      </div>
+                    )}
+                    {challenge.resumeUrl && (
+                      <div className="px-2 py-1 bg-foreground/10 text-foreground rounded text-xs flex items-center gap-1">
+                        <FileText className="h-3 w-3" />
+                        {tr("이력서")}
+                      </div>
+                    )}
+                  </div>
 
-                    {/* Footer */}
-                    <div className="flex items-center justify-between pt-4 border-t">
-                      <div className="text-sm text-muted-foreground">
-                        {challenge.author.name || tr("익명")}
-                      </div>
-                      <div className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {formatDistanceToNow(new Date(challenge.createdAt), {
-                          addSuffix: true,
-                          locale: language === "ko" ? ko : enUS,
-                        })}
-                      </div>
+                  {/* Tags */}
+                  {challenge.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {challenge.tags.slice(0, 3).map((tag, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-secondary text-xs rounded"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
                     </div>
-                  </Link>
-                ))}
-              </div>
-            )}
+                  )}
+
+                  {/* Footer */}
+                  <div className="flex items-center justify-between pt-4 border-t">
+                    <div className="text-sm text-muted-foreground">
+                      {challenge.author.name || tr("익명")}
+                    </div>
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {formatDistanceToNow(new Date(challenge.createdAt), {
+                        addSuffix: true,
+                        locale: language === "ko" ? ko : enUS,
+                      })}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

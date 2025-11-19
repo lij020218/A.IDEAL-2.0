@@ -306,7 +306,7 @@ export default function ChatRoomPage() {
         {/* Back Button */}
         <button
           onClick={() => router.push(`/challengers/${params.id}`)}
-          className="mb-4 flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md text-foreground dark:text-white hover:bg-white/60 dark:hover:bg-white/10 transition-all shadow-lg shadow-black/8 dark:shadow-black/15"
+          className="mb-4 flex items-center gap-2 px-4 py-2 rounded-lg btn-aurora text-sm"
         >
           <ArrowLeft className="h-4 w-4" />
           도전 상세로 돌아가기
@@ -393,19 +393,19 @@ export default function ChatRoomPage() {
                         </div>
                         <p className="text-[10px] md:text-xs text-muted-foreground dark:text-white/80 mt-1">
                           {member.role === "designer" ? "디자이너" :
-                           member.role === "developer" ? "개발자" :
-                           member.role === "pm" ? "기획자/PM" :
-                           member.role === "marketer" ? "마케터" :
-                           member.role === "business" ? "사업개발/BD" :
-                           member.role === "data" ? "데이터 분석가" :
-                           member.role === "content" ? "콘텐츠 크리에이터" :
-                           member.role === "sales" ? "영업/세일즈" :
-                           member.role === "finance" ? "재무/회계" :
-                           member.role === "hr" ? "인사/HR" :
-                           member.role === "legal" ? "법무" :
-                           member.role === "investor" ? "투자자" :
-                           member.role === "mentor" ? "멘토/자문" :
-                           member.role}
+                            member.role === "developer" ? "개발자" :
+                              member.role === "pm" ? "기획자/PM" :
+                                member.role === "marketer" ? "마케터" :
+                                  member.role === "business" ? "사업개발/BD" :
+                                    member.role === "data" ? "데이터 분석가" :
+                                      member.role === "content" ? "콘텐츠 크리에이터" :
+                                        member.role === "sales" ? "영업/세일즈" :
+                                          member.role === "finance" ? "재무/회계" :
+                                            member.role === "hr" ? "인사/HR" :
+                                              member.role === "legal" ? "법무" :
+                                                member.role === "investor" ? "투자자" :
+                                                  member.role === "mentor" ? "멘토/자문" :
+                                                    member.role}
                         </p>
                         <p className="text-[10px] md:text-xs text-muted-foreground dark:text-white/80 mt-1 line-clamp-2">
                           {member.experience}
@@ -454,11 +454,10 @@ export default function ChatRoomPage() {
                         className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}
                       >
                         <div
-                          className={`max-w-[70%] rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                            isOwnMessage
+                          className={`max-w-[70%] rounded-lg p-4 cursor-pointer transition-all duration-200 ${isOwnMessage
                               ? "bg-white/60 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 text-foreground shadow-lg shadow-black/5 dark:shadow-black/15 hover:bg-gradient-to-br hover:from-purple-50/70 hover:to-pink-50/70 hover:border-purple-200/50 hover:shadow-xl hover:shadow-purple-500/10 dark:hover:from-purple-500/15 dark:hover:to-pink-500/15 dark:hover:border-purple-400/30"
                               : "bg-white/40 dark:bg-white/5 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-md shadow-black/5 dark:shadow-black/10 hover:bg-white/60 dark:hover:bg-white/10 hover:border-white/50 dark:hover:border-white/20 hover:shadow-lg hover:shadow-purple-500/5"
-                          }`}
+                            }`}
                           onContextMenu={(e) => handleRightClick(e, message.id, message.content)}
                         >
                           {!isOwnMessage && (
@@ -493,11 +492,10 @@ export default function ChatRoomPage() {
                                   href={message.fileUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className={`flex items-center gap-2 p-3 rounded-lg border border-white/40 dark:border-white/20 ${
-                                    isOwnMessage
+                                  className={`flex items-center gap-2 p-3 rounded-lg border border-white/40 dark:border-white/20 ${isOwnMessage
                                       ? "bg-white/40 dark:bg-white/5 backdrop-blur-sm hover:bg-white/50 dark:hover:bg-white/10"
                                       : "bg-white/30 dark:bg-white/5 backdrop-blur-sm hover:bg-white/40 dark:hover:bg-white/10"
-                                  } transition-all`}
+                                    } transition-all`}
                                 >
                                   <File className="h-5 w-5 flex-shrink-0" />
                                   <div className="flex-1 min-w-0">
@@ -509,9 +507,8 @@ export default function ChatRoomPage() {
                             </div>
                           )}
                           <p
-                            className={`text-xs mt-2 ${
-                              isOwnMessage ? "opacity-70" : "text-muted-foreground"
-                            }`}
+                            className={`text-xs mt-2 ${isOwnMessage ? "opacity-70" : "text-muted-foreground"
+                              }`}
                           >
                             {formatDistanceToNow(new Date(message.createdAt), {
                               addSuffix: true,
@@ -568,7 +565,7 @@ export default function ChatRoomPage() {
                         setShowPlusMenu(!showPlusMenu);
                       }}
                       disabled={isSending || isUploading}
-                      className="h-[52px] px-3 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md hover:bg-white/60 dark:hover:bg-white/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-black/8 dark:shadow-black/15"
+                      className="h-[52px] px-3 rounded-lg btn-aurora flex items-center justify-center"
                       title="추가 옵션"
                     >
                       <Plus className="h-5 w-5" />
@@ -621,7 +618,7 @@ export default function ChatRoomPage() {
                   <button
                     type="submit"
                     disabled={isSending || isUploading || (!newMessage.trim() && !selectedFile)}
-                    className="h-[52px] px-6 rounded-lg flex items-center justify-center gap-2 border border-purple-200/50 bg-gradient-to-br from-purple-100/70 to-pink-100/70 text-purple-500 hover:from-purple-100/80 hover:to-pink-100/80 dark:from-purple-500/20 dark:to-pink-500/20 dark:border-purple-400/30 dark:text-purple-400 dark:hover:from-purple-500/30 dark:hover:to-pink-500/30 backdrop-blur-md transition-all shadow-lg shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="h-[52px] px-6 rounded-lg flex items-center justify-center gap-2 btn-aurora text-purple-500 hover:text-purple-600 dark:text-purple-400"
                   >
                     {isSending || isUploading ? (
                       <>

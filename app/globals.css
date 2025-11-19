@@ -212,19 +212,16 @@
   }
 
   .card-aurora {
-    background: rgba(255, 255, 255, 0.5) !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.4) 100%) !important;
     backdrop-filter: blur(24px) saturate(180%) !important;
     -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.5) !important;
-    border-radius: 16px !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    border-radius: 20px !important;
     box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.12),
-      inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
-    transition:
-      transform 140ms ease,
-      box-shadow 140ms ease,
-      border-color 140ms ease,
-      background-color 140ms ease !important;
+      0 8px 32px rgba(31, 38, 135, 0.15),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
     position: relative !important;
     isolation: isolate !important;
   }
@@ -253,38 +250,37 @@
 
 
   .card-aurora:hover {
-    background: rgba(255, 255, 255, 0.75) !important;
-    border-color: rgba(255, 255, 255, 0.5) !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.5) 100%) !important;
+    border-color: rgba(255, 255, 255, 0.8) !important;
     box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.15),
-      0 0 0 1px rgba(200, 181, 255, 0.3),
-      0 0 20px rgba(147, 197, 253, 0.2),
-      0 0 30px rgba(196, 181, 253, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
-    transform: translateY(-1px);
+      0 12px 40px rgba(31, 38, 135, 0.2),
+      0 0 0 1px rgba(255, 255, 255, 0.5),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    transform: translateY(-4px) scale(1.01);
   }
 
   .dark .card-aurora {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%) !important;
     backdrop-filter: blur(24px) saturate(180%) !important;
     -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     box-shadow:
       0 8px 32px rgba(0, 0, 0, 0.4),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.05),
       inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
     color: hsl(var(--foreground));
   }
 
   .dark .card-aurora:hover {
-    background: rgba(255, 255, 255, 0.08) !important;
-    border-color: rgba(255, 255, 255, 0.25) !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
     box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.5),
+      0 12px 40px rgba(0, 0, 0, 0.5),
       0 0 0 1px rgba(255, 255, 255, 0.1),
-      0 0 20px rgba(0, 255, 200, 0.2),
-      0 0 30px rgba(255, 0, 153, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-    transform: translateY(-1px);
+      inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-4px) scale(1.01);
   }
 
   /* Text accent colors for cards */
@@ -390,24 +386,40 @@
   }
 
   .btn-aurora {
-    background: rgba(255, 255, 255, 0.5);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 100%);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     color: hsl(var(--foreground)) !important;
-    border: 2px solid rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 9999px;
     padding: 0.875rem 1.25rem;
     font-weight: 700;
     letter-spacing: 0.2px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-    transition: all 200ms ease;
+    box-shadow:
+      0 4px 16px rgba(0,0,0,0.1),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
   }
 
   .btn-aurora:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.6);
-    border-color: rgba(255, 255, 255, 0.5);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow:
+      0 8px 24px rgba(0,0,0,0.15),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 1);
+    transform: translateY(-2px);
+  }
+  
+  .btn-aurora:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow:
+      0 2px 8px rgba(0,0,0,0.1),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
   }
 
   .dark .btn-aurora {
