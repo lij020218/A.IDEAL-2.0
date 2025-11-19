@@ -144,8 +144,48 @@ export default function GrowPage() {
         {/* Header Section */}
         <div className="mb-12">
           <div className="text-center">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center shadow-lg mx-auto mb-4">
-              <Rocket className="h-8 w-8 text-cyan-500" />
+            {/* --- 정밀 구현: Hyper-Realistic 3D Glass Icon --- */}
+            <div className="relative mx-auto mb-6 w-16 h-16 group cursor-pointer select-none">
+
+              {/* 1. 바닥 그림자 */}
+              <div className="absolute inset-0 rounded-[18px] bg-cyan-400/40 blur-lg transform translate-y-2 scale-95 transition-all duration-500 group-hover:scale-100 group-hover:bg-cyan-500/50" />
+
+              {/* 2. 메인 컨테이너 - 밝은 시안/하늘색 */}
+              <div
+                className="relative w-full h-full rounded-[18px] flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:-translate-y-0.5"
+                style={{
+                  background: 'linear-gradient(180deg, #E0F7FA 0%, #B2EBF2 40%, #80DEEA 100%)',
+                  boxShadow: `
+                    inset 0 2px 3px 0 rgba(255, 255, 255, 0.9),
+                    inset 0 -2px 4px 0 rgba(0, 150, 180, 0.15),
+                    0 0 0 2px rgba(128, 222, 234, 0.6),
+                    0 6px 16px -3px rgba(0, 188, 212, 0.5)
+                  `
+                }}
+              >
+
+                {/* 3. 상단 물광 반사 */}
+                <div
+                  className="absolute top-0 left-0 right-0 h-[55%] rounded-t-[18px]"
+                  style={{
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%)',
+                  }}
+                />
+
+                {/* 4. 내부 아이콘 - 시안 색상 */}
+                <Rocket
+                  className="relative z-10 w-7 h-7 transition-all duration-300 group-hover:scale-105"
+                  color="#0891B2"
+                  strokeWidth={2.2}
+                  style={{
+                    filter: 'drop-shadow(0 1px 2px rgba(8, 145, 178, 0.3))'
+                  }}
+                />
+
+                {/* 5. 하단 미세 광택 */}
+                <div className="absolute bottom-1.5 left-2 right-2 h-[6px] rounded-full bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+              </div>
             </div>
             <h1 className="text-3xl md:text-4xl font-bold mb-4">
               <span className="text-foreground dark:text-white/90">성장하기</span>

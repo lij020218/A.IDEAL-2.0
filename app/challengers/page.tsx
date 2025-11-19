@@ -67,8 +67,48 @@ export default function ChallengersPage() {
         {/* Header */}
         <div className="mb-12">
           <div className="text-center">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md border border-purple-200/50 flex items-center justify-center shadow-lg mx-auto mb-4">
-              <Users className="h-8 w-8 text-purple-500" />
+            {/* --- 정밀 구현: Hyper-Realistic 3D Glass Icon --- */}
+            <div className="relative mx-auto mb-6 w-16 h-16 group cursor-pointer select-none">
+
+              {/* 1. 바닥 그림자 */}
+              <div className="absolute inset-0 rounded-[18px] bg-purple-400/40 blur-lg transform translate-y-2 scale-95 transition-all duration-500 group-hover:scale-100 group-hover:bg-purple-500/50" />
+
+              {/* 2. 메인 컨테이너 - 밝은 퍼플/핑크색 */}
+              <div
+                className="relative w-full h-full rounded-[18px] flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:-translate-y-0.5"
+                style={{
+                  background: 'linear-gradient(180deg, #FAF5FF 0%, #F3E8FF 40%, #E9D5FF 100%)',
+                  boxShadow: `
+                    inset 0 2px 3px 0 rgba(255, 255, 255, 0.9),
+                    inset 0 -2px 4px 0 rgba(168, 85, 247, 0.15),
+                    0 0 0 2px rgba(233, 213, 255, 0.6),
+                    0 6px 16px -3px rgba(168, 85, 247, 0.4)
+                  `
+                }}
+              >
+
+                {/* 3. 상단 물광 반사 */}
+                <div
+                  className="absolute top-0 left-0 right-0 h-[55%] rounded-t-[18px]"
+                  style={{
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%)',
+                  }}
+                />
+
+                {/* 4. 내부 아이콘 - 퍼플 색상 */}
+                <Lightbulb
+                  className="relative z-10 w-7 h-7 transition-all duration-300 group-hover:scale-105"
+                  color="#9333EA"
+                  strokeWidth={2.2}
+                  style={{
+                    filter: 'drop-shadow(0 1px 2px rgba(147, 51, 234, 0.3))'
+                  }}
+                />
+
+                {/* 5. 하단 미세 광택 */}
+                <div className="absolute bottom-1.5 left-2 right-2 h-[6px] rounded-full bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+              </div>
             </div>
             <h1 className="text-3xl md:text-4xl font-bold mb-4">
               <span className="text-foreground dark:text-white/90">도전자들</span>
