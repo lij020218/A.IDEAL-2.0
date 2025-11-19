@@ -491,19 +491,6 @@ export default function LearnSessionPage({
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <main className="container mx-auto px-4 py-12 max-w-7xl relative z-10">
-        {/* 중앙 상단 아이콘 */}
-        {!sessionStarted && (
-          <div className="flex justify-center mb-8">
-            <div className={`w-16 h-16 rounded-2xl ${isExamTopic ? 'bg-gradient-to-br from-blue-100/70 to-cyan-100/70 border-blue-200/50' : 'bg-gradient-to-br from-cyan-100/70 to-blue-100/70 border-cyan-200/50'} backdrop-blur-md border flex items-center justify-center shadow-lg`}>
-              {isExamTopic ? (
-                <GraduationCap className="h-8 w-8 text-blue-500" />
-              ) : (
-                <Rocket className="h-8 w-8 text-cyan-500" />
-              )}
-            </div>
-          </div>
-        )}
-
         {!sessionStarted ? (
           /* Start Screen */
           <div className="max-w-2xl mx-auto">
