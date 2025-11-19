@@ -344,7 +344,7 @@ export default function RefinePromptPage() {
                     <div
                       className={`max-w-[80%] rounded-lg p-4 transition-all ${
                         message.role === "user"
-                          ? "bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/30"
+                          ? "bg-gradient-to-br from-rose-100/70 to-red-100/70 backdrop-blur-md border border-rose-200/50 text-rose-900 dark:text-rose-100 hover:shadow-lg hover:shadow-rose-500/20"
                           : "bg-secondary hover:bg-gradient-to-br hover:from-[#F3D4DB]/20 hover:via-[#D0DFFC]/20 hover:to-[#E7D5F7]/20 hover:shadow-lg"
                       }`}
                     >
@@ -368,7 +368,7 @@ export default function RefinePromptPage() {
                   <button
                     onClick={handleGenerateRefinedPrompt}
                     disabled={isGenerating}
-                    className="w-full px-6 py-3 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-primary/80 to-primary hover:from-primary hover:to-primary/80 text-white transition-all shadow-lg hover:shadow-xl"
+                    className="w-full px-6 py-3 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-rose-500/90 to-red-500/90 hover:from-rose-500 hover:to-red-500 text-white transition-all shadow-lg hover:shadow-xl hover:shadow-rose-500/30"
                   >
                     {isGenerating ? (
                       <>
@@ -398,7 +398,7 @@ export default function RefinePromptPage() {
                     }
                   }}
                   placeholder="메시지를 입력하세요... (Shift+Enter로 줄바꿈)"
-                  className="flex-1 px-4 py-3 rounded-lg bg-white/70 dark:bg-black/30 border border-white/40 dark:border-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none overflow-y-auto scrollbar-hide"
+                  className="flex-1 px-4 py-3 rounded-lg bg-white/70 dark:bg-black/30 border border-white/40 dark:border-white/20 focus:outline-none focus:ring-2 focus:ring-rose-500/50 resize-none overflow-y-auto scrollbar-hide"
                   style={{ minHeight: "48px", maxHeight: "120px" }}
                   rows={1}
                   disabled={isSending}

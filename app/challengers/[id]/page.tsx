@@ -369,6 +369,7 @@ export default function ChallengeDetailPage() {
             resourceId={challenge.id}
             resourceType="challenge"
             resourceOwnerId={challenge.userId}
+            focusRingColor="focus:ring-purple-500/50"
           />
         </div>
 

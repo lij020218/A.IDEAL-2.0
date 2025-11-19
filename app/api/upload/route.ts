@@ -7,6 +7,15 @@ import path from "path";
 import { existsSync } from "fs";
 import { uploadLimiter } from "@/lib/rate-limiter";
 
+// API 라우트 body 크기 제한 설정 (50MB)
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '50mb',
+    },
+  },
+};
+
 // 로컬 개발 환경인지 확인
 const isLocal = process.env.NODE_ENV === "development" && !process.env.VERCEL;
 
@@ -85,11 +94,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 파일 크기 제한 (10MB)
-    const maxSize = 10 * 1024 * 1024;
+    // 파일 크기 제한 (50MB)
+    const maxSize = 50 * 1024 * 1024;
     if (file.size > maxSize) {
       return NextResponse.json(
-        { error: "파일 크기는 10MB를 초과할 수 없습니다" },
+        { error: "파일 크기는 50MB를 초과할 수 없습니다" },
         { status: 400 }
       );
     }

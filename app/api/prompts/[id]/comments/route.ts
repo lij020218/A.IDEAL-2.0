@@ -110,9 +110,14 @@ export async function POST(
       );
     }
 
-    // Check if prompt exists
+    // Check if prompt exists and get author info
     const prompt = await prisma.prompt.findUnique({
       where: { id: params.id },
+      select: {
+        id: true,
+        userId: true,
+        topic: true,
+      },
     });
 
     if (!prompt) {
@@ -196,6 +201,24 @@ export async function POST(
       },
       replies: [],
     };
+
+    // Create notification for the prompt author (if not commenting on own prompt)
+    if (prompt.userId && prompt.userId !== session.user.id) {
+      try {
+        await prisma.notification.create({
+          data: {
+            userId: prompt.userId,
+            type: "COMMENT",
+            title: "새 댓글",
+            message: `${session.user.name || session.user.email}님이 "${prompt.topic}" 프롬프트에 댓글을 남겼습니다.`,
+            link: `/prompt/${params.id}`,
+          },
+        });
+      } catch (notifError) {
+        console.error("Failed to create notification:", notifError);
+        // Don't fail the comment creation if notification fails
+      }
+    }
 
     return NextResponse.json({ comment });
   } catch (error) {

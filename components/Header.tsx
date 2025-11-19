@@ -49,7 +49,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+      <div className="container mx-auto flex h-14 lg:h-16 items-center justify-between px-3 lg:px-4">
         <div className="flex items-center gap-3">
           {session && onToggleSidebar && (
             <button
@@ -61,7 +61,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
             </button>
           )}
           <Link href={session ? "/home" : "/landing"} className="flex items-center space-x-2">
-            <span className="text-2xl font-semibold">A.IDEAL</span>
+            <span className="text-xl lg:text-2xl font-semibold">A.IDEAL</span>
           </Link>
         </div>
 
@@ -148,7 +148,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
               </button>
 
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-56 card-aurora rounded-xl shadow-lg py-2 border border-primary/10">
+                <div className="absolute right-0 top-full mt-2 w-56 card-aurora rounded-xl shadow-lg py-2 border border-primary/10 z-50">
                   <Link
                     href="/profile"
                     className="w-full px-4 py-2 text-left text-sm hover:bg-secondary transition-colors flex items-center gap-2"

@@ -94,6 +94,22 @@ export async function POST(
       }
     }
 
+    // Get challenge author to send notification
+    const challenge = await prisma.challenge.findUnique({
+      where: { id: params.id },
+      select: {
+        userId: true,
+        title: true,
+      },
+    });
+
+    if (!challenge) {
+      return NextResponse.json(
+        { error: "게시글을 찾을 수 없습니다" },
+        { status: 404 }
+      );
+    }
+
     const comment = await prisma.comment.create({
       data: {
         challengeId: params.id,
@@ -122,6 +138,24 @@ export async function POST(
         },
       },
     });
+
+    // Create notification for the challenge author (if not commenting on own post)
+    if (challenge.userId !== session.user.id) {
+      try {
+        await prisma.notification.create({
+          data: {
+            userId: challenge.userId,
+            type: "COMMENT",
+            title: "새 댓글",
+            message: `${session.user.name || session.user.email}님이 "${challenge.title}" 게시글에 댓글을 남겼습니다.`,
+            link: `/challengers/${params.id}`,
+          },
+        });
+      } catch (notifError) {
+        console.error("Failed to create notification:", notifError);
+        // Don't fail the comment creation if notification fails
+      }
+    }
 
     return NextResponse.json({ comment }, { status: 201 });
   } catch (error) {

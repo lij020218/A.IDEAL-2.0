@@ -496,6 +496,7 @@ export default function PromptDetailPage() {
                 resourceId={prompt.id}
                 resourceType="prompt"
                 resourceOwnerId={prompt.isOwner ? session?.user?.id : undefined}
+                focusRingColor="focus:ring-orange-500/50"
               />
             )}
           </div>

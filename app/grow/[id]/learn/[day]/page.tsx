@@ -629,9 +629,9 @@ export default function LearnSessionPage({
                               key={idx}
                               className={`h-1.5 rounded-full transition-all ${
                                 idx === currentSlide
-                                  ? "w-8 bg-primary"
+                                  ? isExamTopic ? "w-8 bg-blue-500" : "w-8 bg-cyan-500"
                                   : idx < currentSlide
-                                  ? "w-1.5 bg-primary/50"
+                                  ? isExamTopic ? "w-1.5 bg-blue-500/50" : "w-1.5 bg-cyan-500/50"
                                   : "w-1.5 bg-secondary"
                               }`}
                             />
@@ -1083,7 +1083,7 @@ export default function LearnSessionPage({
                     onChange={handleTextareaChange}
                     onKeyPress={handleKeyPress}
                     rows={1}
-                    className="resize-none text-sm overflow-y-auto bg-white/70 dark:bg-black/30 border border-white/40 dark:border-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-white/60"
+                    className={`resize-none text-sm overflow-y-auto bg-white/70 dark:bg-black/30 border border-white/40 dark:border-white/20 focus:outline-none focus:ring-2 ${isExamTopic ? 'focus:ring-blue-500/50' : 'focus:ring-cyan-500/50'} text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-white/60`}
                     style={{ minHeight: "48px", maxHeight: "120px" }}
                   />
                   <Button

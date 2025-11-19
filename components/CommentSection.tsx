@@ -27,6 +27,7 @@ interface CommentSectionProps {
   resourceType: "prompt" | "challenge";
   resourceOwnerId?: string;
   onCommentCountChange?: (count: number) => void;
+  focusRingColor?: string;
 }
 
 export default function CommentSection({
@@ -34,6 +35,7 @@ export default function CommentSection({
   resourceType,
   resourceOwnerId,
   onCommentCountChange,
+  focusRingColor = "focus:ring-primary/50",
 }: CommentSectionProps) {
   const { data: session } = useSession();
   const [comments, setComments] = useState<Comment[]>([]);
@@ -186,7 +188,7 @@ export default function CommentSection({
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="댓글을 입력하세요..."
             rows={3}
-            className="mb-3 resize-none input-aurora text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-white/60"
+            className={`mb-3 resize-none input-aurora text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-white/60 focus-visible:ring-2 ${focusRingColor}`}
           />
           <button
             type="submit"
@@ -274,7 +276,7 @@ export default function CommentSection({
                     onChange={(e) => setReplyContent(e.target.value)}
                     placeholder="답글을 입력하세요..."
                     rows={2}
-                    className="mb-2 resize-none input-aurora text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-white/60"
+                    className={`mb-2 resize-none input-aurora text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-white/60 focus-visible:ring-2 ${focusRingColor}`}
                   />
                   <div className="flex gap-2">
                     <button

@@ -9,6 +9,12 @@ const nextConfig = {
       },
     ],
   },
+  // API 요청 body 크기 제한 증가 (50MB)
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '50mb',
+    },
+  },
 };
 
 export default nextConfig;

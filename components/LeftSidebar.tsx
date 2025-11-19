@@ -151,7 +151,7 @@ export default function LeftSidebar({ isOpen, onClose, refreshTrigger }: LeftSid
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-16 left-0 h-[calc(100vh-4rem)] w-80 bg-white/50 dark:bg-white/5 backdrop-blur-md border-r border-white/40 dark:border-white/20 transition-transform duration-300 z-40 flex flex-col shadow-xl shadow-black/10 dark:shadow-black/30
+        className={`fixed top-14 lg:top-16 left-0 h-[calc(100vh-3.5rem-4rem)] lg:h-[calc(100vh-4rem)] w-80 bg-white/50 dark:bg-white/5 backdrop-blur-md border-r border-white/40 dark:border-white/20 transition-transform duration-300 z-40 flex flex-col shadow-xl shadow-black/10 dark:shadow-black/30
           ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         {/* Action Buttons */}
