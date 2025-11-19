@@ -542,8 +542,12 @@ export default function LearnSessionPage({
                       ))}
                     </>
                   ) : (
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center shadow-lg">
-                      <Rocket className="h-10 w-10 text-cyan-500" />
+                    <div className={`w-20 h-20 rounded-2xl ${isExamTopic ? 'bg-gradient-to-br from-blue-100/70 to-cyan-100/70 border-blue-200/50' : 'bg-gradient-to-br from-cyan-100/70 to-blue-100/70 border-cyan-200/50'} backdrop-blur-md border flex items-center justify-center shadow-lg`}>
+                      {isExamTopic ? (
+                        <GraduationCap className="h-10 w-10 text-blue-500" />
+                      ) : (
+                        <Rocket className="h-10 w-10 text-cyan-500" />
+                      )}
                     </div>
                   )}
                 </div>
