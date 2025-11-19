@@ -7,7 +7,8 @@ import Header from "@/components/Header";
 import LeftSidebar from "@/components/LeftSidebar";
 import { aiTools } from "@/lib/data/ai-tools";
 import Image from "next/image";
-import { FileText, Upload, X, Sparkles, ArrowLeft, Image as ImageIcon, Loader2, Tag } from "lucide-react";
+import { FileText, Upload, X, Sparkles, ArrowLeft, Image as ImageIcon, Loader2, Tag, Wand2 } from "lucide-react";
+import Link from "next/link";
 import { PromptCategory } from "@/types";
 
 function NewPromptContent() {
@@ -149,36 +150,46 @@ function NewPromptContent() {
   };
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-gradient-to-b from-rose-50/50 via-red-50/30 to-white relative">
       {/* Global Background Effects */}
-      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
-      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-rose-100/40 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-red-100/40 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-pink-100/30 rounded-full blur-3xl" />
+      </div>
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <section className="relative py-16 px-4">
-        <div className="container mx-auto relative z-10 max-w-5xl">
-          <div className="card-container rounded-xl p-8 md:p-10">
-            {/* Back Button */}
-            <button
-              onClick={() => router.back()}
-              className="mb-6 flex items-center gap-2 text-muted-foreground hover:opacity-80 transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              돌아가기
-            </button>
+      <div className="container mx-auto px-4 py-12 max-w-5xl relative z-10">
+        {/* Back Button */}
+        <div className="relative">
+          <Link
+            href="/prompts/list"
+            className="absolute -top-6 left-0 inline-flex items-center gap-2 text-muted-foreground hover:opacity-80 transition-colors text-sm"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            돌아가기
+          </Link>
+        </div>
 
-            {/* Header */}
-            <div className="mb-8">
-              <div>
-                <h1 className="text-3xl font-bold text-foreground">
-                  {promptId ? "프롬프트 수정" : "프롬프트 등록"}
-                </h1>
-                <p className="text-muted-foreground">
-                  {promptId ? "프롬프트를 수정하고 저장하세요" : "나만의 프롬프트를 저장하고 공유하세요"}
-                </p>
-              </div>
+        {/* Header */}
+        <div className="mb-12">
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-100/70 to-red-100/70 backdrop-blur-md border border-rose-200/50 flex items-center justify-center shadow-lg mx-auto mb-4">
+              <Wand2 className="h-8 w-8 text-rose-500" />
             </div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              <span className="text-foreground dark:text-white/90">
+                {promptId ? "프롬프트 수정" : "프롬프트 등록하기"}
+              </span>
+            </h1>
+            <p className="text-lg text-muted-foreground dark:text-white max-w-2xl mx-auto">
+              {promptId ? "프롬프트를 수정하고 저장하세요" : "나만의 프롬프트를 저장하고 공유하세요"}
+            </p>
+          </div>
+        </div>
+
+        <div className="card-container rounded-xl p-8 md:p-10">
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -409,7 +420,7 @@ function NewPromptContent() {
             <button
               type="submit"
               disabled={submitting || loading}
-              className="px-8 py-3 rounded-full border-2 border-border bg-white/70 backdrop-blur-sm border-white/30 text-foreground hover:bg-white/80 dark:bg-white/10 dark:backdrop-blur-sm dark:border-white/20 dark:text-foreground dark:hover:bg-white/15 transition-colors font-semibold text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="flex-1 px-6 py-3 rounded-2xl border border-rose-200/50 bg-gradient-to-br from-rose-100/70 to-red-100/70 backdrop-blur-md text-rose-500 hover:from-rose-100/80 hover:to-red-100/80 dark:from-rose-500/20 dark:to-red-500/20 dark:border-rose-400/30 dark:text-rose-400 dark:hover:from-rose-500/30 dark:hover:to-red-500/30 transition-all font-semibold shadow-lg shadow-rose-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {submitting ? (
                 <>
@@ -427,15 +438,15 @@ function NewPromptContent() {
               type="button"
               onClick={() => router.back()}
               disabled={submitting}
-              className="px-8 py-3 rounded-full border-2 border-border bg-white/70 backdrop-blur-sm hover:bg-white/80 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/20 dark:hover:bg-white/10 transition-colors font-semibold text-base disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md text-foreground dark:text-white hover:bg-white/60 dark:hover:bg-white/10 transition-all flex items-center gap-2 shadow-lg shadow-black/8 dark:shadow-black/15 disabled:opacity-50 disabled:cursor-not-allowed"
             >
+              <X className="h-5 w-5" />
               취소
             </button>
           </div>
         </form>
         </div>
       </div>
-      </section>
     </div>
   );
 }

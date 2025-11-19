@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Header from "@/components/Header";
 import LeftSidebar from "@/components/LeftSidebar";
-import { X } from "lucide-react";
+import { X, Users, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function NewChallengePage() {
   const router = useRouter();
@@ -71,19 +72,41 @@ export default function NewChallengePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50/50 via-pink-50/30 to-white relative">
       {/* Global Background Effects */}
-      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
-      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-100/40 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-pink-100/40 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-fuchsia-100/30 rounded-full blur-3xl" />
+      </div>
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className="container mx-auto px-4 py-12 max-w-3xl relative z-10">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold mb-2">새로운 <span className="text-foreground">도전</span> 올리기</h1>
-          <p className="text-muted-foreground">
-            당신의 아이디어와 열정을 공유하고, 함께할 동료를 찾아보세요
-          </p>
+        {/* Back Button */}
+        <div className="relative">
+          <Link
+            href="/challengers"
+            className="absolute -top-6 left-0 inline-flex items-center gap-2 text-muted-foreground hover:opacity-80 transition-colors text-sm"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            돌아가기
+          </Link>
+        </div>
+
+        {/* Header */}
+        <div className="mb-12">
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md border border-purple-200/50 flex items-center justify-center shadow-lg mx-auto mb-4">
+              <Users className="h-8 w-8 text-purple-500" />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              <span className="text-foreground dark:text-white/90">새로운 도전 올리기</span>
+            </h1>
+            <p className="text-lg text-muted-foreground dark:text-white max-w-2xl mx-auto">
+              당신의 아이디어와 열정을 공유하고, 함께할 동료를 찾아보세요
+            </p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -199,7 +222,7 @@ export default function NewChallengePage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="btn-aurora flex-1 px-6 py-3 rounded-lg flex items-center justify-center gap-2"
+              className="flex-1 px-6 py-3 rounded-2xl border border-purple-200/50 bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md text-purple-500 hover:from-purple-100/80 hover:to-pink-100/80 dark:from-purple-500/20 dark:to-pink-500/20 dark:border-purple-400/30 dark:text-purple-400 dark:hover:from-purple-500/30 dark:hover:to-pink-500/30 transition-all font-semibold shadow-lg shadow-purple-500/20 flex items-center justify-center gap-2"
             >
               {isSubmitting ? "올리는 중..." : "도전 올리기"}
             </button>

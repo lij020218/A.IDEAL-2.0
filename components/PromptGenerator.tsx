@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { GeneratedQuestion, GeneratedPrompt, AIProvider } from "@/types";
-import { Loader2, Sparkles, ArrowRight, ArrowLeft, Copy, Check, Save } from "lucide-react";
+import { Loader2, Sparkles, ArrowRight, ArrowLeft, Copy, Check, Save, Wand2, MessageSquare, Rocket, GraduationCap, Users } from "lucide-react";
 import { aiTools } from "@/lib/data/ai-tools";
 import { useLanguage } from "@/lib/language-context";
 import { AIProviderBadge, AI_PROVIDER_LABELS, isAIProvider } from "@/components/AIProviderBadge";
@@ -25,9 +25,11 @@ interface PromptGeneratorProps {
   initialTopic?: string;
   existingPromptData?: ExistingPromptData;
   onPromptSaved?: () => void;
+  onStepChange?: (step: Step) => void;
+  onGeneratingChange?: (isGenerating: boolean) => void;
 }
 
-export default function PromptGenerator({ initialTopic = "", existingPromptData, onPromptSaved }: PromptGeneratorProps) {
+export default function PromptGenerator({ initialTopic = "", existingPromptData, onPromptSaved, onStepChange, onGeneratingChange }: PromptGeneratorProps) {
   const { t } = useLanguage();
   const { data: session } = useSession();
   const router = useRouter();
@@ -45,10 +47,71 @@ export default function PromptGenerator({ initialTopic = "", existingPromptData,
   const [isSaved, setIsSaved] = useState(false);
   const [aiProvider, setAiProvider] = useState<AIProvider | null>(null);
   const [aiModel, setAiModel] = useState<string | null>(null);
+  const [currentIconIndex, setCurrentIconIndex] = useState(0);
+  const [isIconRising, setIsIconRising] = useState(false);
+  const [showResult, setShowResult] = useState(false);
 
-  // Restore state from sessionStorage on mount
+  // Notify parent component when step changes
+  useEffect(() => {
+    if (onStepChange) {
+      onStepChange(step);
+    }
+  }, [step, onStepChange]);
+
+  // 프롬프트 생성 로딩 상태 확인
+  const isGeneratingPrompt = isLoading && step === "questions" && currentQuestionIndex === questions.length - 1;
+
+  // 부모에게 로딩 상태 알림 (아이콘 상승 중에도 포함)
+  useEffect(() => {
+    if (onGeneratingChange) {
+      onGeneratingChange(isGeneratingPrompt || isIconRising);
+    }
+  }, [isGeneratingPrompt, isIconRising, onGeneratingChange]);
+
+  // 아이콘 회전 애니메이션을 위한 ref와 useEffect
+  const iconIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // cleanup 함수
+    const cleanup = () => {
+      if (startTimeoutRef.current) {
+        clearTimeout(startTimeoutRef.current);
+        startTimeoutRef.current = null;
+      }
+      if (iconIntervalRef.current) {
+        clearInterval(iconIntervalRef.current);
+        iconIntervalRef.current = null;
+      }
+    };
+
+    if (!isGeneratingPrompt) {
+      cleanup();
+      setCurrentIconIndex(0);
+      return;
+    }
+
+    // 첫 아이콘(Wand2)으로 시작 후 1.5초 뒤에 회전 시작
+    startTimeoutRef.current = setTimeout(() => {
+      // 이후 2초마다 다음 아이콘으로
+      iconIntervalRef.current = setInterval(() => {
+        setCurrentIconIndex((prev) => (prev + 1) % 5);
+      }, 2000);
+    }, 1500);
+
+    return cleanup;
+  }, [isGeneratingPrompt]);
+
+  // Restore state from sessionStorage on mount (only if same page)
   useEffect(() => {
     if (typeof window === "undefined") return;
+    
+    // lastPage가 /generate인 경우에만 복원 (새로고침 시)
+    const lastPage = sessionStorage.getItem("lastPage");
+    if (lastPage !== "/generate") {
+      // 다른 페이지에서 왔다면 복원하지 않음
+      return;
+    }
     
     const savedState = sessionStorage.getItem("promptGeneratorState");
     if (savedState) {
@@ -228,7 +291,17 @@ export default function PromptGenerator({ initialTopic = "", existingPromptData,
       const provider = isAIProvider(data.aiProvider) ? data.aiProvider : null;
       setAiProvider(provider);
       setAiModel(data.aiModel || null);
-      setStep("result");
+
+      // 아이콘이 Wand2로 돌아올 때까지 대기 후 상승 애니메이션
+      setCurrentIconIndex(0);
+      setIsIconRising(true);
+
+      // 아이콘 상승 애니메이션 후 결과 표시
+      setTimeout(() => {
+        setStep("result");
+        setShowResult(true);
+        setIsIconRising(false);
+      }, 800);
       
       // Save state to sessionStorage
       if (typeof window !== "undefined") {
@@ -278,7 +351,9 @@ export default function PromptGenerator({ initialTopic = "", existingPromptData,
     setAnswers({});
     setGeneratedPrompt(null);
     setError("");
-    
+    setShowResult(false);
+    setIsIconRising(false);
+
     // Clear sessionStorage
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("promptGeneratorState");
@@ -299,7 +374,8 @@ export default function PromptGenerator({ initialTopic = "", existingPromptData,
 
   return (
     <div className="max-w-3xl mx-auto">
-      {/* Progress Indicator */}
+      {/* Progress Indicator - 로딩 중일 때 숨김 */}
+      {step !== "result" && !isGeneratingPrompt && (
           <div className="mb-8">
         <div className="flex items-center justify-center gap-4">
           <div className={`flex items-center gap-2 ${step === "topic" ? "text-foreground" : "text-muted-foreground"}`}>
@@ -324,6 +400,7 @@ export default function PromptGenerator({ initialTopic = "", existingPromptData,
           </div>
         </div>
       </div>
+      )}
 
       {/* Error Message */}
       {error && (
@@ -363,7 +440,7 @@ export default function PromptGenerator({ initialTopic = "", existingPromptData,
               <button
                 type="submit"
                 disabled={isLoading || !topic.trim()}
-                className="btn-continue w-full px-6 py-3 flex items-center justify-center gap-2"
+                className="w-full px-6 py-3 rounded-2xl border border-rose-200/50 bg-gradient-to-br from-rose-100/70 to-red-100/70 backdrop-blur-md text-rose-500 hover:from-rose-100/80 hover:to-red-100/80 dark:from-rose-500/20 dark:to-red-500/20 dark:border-rose-400/30 dark:text-rose-400 dark:hover:from-rose-500/30 dark:hover:to-red-500/30 transition-all font-semibold shadow-lg shadow-rose-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <>
@@ -382,8 +459,97 @@ export default function PromptGenerator({ initialTopic = "", existingPromptData,
         </div>
       )}
 
+      {/* Loading Animation - 아이콘 드롭 후 회전 */}
+      {(isGeneratingPrompt || isIconRising) && (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8">
+          {/* 아이콘 컨테이너 - 드롭/상승 애니메이션 */}
+          <div className={`relative w-16 h-16 ${isIconRising ? "animate-rise-up" : "animate-drop-in"}`}>
+            {/* 각 아이콘 - 현재 인덱스만 표시 */}
+            {[
+              // 생성하기 - Wand2
+              <div key="wand" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-100/70 to-red-100/70 backdrop-blur-md border border-rose-200/50 flex items-center justify-center shadow-lg">
+                <Wand2 className="h-8 w-8 text-rose-500" />
+              </div>,
+              // 프롬프트 모음 - MessageSquare
+              <div key="message" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-100/70 to-amber-100/70 backdrop-blur-md border border-orange-200/50 flex items-center justify-center shadow-lg">
+                <MessageSquare className="h-8 w-8 text-orange-500" />
+              </div>,
+              // 성장하기 - Rocket
+              <div key="rocket" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center shadow-lg">
+                <Rocket className="h-8 w-8 text-cyan-500" />
+              </div>,
+              // 시험 공부하기 - GraduationCap
+              <div key="graduation" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-100/70 to-cyan-100/70 backdrop-blur-md border border-blue-200/50 flex items-center justify-center shadow-lg">
+                <GraduationCap className="h-8 w-8 text-blue-500" />
+              </div>,
+              // 도전자들 - Users
+              <div key="users" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md border border-purple-200/50 flex items-center justify-center shadow-lg">
+                <Users className="h-8 w-8 text-purple-500" />
+              </div>,
+            ].map((icon, index) => (
+              <div
+                key={index}
+                className={`absolute inset-0 transition-all duration-500 ease-in-out ${
+                  index === currentIconIndex
+                    ? "opacity-100 scale-100 rotate-0"
+                    : "opacity-0 scale-75 -rotate-90"
+                }`}
+              >
+                {icon}
+              </div>
+            ))}
+          </div>
+
+          {!isIconRising && (
+            <div className="text-center space-y-2">
+              <h3 className="text-2xl font-bold text-foreground dark:text-white/90">프롬프트 생성 중...</h3>
+              <p className="text-lg text-muted-foreground dark:text-white/80">
+                AI가 당신만의 프롬프트를 만들고 있어요
+              </p>
+            </div>
+          )}
+
+          {/* CSS 애니메이션 정의 */}
+          <style jsx>{`
+            @keyframes dropIn {
+              0% {
+                transform: translateY(-150px);
+                opacity: 0;
+              }
+              60% {
+                transform: translateY(15px);
+                opacity: 1;
+              }
+              80% {
+                transform: translateY(-5px);
+              }
+              100% {
+                transform: translateY(0);
+                opacity: 1;
+              }
+            }
+            @keyframes riseUp {
+              0% {
+                transform: translateY(0);
+                opacity: 1;
+              }
+              100% {
+                transform: translateY(-150px);
+                opacity: 1;
+              }
+            }
+            .animate-drop-in {
+              animation: dropIn 0.7s ease-out forwards;
+            }
+            .animate-rise-up {
+              animation: riseUp 0.6s ease-in forwards;
+            }
+          `}</style>
+        </div>
+      )}
+
       {/* Step 2: Questions */}
-      {step === "questions" && questions.length > 0 && (
+      {step === "questions" && questions.length > 0 && !isGeneratingPrompt && (
         <div className={`${cardClass} p-8 animate-fade-in`}>
           {/* Progress */}
           <div className="mb-6">
@@ -449,7 +615,7 @@ export default function PromptGenerator({ initialTopic = "", existingPromptData,
                 <button
                   type="submit"
                   disabled={isLoading || !currentAnswer.trim()}
-                  className="btn-aurora flex-1 px-6 py-3 rounded-full flex items-center justify-center gap-2"
+                  className="flex-1 px-6 py-3 rounded-2xl border border-rose-200/50 bg-gradient-to-br from-rose-100/70 to-red-100/70 backdrop-blur-md text-rose-500 hover:from-rose-100/80 hover:to-red-100/80 dark:from-rose-500/20 dark:to-red-500/20 dark:border-rose-400/30 dark:text-rose-400 dark:hover:from-rose-500/30 dark:hover:to-red-500/30 transition-all font-semibold shadow-lg shadow-rose-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
                     <>

@@ -27,7 +27,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
   const userMenuRef = useRef<HTMLDivElement | null>(null);
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/" });
+    await signOut({ callbackUrl: "/landing" });
   };
 
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
               <Menu className="h-5 w-5" />
             </button>
           )}
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href={session ? "/home" : "/landing"} className="flex items-center space-x-2">
             <span className="text-2xl font-semibold">A.IDEAL</span>
           </Link>
         </div>

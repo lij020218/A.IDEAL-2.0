@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Header from "@/components/Header";
 import LeftSidebar from "@/components/LeftSidebar";
-import { Plus, Code, Lightbulb, FileText, Calendar, Loader2 } from "lucide-react";
+import { Plus, Code, Lightbulb, FileText, Calendar, Loader2, Users } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import Link from "next/link";
@@ -53,33 +53,39 @@ export default function ChallengersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50/50 via-pink-50/30 to-white relative">
       {/* Global Background Effects */}
-      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
-      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-100/40 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-pink-100/40 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-fuchsia-100/30 rounded-full blur-3xl" />
+      </div>
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className="container mx-auto px-4 py-12 relative z-10">
         {/* Header */}
-        <div className="mb-12 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-            <span className="text-foreground">도전자들</span>
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            함께 성장하고, 함께 도전할 동료를 찾아보세요.
-          </p>
-          {session && (
-            <div className="mt-6">
-              <Link
-                href="/challengers/new"
-                className="btn-aurora px-6 py-3 rounded-full inline-flex items-center gap-2"
-              >
-                <Plus className="h-5 w-5" />
-                도전 올리기
-              </Link>
+        <div className="mb-12">
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md border border-purple-200/50 flex items-center justify-center shadow-lg mx-auto mb-4">
+              <Users className="h-8 w-8 text-purple-500" />
             </div>
-          )}
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              <span className="text-foreground dark:text-white/90">도전자들</span>
+            </h1>
+            <p className="text-lg text-muted-foreground dark:text-white max-w-2xl mx-auto mb-6">
+              함께 성장하고, 함께 도전할 동료를 찾아보세요
+            </p>
+            {session && (
+              <button
+                onClick={() => window.location.href = "/challengers/new"}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl border border-purple-200/50 bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md text-purple-500 hover:from-purple-100/80 hover:to-pink-100/80 dark:from-purple-500/20 dark:to-pink-500/20 dark:border-purple-400/30 dark:text-purple-400 dark:hover:from-purple-500/30 dark:hover:to-pink-500/30 transition-all font-semibold text-sm shadow-lg shadow-purple-500/20"
+              >
+                <Plus className="h-4 w-4" />
+                도전 올리기
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Challenges Grid */}
@@ -90,7 +96,9 @@ export default function ChallengersPage() {
         ) : challenges.length === 0 ? (
           <div className="text-center py-20 card-aurora rounded-xl">
             <div className="mb-4">
-              <Lightbulb className="h-20 w-20 mx-auto text-muted-foreground opacity-30" />
+              <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md border border-purple-200/50 flex items-center justify-center shadow-lg mx-auto">
+                <Lightbulb className="h-8 w-8 text-purple-500" />
+              </div>
             </div>
             <h3 className="text-2xl font-bold mb-2">아직 도전이 없습니다</h3>
             <p className="text-muted-foreground">
@@ -98,13 +106,13 @@ export default function ChallengersPage() {
             </p>
             {session && (
               <div className="mt-6">
-                <Link
-                  href="/challengers/new"
-                  className="btn-aurora px-6 py-3 rounded-full inline-flex items-center gap-2"
+                <button
+                  onClick={() => window.location.href = "/challengers/new"}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl border border-purple-200/50 bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md text-purple-500 hover:from-purple-100/80 hover:to-pink-100/80 dark:from-purple-500/20 dark:to-pink-500/20 dark:border-purple-400/30 dark:text-purple-400 dark:hover:from-purple-500/30 dark:hover:to-pink-500/30 transition-all font-semibold text-sm shadow-lg shadow-purple-500/20"
                 >
-                  <Plus className="h-5 w-5" />
+                  <Plus className="h-4 w-4" />
                   도전 올리기
-                </Link>
+                </button>
               </div>
             )}
           </div>

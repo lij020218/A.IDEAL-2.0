@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
 import LeftSidebar from "@/components/LeftSidebar";
-import { ArrowLeft, ArrowRight, Loader2, Sparkles, FileText, Upload, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Sparkles, FileText, Upload, X, Rocket, GraduationCap, MessageSquare, Wand2, Users } from "lucide-react";
 
 type Step = "topic" | "questions" | "level" | "duration" | "goal" | "generating" | "exam" | "examDuration";
 
@@ -33,6 +33,11 @@ export default function NewGrowthTopicPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // 로딩 애니메이션 관련 state
+  const [currentIconIndex, setCurrentIconIndex] = useState(0);
+  const iconIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // 시험 공부하기 관련 state
   const [examSubject, setExamSubject] = useState("");
   const [examDuration, setExamDuration] = useState(30);
@@ -45,6 +50,35 @@ export default function NewGrowthTopicPage() {
       router.push("/auth/signin");
     }
   }, [status, router]);
+
+  // 아이콘 회전 애니메이션
+  useEffect(() => {
+    const cleanup = () => {
+      if (startTimeoutRef.current) {
+        clearTimeout(startTimeoutRef.current);
+        startTimeoutRef.current = null;
+      }
+      if (iconIntervalRef.current) {
+        clearInterval(iconIntervalRef.current);
+        iconIntervalRef.current = null;
+      }
+    };
+
+    if (step !== "generating") {
+      cleanup();
+      setCurrentIconIndex(0);
+      return;
+    }
+
+    // 첫 아이콘(Rocket)으로 시작 후 1.5초 뒤에 회전 시작
+    startTimeoutRef.current = setTimeout(() => {
+      iconIntervalRef.current = setInterval(() => {
+        setCurrentIconIndex((prev) => (prev + 1) % 5);
+      }, 2000);
+    }, 1500);
+
+    return cleanup;
+  }, [step]);
 
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
@@ -319,37 +353,60 @@ export default function NewGrowthTopicPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-gradient-to-b from-cyan-50/50 via-blue-50/30 to-white relative">
       {/* Global Background Effects */}
-      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
-      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-100/40 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-blue-100/40 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-sky-100/30 rounded-full blur-3xl" />
+      </div>
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <section className="relative py-16 px-4">
-        <div className="container mx-auto px-4 py-12 relative z-10">
-        {/* Back Button */}
-        <Link
-          href="/grow"
-          className="inline-flex items-center gap-2 text-muted-foreground hover:opacity-80 transition-colors mb-8"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          돌아가기
-        </Link>
-
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/50 dark:bg-white/10 backdrop-blur-md border-2 border-white/40 dark:border-white/20 shadow-lg shadow-black/5 dark:shadow-black/20 rounded-full mb-4">
-            <Sparkles className="h-4 w-4 text-foreground dark:text-white/90" />
-            <span className="text-sm font-medium text-foreground dark:text-white/90">AI 기반 커리큘럼 디자이너</span>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 dark:text-white/90">
-            <span className="text-foreground dark:text-white/90 font-extrabold">A.IDEAL</span>과 함께 <span className="text-foreground dark:text-white/90">성장</span>하세요
-          </h1>
-          <p className="text-xl text-muted-foreground dark:text-white/80 max-w-2xl mx-auto">
-            3~5개의 질문에 답하면 목표·수준·기간에 딱 맞는 학습 계획이 완성됩니다
-          </p>
+      <div className="container mx-auto px-4 py-12 relative z-10">
+        {/* Back Button - positioned absolutely to not affect header position */}
+        <div className="relative">
+          <Link
+            href="/grow"
+            className="absolute -top-6 left-0 inline-flex items-center gap-2 text-muted-foreground hover:opacity-80 transition-colors text-sm"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            돌아가기
+          </Link>
         </div>
+
+        {/* Header - generating 중일 때 숨김 */}
+        {step !== "generating" && (
+          <div className="mb-12">
+            <div className="text-center">
+              {(step === "exam" || step === "examDuration") ? (
+                <>
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-100/70 to-cyan-100/70 backdrop-blur-md border border-blue-200/50 flex items-center justify-center shadow-lg mx-auto mb-4">
+                    <GraduationCap className="h-8 w-8 text-blue-500" />
+                  </div>
+                  <h1 className="text-3xl md:text-4xl font-bold mb-4">
+                    <span className="text-foreground dark:text-white/90">시험 공부하기</span>
+                  </h1>
+                  <p className="text-lg text-muted-foreground dark:text-white max-w-2xl mx-auto">
+                    시험 자료를 업로드하면 AI가 맞춤형 학습 계획을 만들어드립니다
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center shadow-lg mx-auto mb-4">
+                    <Rocket className="h-8 w-8 text-cyan-500" />
+                  </div>
+                  <h1 className="text-3xl md:text-4xl font-bold mb-4">
+                    <span className="text-foreground dark:text-white/90">새 학습 시작하기</span>
+                  </h1>
+                  <p className="text-lg text-muted-foreground dark:text-white max-w-2xl mx-auto">
+                    3~5개의 질문에 답하면 목표·수준·기간에 딱 맞는 학습 계획이 완성됩니다
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Main Content Card */}
         <div className="max-w-3xl mx-auto">
@@ -385,7 +442,7 @@ export default function NewGrowthTopicPage() {
                     <button
                       type="submit"
                       disabled={!topic.trim() || isLoading}
-                      className="btn-aurora w-full px-6 py-3 rounded-lg flex items-center justify-center gap-2"
+                      className="w-full px-6 py-3 rounded-2xl border border-cyan-400 bg-gradient-to-br from-cyan-400 to-blue-400 text-white hover:from-cyan-500 hover:to-blue-500 dark:from-cyan-500 dark:to-blue-500 dark:border-cyan-400 dark:text-white dark:hover:from-cyan-600 dark:hover:to-blue-600 transition-all font-semibold shadow-lg shadow-cyan-500/40 disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {isLoading ? (
                         <>
@@ -413,7 +470,7 @@ export default function NewGrowthTopicPage() {
                   <button
                     type="button"
                     onClick={() => setStep("exam")}
-                    className="w-full px-6 py-3 rounded-lg border-2 border-primary/60 dark:border-primary bg-primary/10 dark:bg-primary text-white dark:text-white hover:bg-primary/20 dark:hover:bg-primary/90 transition-all shadow-lg shadow-primary/10 dark:shadow-primary/50 flex items-center justify-center gap-2 font-semibold dark:font-bold"
+                    className="w-full px-6 py-3 rounded-2xl border border-blue-200/50 bg-gradient-to-br from-blue-100/70 to-cyan-100/70 backdrop-blur-md text-blue-500 hover:from-blue-100/80 hover:to-cyan-100/80 dark:from-blue-500/20 dark:to-cyan-500/20 dark:border-blue-400/30 dark:text-blue-400 dark:hover:from-blue-500/30 dark:hover:to-cyan-500/30 transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 font-semibold"
                   >
                     <FileText className="h-5 w-5" />
                     시험 공부하기
@@ -425,7 +482,7 @@ export default function NewGrowthTopicPage() {
             {step === "exam" && (
               <div className="animate-fade-in">
                 <div className="text-center mb-6">
-                  <h2 className="text-2xl font-bold mb-2 dark:text-white/90">시험 공부하기</h2>
+                  <h2 className="text-2xl font-bold mb-2 dark:text-white/90">무슨 과목을 준비하시나요?</h2>
                   <p className="text-muted-foreground dark:text-white/80">
                     시험 과목과 자료를 업로드하면 AI가 맞춤형 커리큘럼을 만들어드립니다.
                   </p>
@@ -468,7 +525,7 @@ export default function NewGrowthTopicPage() {
                               className="flex items-center justify-between p-3 bg-white/50 dark:bg-white/5 rounded-lg border border-white/20 dark:border-white/10"
                             >
                               <div className="flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-primary" />
+                                <FileText className="h-4 w-4 text-cyan-500" />
                                 <span className="text-sm dark:text-white/90">{file.filename}</span>
                                 <span className="text-xs text-muted-foreground">
                                   ({(file.size / 1024 / 1024).toFixed(2)} MB)
@@ -517,7 +574,7 @@ export default function NewGrowthTopicPage() {
                             type="button"
                             onClick={handleUploadFiles}
                             disabled={isLoading || isUploading || examFiles.length === 0}
-                            className="w-full px-4 py-2 rounded-lg border-2 border-primary/60 dark:border-primary/40 bg-primary/10 dark:bg-primary/5 backdrop-blur-md text-primary hover:bg-primary/20 dark:hover:bg-primary/10 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="w-full px-4 py-2 rounded-lg border-2 border-cyan-400/60 dark:border-cyan-400/40 bg-cyan-100/20 dark:bg-cyan-500/10 backdrop-blur-md text-cyan-600 dark:text-cyan-400 hover:bg-cyan-100/30 dark:hover:bg-cyan-500/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                           >
                             {isUploading ? (
                               <>
@@ -551,7 +608,7 @@ export default function NewGrowthTopicPage() {
                             className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
                               uploadedFiles.length >= 10 || isLoading || isUploading
                                 ? "border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 cursor-not-allowed"
-                                : "border-primary/40 dark:border-primary/30 bg-primary/5 dark:bg-primary/5 hover:bg-primary/10 dark:hover:bg-primary/10"
+                                : "border-cyan-400/40 dark:border-cyan-400/30 bg-cyan-100/10 dark:bg-cyan-500/5 hover:bg-cyan-100/20 dark:hover:bg-cyan-500/10"
                             }`}
                           >
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -581,7 +638,7 @@ export default function NewGrowthTopicPage() {
                       <button
                         type="submit"
                         disabled={isLoading || isUploading || !examSubject.trim() || uploadedFiles.length === 0}
-                        className="btn-aurora flex-1 px-6 py-3 rounded-lg flex items-center justify-center gap-2"
+                        className="flex-1 px-6 py-3 rounded-2xl border border-blue-200/50 bg-gradient-to-br from-blue-100/70 to-cyan-100/70 backdrop-blur-md text-blue-500 hover:from-blue-100/80 hover:to-cyan-100/80 dark:from-blue-500/20 dark:to-cyan-500/20 dark:border-blue-400/30 dark:text-blue-400 dark:hover:from-blue-500/30 dark:hover:to-cyan-500/30 transition-all font-semibold shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
                       >
                         다음 단계로
                         <ArrowRight className="h-5 w-5" />
@@ -631,7 +688,7 @@ export default function NewGrowthTopicPage() {
                         max={365}
                         value={examDuration}
                         onChange={(e) => setExamDuration(Number(e.target.value))}
-                        className="w-full h-2 bg-border rounded-lg appearance-none cursor-pointer accent-primary"
+                        className="w-full h-2 bg-border rounded-lg appearance-none cursor-pointer accent-cyan-500"
                       />
                       {error && (
                         <div className="text-red-600 dark:text-red-400 text-sm text-center">{error}</div>
@@ -655,7 +712,7 @@ export default function NewGrowthTopicPage() {
                       <button
                         type="submit"
                         disabled={isLoading}
-                        className="btn-aurora flex-1 px-6 py-3 rounded-lg flex items-center justify-center gap-2"
+                        className="flex-1 px-6 py-3 rounded-2xl border border-blue-200/50 bg-gradient-to-br from-blue-100/70 to-cyan-100/70 backdrop-blur-md text-blue-500 hover:from-blue-100/80 hover:to-cyan-100/80 dark:from-blue-500/20 dark:to-cyan-500/20 dark:border-blue-400/30 dark:text-blue-400 dark:hover:from-blue-500/30 dark:hover:to-cyan-500/30 transition-all font-semibold shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
                       >
                         {isLoading ? (
                           <>
@@ -689,13 +746,13 @@ export default function NewGrowthTopicPage() {
                     <span className="text-sm text-muted-foreground dark:text-white/80">
                       질문 {currentQuestionIndex + 1} / {questions.length}
                     </span>
-                    <span className="text-sm font-medium text-primary">
+                    <span className="text-sm font-medium text-cyan-500">
                       {Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}%
                     </span>
                   </div>
-                  <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-cyan-100/30 dark:bg-cyan-500/20 rounded-full overflow-hidden backdrop-blur-sm">
                     <div
-                      className="h-full bg-primary transition-all duration-300"
+                      className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-300"
                       style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
                     />
                   </div>
@@ -780,8 +837,8 @@ export default function NewGrowthTopicPage() {
                         onClick={() => handleLevelSelect(option.value)}
                         className={`rounded-lg border-2 p-6 text-left transition-all hover:scale-105 ${
                           level === option.value
-                            ? "border-primary/60 dark:border-primary/40 bg-primary/20 dark:bg-primary/10 backdrop-blur-md shadow-lg shadow-primary/20 dark:shadow-primary/30"
-                            : "border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md hover:border-primary/50 dark:hover:border-primary/30 hover:bg-white/60 dark:hover:bg-white/10 shadow-lg shadow-black/5 dark:shadow-black/15"
+                            ? "border-cyan-400/60 dark:border-cyan-400/40 bg-cyan-100/30 dark:bg-cyan-500/20 backdrop-blur-md shadow-lg shadow-cyan-500/20 dark:shadow-cyan-500/30"
+                            : "border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md hover:border-cyan-400/50 dark:hover:border-cyan-400/30 hover:bg-white/60 dark:hover:bg-white/10 shadow-lg shadow-black/5 dark:shadow-black/15"
                         }`}
                       >
                         <div className="text-3xl mb-2">{option.emoji}</div>
@@ -838,7 +895,7 @@ export default function NewGrowthTopicPage() {
                         max={365}
                         value={duration}
                         onChange={(e) => setDuration(Number(e.target.value))}
-                        className="w-full h-2 bg-border rounded-lg appearance-none cursor-pointer accent-primary"
+                        className="w-full h-2 bg-border rounded-lg appearance-none cursor-pointer accent-cyan-500"
                       />
                       {error && (
                         <div className="text-red-600 dark:text-red-400 text-sm text-center">{error}</div>
@@ -940,26 +997,80 @@ export default function NewGrowthTopicPage() {
             )}
 
             {step === "generating" && (
-              <div className="flex flex-col items-center justify-center space-y-8 py-16">
-                <div className="relative">
-                  <div className="absolute inset-0 blur-2xl bg-primary/30 rounded-full"></div>
-                  <Loader2 className="h-16 w-16 animate-spin text-primary relative z-10" />
+              <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8">
+                {/* 아이콘 컨테이너 - 드롭 애니메이션 */}
+                <div className="relative w-16 h-16 animate-drop-in">
+                  {/* 각 아이콘 - 현재 인덱스만 표시 */}
+                  {[
+                    // 성장하기 - Rocket
+                    <div key="rocket" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center shadow-lg">
+                      <Rocket className="h-8 w-8 text-cyan-500" />
+                    </div>,
+                    // 프롬프트 모음 - MessageSquare
+                    <div key="message" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-100/70 to-amber-100/70 backdrop-blur-md border border-orange-200/50 flex items-center justify-center shadow-lg">
+                      <MessageSquare className="h-8 w-8 text-orange-500" />
+                    </div>,
+                    // 생성하기 - Wand2
+                    <div key="wand" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-100/70 to-red-100/70 backdrop-blur-md border border-rose-200/50 flex items-center justify-center shadow-lg">
+                      <Wand2 className="h-8 w-8 text-rose-500" />
+                    </div>,
+                    // 시험 공부하기 - GraduationCap
+                    <div key="graduation" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-100/70 to-cyan-100/70 backdrop-blur-md border border-blue-200/50 flex items-center justify-center shadow-lg">
+                      <GraduationCap className="h-8 w-8 text-blue-500" />
+                    </div>,
+                    // 도전자들 - Users
+                    <div key="users" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md border border-purple-200/50 flex items-center justify-center shadow-lg">
+                      <Users className="h-8 w-8 text-purple-500" />
+                    </div>,
+                  ].map((icon, index) => (
+                    <div
+                      key={index}
+                      className={`absolute inset-0 transition-all duration-500 ease-in-out ${
+                        index === currentIconIndex
+                          ? "opacity-100 scale-100 rotate-0"
+                          : "opacity-0 scale-75 -rotate-90"
+                      }`}
+                    >
+                      {icon}
+                    </div>
+                  ))}
                 </div>
+
                 <div className="text-center space-y-2">
                   <h3 className="text-2xl font-bold dark:text-white/90">커리큘럼 생성 중...</h3>
                   <p className="text-lg text-muted-foreground dark:text-white/80">
-                    GPT-5.1이 맞춤형 학습 계획을 설계하고 있습니다
-                  </p>
-                  <p className="text-sm text-muted-foreground dark:text-white/80">
-                    잠시만 기다려주세요. 곧 완성됩니다!
+                    AI가 맞춤형 학습 계획을 설계하고 있어요
                   </p>
                 </div>
+
+                {/* CSS 애니메이션 정의 */}
+                <style jsx>{`
+                  @keyframes dropIn {
+                    0% {
+                      transform: translateY(-150px);
+                      opacity: 0;
+                    }
+                    60% {
+                      transform: translateY(15px);
+                      opacity: 1;
+                    }
+                    80% {
+                      transform: translateY(-5px);
+                    }
+                    100% {
+                      transform: translateY(0);
+                      opacity: 1;
+                    }
+                  }
+                  .animate-drop-in {
+                    animation: dropIn 0.7s ease-out forwards;
+                  }
+                `}</style>
               </div>
             )}
           </div>
         </div>
-        </div>
-      </section>
+      </div>
     </div>
   );
 }

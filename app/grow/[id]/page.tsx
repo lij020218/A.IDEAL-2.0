@@ -22,6 +22,7 @@ import {
   Upload,
   FileText,
   X,
+  Rocket,
 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -322,24 +323,32 @@ export default function GrowthTopicDetailPage({ params }: { params: { id: string
   }
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-gradient-to-b from-cyan-50/50 via-blue-50/30 to-white relative">
       {/* Global Background Effects */}
-      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
-      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-100/40 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-blue-100/40 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-sky-100/30 rounded-full blur-3xl" />
+      </div>
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <section className="relative py-16 px-4">
-        <main className="container mx-auto px-4 py-12 max-w-7xl relative z-10">
-        {/* Header */}
-        <div className="mb-8">
-          <Link
-            href="/grow"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:opacity-80 transition-colors mb-4"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            목록으로 돌아가기
-          </Link>
+      <div className="container mx-auto px-4 py-12 relative z-10">
+        <main>
+        {/* Page Header with Icon */}
+        <div className="mb-12">
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center shadow-lg mx-auto mb-4">
+              <Rocket className="h-8 w-8 text-cyan-500" />
+            </div>
+            <Link
+              href="/grow"
+              className="inline-flex items-center gap-2 text-muted-foreground hover:opacity-80 transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              목록으로 돌아가기
+            </Link>
+          </div>
         </div>
 
         {/* Topic Info Card */}
@@ -493,7 +502,7 @@ export default function GrowthTopicDetailPage({ params }: { params: { id: string
           <GrowthCalendar topicId={topic.id} curriculum={topic.curriculum} />
         </div>
         </main>
-      </section>
+      </div>
 
       {/* 추가 파일 업로드 모달 */}
       {showUploadModal && (

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import LeftSidebar from "@/components/LeftSidebar";
 import { Button } from "@/components/ui/button";
-import { Plus, BookOpen, Calendar, TrendingUp, Clock, Target, Loader2, Trash2 } from "lucide-react";
+import { Plus, BookOpen, Calendar, TrendingUp, Clock, Target, Loader2, Trash2, Rocket } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -129,52 +129,58 @@ export default function GrowPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-gradient-to-b from-cyan-50/50 via-blue-50/30 to-white relative">
       {/* Global Background Effects */}
-      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
-      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-100/40 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-blue-100/40 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-sky-100/30 rounded-full blur-3xl" />
+      </div>
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <section className="relative py-16 px-4">
-        <main className="container mx-auto px-4 py-12 relative z-10">
+      <div className="container mx-auto px-4 py-12 relative z-10">
+        <main>
         {/* Header Section */}
-        <div className="flex items-center justify-between mb-12">
-          <div>
-            <h1 className="text-4xl font-bold text-foreground mb-4">성장하기</h1>
-            <p className="text-muted-foreground text-lg">
-              <span className="text-foreground font-semibold">A.IDEAL</span>과 함께 <span className="text-foreground">성장</span>하세요
+        <div className="mb-12">
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center shadow-lg mx-auto mb-4">
+              <Rocket className="h-8 w-8 text-cyan-500" />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              <span className="text-foreground dark:text-white/90">성장하기</span>
+            </h1>
+            <p className="text-lg text-muted-foreground dark:text-white max-w-2xl mx-auto mb-6">
+              AI가 설계하는 맞춤 학습 경로로 성장하세요
             </p>
+            <button
+              onClick={() => router.push("/grow/new")}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl border border-cyan-200/50 bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md text-cyan-500 hover:from-cyan-100/80 hover:to-blue-100/80 dark:from-cyan-500/20 dark:to-blue-500/20 dark:border-cyan-400/30 dark:text-cyan-400 dark:hover:from-cyan-500/30 dark:hover:to-blue-500/30 transition-all font-semibold text-sm shadow-lg shadow-cyan-500/20"
+            >
+              <Plus className="h-4 w-4" />
+              새 학습 시작하기
+            </button>
           </div>
-          <Button
-            onClick={() => router.push("/grow/new")}
-            size="lg"
-            className="gap-2 bg-white/50 backdrop-blur-md border-2 border-white/40 text-foreground hover:bg-white/60 dark:bg-white/10 dark:backdrop-blur-md dark:border-white/20 dark:text-foreground dark:hover:bg-white/15 shadow-lg shadow-black/5 dark:shadow-black/20"
-          >
-            <Plus className="h-5 w-5" />
-            새 학습 시작하기
-          </Button>
         </div>
 
         {/* Topics Grid */}
         {topics.length === 0 ? (
           <div className="card-container rounded-xl p-12 text-center">
             <div className="flex flex-col items-center gap-4">
-              <div className="h-16 w-16 rounded-full bg-foreground/10 flex items-center justify-center">
-                <BookOpen className="h-8 w-8 text-foreground" />
+              <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center shadow-lg">
+                <BookOpen className="h-8 w-8 text-cyan-500" />
               </div>
               <h3 className="text-xl font-semibold">아직 학습 주제가 없습니다</h3>
               <p className="text-muted-foreground max-w-md">
                 새로운 학습 주제를 만들고 AI와 함께 체계적인 커리큘럼으로 성장해보세요
               </p>
-              <Button
+              <button
                 onClick={() => router.push("/grow/new")}
-                size="lg"
-                className="gap-2 mt-4 bg-white/50 backdrop-blur-md border-2 border-white/40 text-foreground hover:bg-white/60 dark:bg-white/10 dark:backdrop-blur-md dark:border-white/20 dark:text-foreground dark:hover:bg-white/15 shadow-lg shadow-black/5 dark:shadow-black/20"
+                className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 rounded-2xl border border-cyan-200/50 bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md text-cyan-500 hover:from-cyan-100/80 hover:to-blue-100/80 dark:from-cyan-500/20 dark:to-blue-500/20 dark:border-cyan-400/30 dark:text-cyan-400 dark:hover:from-cyan-500/30 dark:hover:to-blue-500/30 transition-all font-semibold text-sm shadow-lg shadow-cyan-500/20"
               >
-                <Plus className="h-5 w-5" />
+                <Plus className="h-4 w-4" />
                 첫 학습 시작하기
-              </Button>
+              </button>
             </div>
           </div>
         ) : (
@@ -287,8 +293,8 @@ export default function GrowPage() {
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="card-aurora rounded-xl p-6">
             <div className="flex items-start gap-4">
-              <div className="h-12 w-12 rounded-lg bg-foreground/10 flex items-center justify-center flex-shrink-0">
-                <Calendar className="h-6 w-6 text-foreground" />
+              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center flex-shrink-0 shadow-lg">
+                <Calendar className="h-6 w-6 text-cyan-500" />
               </div>
               <div>
                 <h3 className="font-semibold mb-2">체계적인 커리큘럼</h3>
@@ -301,8 +307,8 @@ export default function GrowPage() {
 
           <div className="card-aurora rounded-xl p-6">
             <div className="flex items-start gap-4">
-              <div className="h-12 w-12 rounded-lg bg-foreground/10 flex items-center justify-center flex-shrink-0">
-                <BookOpen className="h-6 w-6 text-foreground" />
+              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center flex-shrink-0 shadow-lg">
+                <BookOpen className="h-6 w-6 text-cyan-500" />
               </div>
               <div>
                 <h3 className="font-semibold mb-2">AI 튜터 모드</h3>
@@ -315,8 +321,8 @@ export default function GrowPage() {
 
           <div className="card-aurora rounded-xl p-6">
             <div className="flex items-start gap-4">
-              <div className="h-12 w-12 rounded-lg bg-foreground/10 flex items-center justify-center flex-shrink-0">
-                <TrendingUp className="h-6 w-6 text-foreground" />
+              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center flex-shrink-0 shadow-lg">
+                <TrendingUp className="h-6 w-6 text-cyan-500" />
               </div>
               <div>
                 <h3 className="font-semibold mb-2">진도 추적</h3>
@@ -328,7 +334,7 @@ export default function GrowPage() {
           </div>
         </div>
         </main>
-      </section>
+      </div>
     </div>
   );
 }
