@@ -392,8 +392,8 @@ export default function PromptGenerator({ initialTopic = "", existingPromptData,
             <span className="font-medium hidden sm:inline">{t.generate.step2}</span>
           </div>
           <div className="w-12 h-0.5 bg-white/30 dark:bg-white/10"></div>
-          <div className={`flex items-center gap-2 ${step === "result" ? "text-foreground" : "text-muted-foreground"}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border-2 ${step === "result" ? "bg-white/50 dark:bg-white/10 border-white/40 dark:border-white/20 text-foreground shadow-md shadow-black/5 dark:shadow-black/15" : "bg-white/30 dark:bg-white/5 border-white/30 dark:border-white/10 text-foreground"}`}>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border-2 bg-white/30 dark:bg-white/5 border-white/30 dark:border-white/10 text-foreground">
               3
             </div>
             <span className="font-medium hidden sm:inline">{t.generate.step3}</span>
