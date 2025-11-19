@@ -20,6 +20,7 @@ import {
   Star,
   MessageSquare,
   Rocket,
+  Lightbulb,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -223,7 +224,7 @@ export default function ProfilePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
             <StatCard
-              icon={<Users className="h-5 w-5 text-purple-500" />}
+              icon={<Lightbulb className="h-5 w-5 text-purple-500" />}
               label="도전 과제"
               value={profileData.stats.challengesCount}
             />
