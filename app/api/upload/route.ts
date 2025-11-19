@@ -7,14 +7,8 @@ import path from "path";
 import { existsSync } from "fs";
 import { uploadLimiter } from "@/lib/rate-limiter";
 
-// API 라우트 body 크기 제한 설정 (50MB)
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '50mb',
-    },
-  },
-};
+// Route segment config for body size limit (50MB)
+export const maxDuration = 60; // 최대 실행 시간 (초)
 
 // 로컬 개발 환경인지 확인
 const isLocal = process.env.NODE_ENV === "development" && !process.env.VERCEL;
