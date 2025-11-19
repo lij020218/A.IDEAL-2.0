@@ -1,11 +1,19 @@
 /**
- * OpenAI 프롬프트 엔지니어링 가이드를 적용한 프롬프트 템플릿
+ * OpenAI + Google Gemini 프롬프트 엔지니어링 가이드를 통합 적용한 프롬프트 템플릿
  *
- * 핵심 원칙:
+ * 핵심 원칙 (OpenAI 가이드):
  * 1. Markdown + XML로 구조화
  * 2. Identity, Instructions, Examples, Context 순서
  * 3. Few-shot learning 적용
  * 4. Prompt caching 최적화 (재사용 콘텐츠 앞에 배치)
+ *
+ * 추가 원칙 (Google Gemini API 가이드):
+ * 5. 명확하고 구체적인 요청 (Clear & Specific Instructions)
+ * 6. Few-shot: 2-5개의 구체적이고 다양한 예시 사용
+ * 7. Output prefix로 형식 안내 (JSON:, The answer is:, 등)
+ * 8. 긍정적 패턴 제시 (부정적 예시 지양)
+ * 9. 제약조건을 명시적으로 정의
+ * 10. 롱 컨텍스트 최적화: Context 먼저, Question 마지막
  */
 
 import { UnifiedMessage } from "../ai-router";
@@ -147,14 +155,22 @@ ${topic}
 ${existingPrompt}
 </existing_prompt>
 
-Generate 5 questions to help refine and improve this existing prompt.`
+Generate 5 questions to help refine and improve this existing prompt.
+
+**Output Format Reminder**: Return ONLY a valid JSON array starting with [ and ending with ]. Do not include any markdown code blocks or explanatory text.
+
+JSON:`
       : `# Context
 
 <user_goal>
 ${topic}
 </user_goal>
 
-Generate 5 essential questions for creating a high-quality AI prompt for this goal.`,
+Generate 5 essential questions for creating a high-quality AI prompt for this goal.
+
+**Output Format Reminder**: Return ONLY a valid JSON array starting with [ and ending with ]. Do not include any markdown code blocks or explanatory text.
+
+JSON:`,
   };
 
   return [developerMessage, userMessage];
@@ -314,7 +330,11 @@ ${existingPrompt}
 ${qaContext}
 </user_requirements>
 
-Generate an improved version of the prompt that incorporates these new requirements while maintaining its core effectiveness.`
+Generate an improved version of the prompt that incorporates these new requirements while maintaining its core effectiveness.
+
+**Output Format Reminder**: Return ONLY a valid JSON object with exactly these keys: "prompt", "recommendedTools", "tips". Do not include markdown code blocks, explanations, or any text outside the JSON object.
+
+JSON:`
       : `# Context
 
 <user_goal>
@@ -325,7 +345,11 @@ ${topic}
 ${qaContext}
 </user_requirements>
 
-Generate a premium, production-ready AI prompt based on these requirements.`,
+Generate a premium, production-ready AI prompt based on these requirements.
+
+**Output Format Reminder**: Return ONLY a valid JSON object with exactly these keys: "prompt", "recommendedTools", "tips". Do not include markdown code blocks, explanations, or any text outside the JSON object.
+
+JSON:`,
   };
 
   return [developerMessage, userMessage];
@@ -637,7 +661,11 @@ You are an expert copywriter. Write a product description for an eco-friendly wa
 ${prompt}
 </prompt_to_analyze>
 
-Analyze this prompt and provide a comprehensive evaluation with scores, strengths, weaknesses, and actionable suggestions for improvement.`,
+Analyze this prompt and provide a comprehensive evaluation with scores, strengths, weaknesses, and actionable suggestions for improvement.
+
+**Output Format Reminder**: Return ONLY a valid JSON object with these exact keys: "score", "strengths", "weaknesses", "suggestions", "clarity", "specificity", "structure". Do not include markdown code blocks or explanatory text.
+
+JSON:`,
   };
 
   return [developerMessage, userMessage];
