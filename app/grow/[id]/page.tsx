@@ -371,7 +371,7 @@ export default function GrowthTopicDetailPage({ params }: { params: { id: string
             {/* Left: Topic Details */}
             <div className="flex-1">
               <div className="flex items-start justify-between mb-4">
-                <h1 className="text-3xl font-bold">{topic.title}</h1>
+                <h1 className="text-xl md:text-3xl font-bold break-words">{topic.title}</h1>
                 <span
                   className={`ml-4 px-3 py-1 rounded-md text-sm font-medium whitespace-nowrap ${getStatusColor(
                     topic.status

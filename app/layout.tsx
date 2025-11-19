@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/language-context";
 import Providers from "@/components/Providers";
+import MobileBottomNav from "@/components/MobileBottomNav";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +23,10 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning>
         <Providers>
           <LanguageProvider>
-            {children}
+            <div className="pb-20 md:pb-0">
+              {children}
+            </div>
+            <MobileBottomNav />
           </LanguageProvider>
         </Providers>
       </body>

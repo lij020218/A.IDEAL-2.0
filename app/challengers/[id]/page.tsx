@@ -171,7 +171,7 @@ export default function ChallengeDetailPage() {
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md border border-purple-200/50 flex items-center justify-center shadow-lg mx-auto mb-4">
             <Users className="h-8 w-8 text-purple-500" />
           </div>
-          <h1 className="text-4xl font-bold mb-4 text-foreground dark:text-white/90">{challenge.title}</h1>
+          <h1 className="text-2xl md:text-4xl font-bold mb-4 text-foreground dark:text-white/90 break-words">{challenge.title}</h1>
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground dark:text-white/80">
             <div className="flex items-center gap-2">
               <Link

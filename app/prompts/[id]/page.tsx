@@ -50,7 +50,7 @@ export default function PromptDetailPage() {
         <div className="space-y-4 mb-8">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h1 className="text-4xl font-bold mb-2">{prompt.title}</h1>
+              <h1 className="text-2xl md:text-4xl font-bold mb-2 break-words">{prompt.title}</h1>
               <p className="text-lg text-muted-foreground">{prompt.description}</p>
             </div>
             {prompt.isFeatured && (
