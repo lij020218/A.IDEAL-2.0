@@ -54,7 +54,6 @@ interface Topic {
   endDate: string;
   status: string;
   curriculum: Curriculum[];
-  progress: any[];
 }
 
 export default function GrowthTopicDetailPage({ params }: { params: { id: string } }) {

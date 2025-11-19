@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Header from "@/components/Header";
 import LeftSidebar from "@/components/LeftSidebar";
-import { Copy, Check, Edit, ArrowLeft, Tag, User, Clock, Sparkles, ExternalLink, Loader2, Star, Eye, Trash2 } from "lucide-react";
+import { Copy, Check, Edit, ArrowLeft, Tag, User, Clock, Sparkles, ExternalLink, Loader2, Star, Eye, Trash2, MessageSquare } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { aiTools } from "@/lib/data/ai-tools";
@@ -170,10 +170,13 @@ export default function PromptDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background relative">
+      <div className="min-h-screen bg-gradient-to-b from-orange-50/50 via-amber-50/30 to-white relative">
         {/* Global Background Effects */}
-        <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
-        <div className="fixed inset-0 hero-grain pointer-events-none"></div>
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-orange-100/40 rounded-full blur-3xl" />
+          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-amber-100/40 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-yellow-100/30 rounded-full blur-3xl" />
+        </div>
         <Header onToggleSidebar={toggleSidebar} />
         <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         <section className="relative py-16 px-4">
@@ -198,15 +201,30 @@ export default function PromptDetailPage() {
     .filter(Boolean);
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50/50 via-amber-50/30 to-white relative">
       {/* Global Background Effects */}
-      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
-      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-orange-100/40 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-amber-100/40 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-yellow-100/30 rounded-full blur-3xl" />
+      </div>
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <section className="relative py-16 px-4">
-        <div className="container mx-auto relative z-10 max-w-5xl">
+      <div className="container mx-auto px-4 py-12 relative z-10">
+        {/* Header */}
+        <div className="mb-12">
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-100/70 to-amber-100/70 backdrop-blur-md border border-orange-200/50 flex items-center justify-center shadow-lg mx-auto mb-4">
+              <MessageSquare className="h-8 w-8 text-orange-500" />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              <span className="text-foreground dark:text-white/90">프롬프트</span>
+            </h1>
+          </div>
+        </div>
+
+        <div className="max-w-5xl mx-auto">
           <div className="card-container rounded-xl p-8 md:p-10">
             <button
               onClick={() => router.push("/prompts/list")}
@@ -465,7 +483,7 @@ export default function PromptDetailPage() {
             <div className="flex gap-4 mb-8">
               <button
                 onClick={handleContinue}
-                className="flex-1 px-6 py-3 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/60 dark:bg-white/10 backdrop-blur-md text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 flex items-center justify-center gap-2"
+                className="flex-1 px-6 py-3 rounded-full border border-orange-200/50 bg-gradient-to-r from-orange-100/50 to-amber-100/50 backdrop-blur-md text-orange-600 hover:from-orange-100/70 hover:to-amber-100/70 dark:from-orange-500/20 dark:to-amber-500/20 dark:border-orange-400/30 dark:text-orange-400 dark:hover:from-orange-500/30 dark:hover:to-amber-500/30 transition-all font-semibold shadow-lg shadow-orange-500/10 flex items-center justify-center gap-2"
               >
                 <Edit className="h-5 w-5" />
                 추가로 작업하기
@@ -482,7 +500,7 @@ export default function PromptDetailPage() {
             )}
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

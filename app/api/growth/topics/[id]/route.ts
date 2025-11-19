@@ -89,9 +89,12 @@ export async function GET(
       })
     );
 
+    // Exclude progress array from response since we've already merged it into curriculum
+    const { progress, ...topicWithoutProgress } = topic;
+    
     return NextResponse.json({
       topic: {
-        ...topic,
+        ...topicWithoutProgress,
         curriculum: curriculumWithProgress,
       },
     });

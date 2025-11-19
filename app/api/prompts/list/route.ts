@@ -50,18 +50,36 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Parse JSON strings
-    const parsedPrompts = prompts.map((p) => ({
-      ...p,
-      recommendedTools: JSON.parse(p.recommendedTools),
-      tips: JSON.parse(p.tips),
-    }));
+    // Parse JSON strings safely
+    const parsedPrompts = prompts.map((p) => {
+      try {
+        return {
+          ...p,
+          recommendedTools: p.recommendedTools ? (typeof p.recommendedTools === 'string' ? JSON.parse(p.recommendedTools) : p.recommendedTools) : [],
+          tips: p.tips ? (typeof p.tips === 'string' ? JSON.parse(p.tips) : p.tips) : [],
+        };
+      } catch (parseError) {
+        console.error("Error parsing prompt data:", parseError, p);
+        return {
+          ...p,
+          recommendedTools: [],
+          tips: [],
+        };
+      }
+    });
 
     return NextResponse.json({ prompts: parsedPrompts });
   } catch (error) {
     console.error("Error fetching prompts:", error);
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
     return NextResponse.json(
-      { error: "프롬프트 목록을 가져오는 중 오류가 발생했습니다" },
+      { 
+        error: "프롬프트 목록을 가져오는 중 오류가 발생했습니다",
+        details: process.env.NODE_ENV === "development" ? error instanceof Error ? error.message : String(error) : undefined
+      },
       { status: 500 }
     );
   }

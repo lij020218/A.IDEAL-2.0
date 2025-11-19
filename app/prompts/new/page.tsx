@@ -7,7 +7,7 @@ import Header from "@/components/Header";
 import LeftSidebar from "@/components/LeftSidebar";
 import { aiTools } from "@/lib/data/ai-tools";
 import Image from "next/image";
-import { FileText, Upload, X, Sparkles, ArrowLeft, Image as ImageIcon, Loader2, Tag, Wand2 } from "lucide-react";
+import { FileText, Upload, X, Sparkles, ArrowLeft, Image as ImageIcon, Loader2, Tag, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { PromptCategory } from "@/types";
 
@@ -150,12 +150,12 @@ function NewPromptContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-rose-50/50 via-red-50/30 to-white relative">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50/50 via-amber-50/30 to-white relative">
       {/* Global Background Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-rose-100/40 rounded-full blur-3xl" />
-        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-red-100/40 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-pink-100/30 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-orange-100/40 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-amber-100/40 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-yellow-100/30 rounded-full blur-3xl" />
       </div>
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
@@ -175,8 +175,8 @@ function NewPromptContent() {
         {/* Header */}
         <div className="mb-12">
           <div className="text-center">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-100/70 to-red-100/70 backdrop-blur-md border border-rose-200/50 flex items-center justify-center shadow-lg mx-auto mb-4">
-              <Wand2 className="h-8 w-8 text-rose-500" />
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-100/70 to-amber-100/70 backdrop-blur-md border border-orange-200/50 flex items-center justify-center shadow-lg mx-auto mb-4">
+              <MessageSquare className="h-8 w-8 text-orange-500" />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold mb-4">
               <span className="text-foreground dark:text-white/90">
@@ -420,7 +420,7 @@ function NewPromptContent() {
             <button
               type="submit"
               disabled={submitting || loading}
-              className="flex-1 px-6 py-3 rounded-2xl border border-rose-200/50 bg-gradient-to-br from-rose-100/70 to-red-100/70 backdrop-blur-md text-rose-500 hover:from-rose-100/80 hover:to-red-100/80 dark:from-rose-500/20 dark:to-red-500/20 dark:border-rose-400/30 dark:text-rose-400 dark:hover:from-rose-500/30 dark:hover:to-red-500/30 transition-all font-semibold shadow-lg shadow-rose-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-6 py-3 rounded-2xl border border-orange-200/50 bg-gradient-to-br from-orange-100/70 to-amber-100/70 backdrop-blur-md text-orange-500 hover:from-orange-100/80 hover:to-amber-100/80 dark:from-orange-500/20 dark:to-amber-500/20 dark:border-orange-400/30 dark:text-orange-400 dark:hover:from-orange-500/30 dark:hover:to-amber-500/30 transition-all font-semibold shadow-lg shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {submitting ? (
                 <>

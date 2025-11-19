@@ -56,6 +56,17 @@ interface Challenge {
   };
 }
 
+interface GrowthTopic {
+  id: string;
+  title: string;
+  description: string;
+  level: string;
+  duration: number;
+  goal: string;
+  progress: number;
+  createdAt: string;
+}
+
 export default function Home() {
   const { t, translate, language } = useLanguage();
   const tr = translate;
@@ -64,10 +75,12 @@ export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [savedPrompts, setSavedPrompts] = useState<SavedPrompt[]>([]);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [growthTopics, setGrowthTopics] = useState<GrowthTopic[]>([]);
 
   useEffect(() => {
     fetchSavedPrompts();
     fetchChallenges();
+    fetchGrowthTopics();
   }, []);
 
   const fetchSavedPrompts = async () => {
@@ -94,6 +107,17 @@ export default function Home() {
     }
   };
 
+  const fetchGrowthTopics = async () => {
+    try {
+      const response = await fetch("/api/growth/topics/public");
+      if (response.ok) {
+        const data = await response.json();
+        setGrowthTopics(data.topics || []);
+      }
+    } catch (error) {
+      console.error("Error fetching growth topics:", error);
+    }
+  };
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -280,16 +304,62 @@ export default function Home() {
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">{tr("나만의 학습 경로를 시작해보세요")}</p>
-            <Link
-              href="/grow/new"
-              className="inline-flex items-center gap-2 mt-4 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-full hover:from-cyan-600 hover:to-blue-600 transition-all font-medium shadow-lg shadow-cyan-500/30"
-            >
-              {tr("학습 경로 만들기")}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+          {growthTopics.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">{tr("나만의 학습 경로를 시작해보세요")}</p>
+              <Link
+                href="/grow/new"
+                className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 rounded-2xl border border-cyan-200/50 bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md text-cyan-500 hover:from-cyan-100/80 hover:to-blue-100/80 dark:from-cyan-500/20 dark:to-blue-500/20 dark:border-cyan-400/30 dark:text-cyan-400 dark:hover:from-cyan-500/30 dark:hover:to-blue-500/30 transition-all font-semibold text-sm shadow-lg shadow-cyan-500/20"
+              >
+                {tr("새 학습 시작하기")}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {growthTopics.slice(0, 3).map((topic) => (
+                <Link
+                  key={topic.id}
+                  href={`/grow/${topic.id}`}
+                  className="card-aurora rounded-xl p-6 hover:shadow-lg transition-all block"
+                >
+                  <div className="mb-4">
+                    <h3 className="text-xl font-bold mb-2 line-clamp-2">
+                      {topic.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {topic.description || topic.goal}
+                    </p>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="mb-4">
+                    <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                      <span>{tr("진행률")}</span>
+                      <span>{topic.progress || 0}%</span>
+                    </div>
+                    <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all"
+                        style={{ width: `${topic.progress || 0}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Meta Info */}
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="px-2 py-1 bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 rounded">
+                      {topic.level === "beginner" ? tr("초급") : topic.level === "intermediate" ? tr("중급") : tr("고급")}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {topic.duration}{tr("일")}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

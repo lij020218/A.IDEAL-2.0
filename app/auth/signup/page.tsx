@@ -96,7 +96,7 @@ export default function SignUpPage() {
       
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
-        <Link href="/" className="flex items-center justify-center mb-8 space-x-2">
+        <Link href="/landing" className="flex items-center justify-center mb-8 space-x-2">
           <Sparkles className="h-8 w-8 text-[#ADD8E6] dark:text-[#00FFC8]" />
           <span className="text-3xl font-semibold text-foreground dark:text-white/90">A.IDEAL</span>
         </Link>

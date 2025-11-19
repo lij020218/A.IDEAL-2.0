@@ -156,7 +156,13 @@ export async function POST(req: NextRequest) {
       LIMIT 1
     `;
 
-    return NextResponse.json({ progress: progress[0] });
+    // Only return the fields we selected, explicitly exclude other fields
+    if (progress[0]) {
+      const { userId, notes, chatHistory, createdAt, ...filteredProgress } = progress[0];
+      return NextResponse.json({ progress: filteredProgress });
+    }
+    
+    return NextResponse.json({ progress: null });
   } catch (error) {
     console.error("Error updating progress:", error);
     return NextResponse.json(
@@ -213,10 +219,14 @@ export async function GET(req: NextRequest) {
       ORDER BY "dayNumber" ASC
     `;
 
-    const normalized = progress.map((p) => ({
-      ...p,
-      status: normalizeStatusValue(p.status),
-    }));
+    // Only return the fields we selected, explicitly exclude other fields that might be present
+    const normalized = progress.map((p) => {
+      const { userId, topicId, notes, chatHistory, createdAt, updatedAt, ...filtered } = p;
+      return {
+        ...filtered,
+        status: normalizeStatusValue(p.status),
+      };
+    });
 
     return NextResponse.json({ progress: normalized });
   } catch (error) {

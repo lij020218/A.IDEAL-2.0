@@ -284,18 +284,18 @@ export default function RefinePromptPage() {
         </button>
 
         {/* Title */}
-        <h1 className="text-3xl font-bold mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold mb-6">
           프롬프트 개선하기
         </h1>
 
         {!refinedPrompt ? (
           /* Two Column Layout - Chat Interface */
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             {/* Left Panel - Existing Prompt (Collapsible) */}
-            <div className="bg-white/50 dark:bg-black/30 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-6 shadow-lg shadow-black/5 dark:shadow-black/15 max-h-[400px] overflow-y-auto sidebar-scroll">
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-bold">기존 프롬프트</h2>
+            <div className="bg-white/50 dark:bg-black/30 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-4 md:p-6 shadow-lg shadow-black/5 dark:shadow-black/15 max-h-[300px] md:max-h-[400px] overflow-y-auto sidebar-scroll">
+              <div className="space-y-2 mb-3 md:mb-4">
+                <div className="flex items-center gap-2 md:gap-3">
+                  <h2 className="text-lg md:text-xl font-bold">기존 프롬프트</h2>
                   {originalProvider && (
                     <AIProviderBadge provider={originalProvider} model={prompt.aiModel || undefined} size="sm" />
                   )}
@@ -307,14 +307,14 @@ export default function RefinePromptPage() {
                   </p>
                 )}
               </div>
-              <pre className="whitespace-pre-wrap font-mono text-sm bg-white/30 dark:bg-black/20 p-4 rounded-md border border-white/30 dark:border-white/10">
+              <pre className="whitespace-pre-wrap font-mono text-xs md:text-sm bg-white/30 dark:bg-black/20 p-3 md:p-4 rounded-md border border-white/30 dark:border-white/10 leading-relaxed">
                 {prompt.prompt}
               </pre>
             </div>
 
             {/* Right Panel - Chat Interface */}
-            <div className="bg-white/50 dark:bg-black/30 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-6 shadow-lg shadow-black/5 dark:shadow-black/15 flex flex-col" style={{ height: "70vh", minHeight: "500px" }}>
-              <h2 className="text-xl font-bold mb-4">AI와 대화하기</h2>
+            <div className="bg-white/50 dark:bg-black/30 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-4 md:p-6 shadow-lg shadow-black/5 dark:shadow-black/15 flex flex-col min-h-[400px] md:min-h-[500px]" style={{ height: "60vh" }}>
+              <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4">AI와 대화하기</h2>
 
               {/* Messages */}
               <div className="flex-1 overflow-y-auto mb-4 space-y-4 sidebar-scroll">

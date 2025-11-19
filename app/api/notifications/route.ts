@@ -37,20 +37,35 @@ export async function GET(req: NextRequest) {
       where.isRead = false;
     }
 
-    const notifications = await prisma.notification.findMany({
-      where,
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: limit,
-    });
+    let notifications = [];
+    let unreadCount = 0;
 
-    const unreadCount = await prisma.notification.count({
-      where: {
-        userId: userId,
-        isRead: false,
-      },
-    });
+    try {
+      notifications = await prisma.notification.findMany({
+        where,
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: limit,
+      });
+
+      unreadCount = await prisma.notification.count({
+        where: {
+          userId: userId,
+          isRead: false,
+        },
+      });
+    } catch (dbError) {
+      console.error("Database error in notifications GET:", dbError);
+      // 테이블이 없거나 스키마가 맞지 않는 경우 빈 배열 반환
+      if (dbError instanceof Error && dbError.message.includes("does not exist")) {
+        return NextResponse.json({
+          notifications: [],
+          unreadCount: 0,
+        });
+      }
+      throw dbError;
+    }
 
     return NextResponse.json({
       notifications,
