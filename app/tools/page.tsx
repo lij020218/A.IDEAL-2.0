@@ -66,48 +66,8 @@ export default function ToolsPage() {
       <div className="container mx-auto px-4 py-12 relative z-10">
         {/* Header */}
         <div className="text-center mb-12">
-          {/* --- 정밀 구현: 3D Glassmorphism Icon --- */}
-          <div className="relative mx-auto mb-6 w-16 h-16 group cursor-pointer select-none">
-
-            {/* 1. 바닥 그림자 */}
-            <div className="absolute inset-0 rounded-[18px] bg-slate-400/40 blur-lg transform translate-y-2 scale-95 transition-all duration-500 group-hover:scale-100 group-hover:bg-slate-500/50" />
-
-            {/* 2. 메인 컨테이너 - 밝은 슬레이트/그레이색 */}
-            <div
-              className="relative w-full h-full rounded-[18px] flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:-translate-y-0.5"
-              style={{
-                background: 'linear-gradient(180deg, #F1F5F9 0%, #E2E8F0 40%, #CBD5E1 100%)',
-                boxShadow: `
-                  inset 0 2px 3px 0 rgba(255, 255, 255, 0.9),
-                  inset 0 -2px 4px 0 rgba(100, 116, 139, 0.15),
-                  0 0 0 2px rgba(203, 213, 225, 0.6),
-                  0 6px 16px -3px rgba(100, 116, 139, 0.4)
-                `
-              }}
-            >
-
-              {/* 3. 상단 물광 반사 */}
-              <div
-                className="absolute top-0 left-0 right-0 h-[55%] rounded-t-[18px]"
-                style={{
-                  background: 'linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%)',
-                }}
-              />
-
-              {/* 4. 내부 아이콘 - 슬레이트 색상 */}
-              <Wrench
-                className="relative z-10 w-7 h-7 transition-all duration-300 group-hover:scale-105"
-                color="#475569"
-                strokeWidth={2.2}
-                style={{
-                  filter: 'drop-shadow(0 1px 2px rgba(71, 85, 105, 0.3))'
-                }}
-              />
-
-              {/* 5. 하단 미세 광택 */}
-              <div className="absolute bottom-1.5 left-2 right-2 h-[6px] rounded-full bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-
-            </div>
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-300/60 to-gray-400/60 backdrop-blur-lg border border-slate-400/50 flex items-center justify-center shadow-xl shadow-black/20 mx-auto mb-4 dark:from-slate-500/30 dark:to-gray-500/30 dark:border-slate-400/40">
+            <Wrench className="h-8 w-8 text-slate-800 dark:text-slate-300" />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
             <span className="text-foreground dark:text-white/90">AI 도구 모음</span>
