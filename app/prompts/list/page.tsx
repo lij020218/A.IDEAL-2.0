@@ -6,7 +6,7 @@ import Header from "@/components/Header";
 import LeftSidebar from "@/components/LeftSidebar";
 import UserPromptCard from "@/components/UserPromptCard";
 import SearchFilters from "@/components/SearchFilters";
-import { FileText, Loader2, Filter, Plus, ChevronUp, MessageSquare } from "lucide-react";
+import { FileText, Loader2, Filter, Plus, ChevronUp, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { PromptCategory, AIProvider } from "@/types";
 
@@ -63,10 +63,15 @@ function PromptsListContent() {
   const [aiProvider, setAiProvider] = useState("");
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [isAIToolsExpanded, setIsAIToolsExpanded] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
 
-  // API에서 이미 필터링되고 정렬된 결과를 받으므로 그대로 사용
-  const visibleSavedPrompts = savedPrompts;
-  const hasResults = visibleSavedPrompts.length > 0;
+  // 페이지네이션 적용
+  const totalPages = Math.ceil(savedPrompts.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const visibleSavedPrompts = savedPrompts.slice(startIndex, endIndex);
+  const hasResults = savedPrompts.length > 0;
 
   useEffect(() => {
     const category = searchParams.get("category");
@@ -81,6 +86,11 @@ function PromptsListContent() {
 
   useEffect(() => {
     fetchSavedPrompts();
+  }, [searchQuery, selectedCategory, aiProvider, sortOrder]);
+
+  // 필터 변경 시 페이지를 1로 리셋
+  useEffect(() => {
+    setCurrentPage(1);
   }, [searchQuery, selectedCategory, aiProvider, sortOrder]);
 
   const fetchSearchHistory = async () => {
@@ -431,12 +441,92 @@ function PromptsListContent() {
           ) : hasResults ? (
             <>
               <div className="mb-12">
-                <h3 className="text-xl font-semibold mb-4">등록된 프롬프트 ({visibleSavedPrompts.length}개)</h3>
+                <h3 className="text-xl font-semibold mb-4">등록된 프롬프트 ({savedPrompts.length}개)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {visibleSavedPrompts.map((prompt) => (
                     <UserPromptCard key={prompt.id} prompt={prompt} />
                   ))}
                 </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="mt-8 flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="px-4 py-2 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/60 dark:bg-white/10 backdrop-blur-md text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      이전
+                    </button>
+
+                    <div className="flex items-center gap-2">
+                      {(() => {
+                        const pages: (number | string)[] = [];
+                        const maxVisible = 7; // 최대 표시할 페이지 버튼 수
+
+                        if (totalPages <= maxVisible) {
+                          // 페이지가 적으면 모두 표시
+                          for (let i = 1; i <= totalPages; i++) {
+                            pages.push(i);
+                          }
+                        } else {
+                          // 많으면 ellipsis 사용
+                          if (currentPage <= 3) {
+                            // 시작 부분
+                            for (let i = 1; i <= 5; i++) pages.push(i);
+                            pages.push('...');
+                            pages.push(totalPages);
+                          } else if (currentPage >= totalPages - 2) {
+                            // 끝 부분
+                            pages.push(1);
+                            pages.push('...');
+                            for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+                          } else {
+                            // 중간 부분
+                            pages.push(1);
+                            pages.push('...');
+                            for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+                            pages.push('...');
+                            pages.push(totalPages);
+                          }
+                        }
+
+                        return pages.map((page, idx) => {
+                          if (page === '...') {
+                            return (
+                              <span key={`ellipsis-${idx}`} className="px-2 text-muted-foreground dark:text-white/60">
+                                ...
+                              </span>
+                            );
+                          }
+                          return (
+                            <button
+                              key={page}
+                              onClick={() => setCurrentPage(page as number)}
+                              className={`px-4 py-2 rounded-lg transition-all ${
+                                currentPage === page
+                                  ? "border-2 border-orange-200/60 bg-gradient-to-r from-orange-100/70 to-amber-100/70 text-orange-600 dark:from-orange-500/30 dark:to-amber-500/30 dark:border-orange-400/40 dark:text-orange-400 shadow-lg shadow-orange-500/20"
+                                  : "border-2 border-white/40 dark:border-white/20 bg-white/60 dark:bg-white/10 backdrop-blur-md text-foreground hover:bg-white/70 dark:hover:bg-white/15 shadow-lg shadow-black/8 dark:shadow-black/15"
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          );
+                        });
+                      })()}
+                    </div>
+
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-4 py-2 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/60 dark:bg-white/10 backdrop-blur-md text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      다음
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             </>
           ) : (

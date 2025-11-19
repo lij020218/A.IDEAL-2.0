@@ -333,11 +333,27 @@ export default function Home() {
                         <h3 className="text-xl font-semibold line-clamp-2 mb-2">
                           {topic.title}
                         </h3>
-                        {topic.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {topic.description}
-                          </p>
-                        )}
+                        {topic.description && (() => {
+                          // 파일 URL이 포함된 JSON인지 확인
+                          try {
+                            const parsed = JSON.parse(topic.description);
+                            if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].url) {
+                              // 시험 공부 자료 파일이 있는 경우
+                              return (
+                                <p className="text-sm text-muted-foreground line-clamp-2">
+                                  {parsed.length}개의 학습 자료를 기반으로 한 맞춤 커리큘럼
+                                </p>
+                              );
+                            }
+                          } catch {
+                            // JSON 파싱 실패시 일반 description
+                          }
+                          return (
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {topic.description}
+                            </p>
+                          );
+                        })()}
                       </div>
                     </div>
 
