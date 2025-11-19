@@ -148,7 +148,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
               </button>
 
               {showUserMenu && (
-                <div className="absolute right-0 top-full mt-2 w-56 card-aurora rounded-xl shadow-lg py-2 border border-primary/10 z-50">
+                <div className="absolute right-0 top-full mt-2 w-56 card-aurora rounded-xl shadow-lg py-2 border border-primary/10 z-[100]">
                   <Link
                     href="/profile"
                     className="w-full px-4 py-2 text-left text-sm hover:bg-secondary transition-colors flex items-center gap-2"

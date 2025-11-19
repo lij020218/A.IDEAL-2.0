@@ -212,7 +212,7 @@ export default function PromptExecutor({
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
           placeholder="프롬프트에 추가할 내용을 입력하세요 (예: 'Python으로 작성해주세요')"
-          className="input-aurora w-full px-4 py-3 rounded-lg resize-none"
+          className="input-aurora w-full px-4 py-3 rounded-lg resize-none focus-visible:ring-2 focus:ring-orange-500/50"
           rows={3}
         />
       </div>
