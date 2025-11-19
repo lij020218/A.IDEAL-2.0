@@ -3,7 +3,7 @@
 import Header from "@/components/Header";
 import LeftSidebar from "@/components/LeftSidebar";
 import { aiTools } from "@/lib/data/ai-tools";
-import { ExternalLink, Filter } from "lucide-react";
+import { ExternalLink, Filter, Wrench } from "lucide-react";
 import { useState } from "react";
 import { AIToolCategory } from "@/types";
 
@@ -53,22 +53,34 @@ export default function ToolsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-gradient-to-b from-slate-200 via-gray-200 to-slate-100 relative">
       {/* Global Background Effects */}
-      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
-      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-slate-300/60 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-gray-300/60 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-slate-300/50 rounded-full blur-3xl" />
+      </div>
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className="container mx-auto px-4 py-12 relative z-10">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-300/60 to-gray-400/60 backdrop-blur-lg border border-slate-400/50 flex items-center justify-center shadow-xl shadow-black/20 mx-auto mb-4 dark:from-slate-500/30 dark:to-gray-500/30 dark:border-slate-400/40">
+            <Wrench className="h-8 w-8 text-slate-800 dark:text-slate-300" />
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">
             <span className="text-foreground dark:text-white/90">AI 도구 모음</span>
           </h1>
-          <p className="text-xl text-muted-foreground dark:text-white/80 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground dark:text-white max-w-2xl mx-auto mb-4">
             다양한 AI 도구를 탐색하고 활용하세요
           </p>
+          {/* AI 기반 버튼 */}
+          <div className="flex justify-center mt-4 mb-8">
+            <button className="px-3 py-1.5 rounded-xl bg-gradient-to-br from-slate-300/60 to-gray-400/60 backdrop-blur-lg border border-slate-400/50 flex items-center justify-center shadow-xl shadow-black/20 text-slate-800 dark:text-slate-300 text-sm font-medium dark:from-slate-500/30 dark:to-gray-500/30 dark:border-slate-400/40">
+              AI 기반
+            </button>
+          </div>
         </div>
 
         {/* Filter */}
@@ -82,10 +94,10 @@ export default function ToolsPage() {
               <button
                 key={category}
                 onClick={() => setSelectedFilter(category)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all border-2 ${
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all border-2 backdrop-blur-lg ${
                   selectedFilter === category
-                    ? "bg-foreground/20 backdrop-blur-md border-foreground/40 text-foreground shadow-xl shadow-black/15 dark:bg-white/15 dark:backdrop-blur-md dark:border-white/30 dark:text-foreground dark:shadow-xl dark:shadow-white/20"
-                    : "bg-white/60 backdrop-blur-md dark:bg-white/5 dark:backdrop-blur-md text-foreground border-white/50 dark:border-white/20 hover:bg-white/70 dark:hover:bg-white/10 shadow-lg shadow-black/8 dark:shadow-black/15"
+                    ? "bg-slate-300/40 backdrop-blur-lg border-slate-400/60 text-slate-800 shadow-xl shadow-black/20 dark:bg-white/15 dark:backdrop-blur-lg dark:border-white/30 dark:text-foreground dark:shadow-xl dark:shadow-white/20"
+                    : "bg-white/20 backdrop-blur-lg dark:bg-white/10 dark:backdrop-blur-lg text-foreground border-white/40 dark:border-white/30 hover:bg-white/30 dark:hover:bg-white/15 shadow-lg shadow-black/10 dark:shadow-black/20"
                 }`}
               >
                 {categoryLabels[category] || category}

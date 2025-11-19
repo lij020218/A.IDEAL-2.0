@@ -6,7 +6,7 @@ import Header from "@/components/Header";
 import LeftSidebar from "@/components/LeftSidebar";
 import UserPromptCard from "@/components/UserPromptCard";
 import SearchFilters from "@/components/SearchFilters";
-import { FileText, Loader2, Filter, Plus, ChevronUp } from "lucide-react";
+import { FileText, Loader2, Filter, Plus, ChevronUp, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { PromptCategory, AIProvider } from "@/types";
 
@@ -171,17 +171,23 @@ function PromptsListContent() {
   ];
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50/50 via-amber-50/30 to-white relative">
       {/* Global Background Effects */}
-      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
-      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-orange-100/40 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-amber-100/40 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-yellow-100/30 rounded-full blur-3xl" />
+      </div>
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className="container mx-auto px-4 py-12 relative z-10">
         <div className="mb-12">
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-100/70 to-amber-100/70 backdrop-blur-md border border-orange-200/50 flex items-center justify-center shadow-lg mx-auto mb-4">
+              <MessageSquare className="h-8 w-8 text-orange-500" />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">
               <span className="text-foreground dark:text-white/90">프롬프트 모음</span>
             </h1>
             <p className="text-lg text-muted-foreground dark:text-white max-w-2xl mx-auto mb-6">
@@ -189,7 +195,7 @@ function PromptsListContent() {
             </p>
             <Link
               href="/prompts/new"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 border-white/50 bg-white/60 backdrop-blur-md text-foreground hover:bg-white/70 dark:bg-white/10 dark:backdrop-blur-md dark:border-white/20 dark:text-foreground dark:hover:bg-white/15 transition-all font-semibold text-sm shadow-xl shadow-black/10 dark:shadow-black/30"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-orange-200/50 bg-gradient-to-r from-orange-100/50 to-amber-100/50 backdrop-blur-md text-orange-600 hover:from-orange-100/70 hover:to-amber-100/70 dark:from-orange-500/20 dark:to-amber-500/20 dark:border-orange-400/30 dark:text-orange-400 dark:hover:from-orange-500/30 dark:hover:to-amber-500/30 transition-all font-semibold text-sm shadow-lg shadow-orange-500/10"
             >
               <Plus className="h-4 w-4" />
               프롬프트 등록
@@ -214,10 +220,10 @@ function PromptsListContent() {
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all border-2 ${
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all border-2 backdrop-blur-lg ${
                     selectedCategory === category
-                      ? "bg-foreground/20 backdrop-blur-md border-foreground/40 text-foreground shadow-xl shadow-black/15 dark:bg-white/15 dark:backdrop-blur-md dark:border-white/30 dark:text-foreground dark:shadow-xl dark:shadow-white/20"
-                      : "bg-white/60 backdrop-blur-md dark:bg-white/5 dark:backdrop-blur-md text-foreground border-white/50 dark:border-white/20 hover:bg-white/70 dark:hover:bg-white/10 shadow-lg shadow-black/8 dark:shadow-black/15"
+                      ? "border-orange-200/60 bg-gradient-to-r from-orange-100/40 to-amber-100/40 backdrop-blur-lg text-orange-600 hover:from-orange-100/60 hover:to-amber-100/60 dark:from-orange-500/30 dark:to-amber-500/30 dark:border-orange-400/40 dark:text-orange-400 dark:hover:from-orange-500/40 dark:hover:to-amber-500/40 shadow-xl shadow-orange-500/20"
+                      : "bg-white/20 backdrop-blur-lg dark:bg-white/10 dark:backdrop-blur-lg text-foreground border-white/40 dark:border-white/30 hover:bg-white/30 dark:hover:bg-white/15 shadow-lg shadow-black/10 dark:shadow-black/20"
                   }`}
                 >
                   {categoryLabels[category] || category}
@@ -309,10 +315,10 @@ function PromptsListContent() {
                           <button
                             key={tool.value}
                             onClick={() => setAiProvider(tool.value)}
-                            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all border-2 whitespace-nowrap ${
+                            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all border-2 whitespace-nowrap backdrop-blur-lg ${
                               isSelected
-                                ? `${colors.bg} ${colors.text} ${colors.border} shadow-sm ${colors.darkBg} ${colors.darkBorder} dark:backdrop-blur-md dark:shadow-xl backdrop-blur-md shadow-xl`
-                                : "bg-white/60 backdrop-blur-md dark:bg-white/5 dark:backdrop-blur-md text-foreground border-white/50 dark:border-white/20 hover:bg-white/70 dark:hover:bg-white/10 shadow-lg shadow-black/8 dark:shadow-black/15"
+                                ? `${colors.bg} ${colors.text} ${colors.border} ${colors.darkBg} ${colors.darkBorder} dark:backdrop-blur-lg dark:shadow-xl backdrop-blur-lg shadow-xl border-opacity-60 dark:border-opacity-50`
+                                : "bg-white/20 backdrop-blur-lg dark:bg-white/10 dark:backdrop-blur-lg text-foreground border-white/40 dark:border-white/30 hover:bg-white/30 dark:hover:bg-white/15 shadow-lg shadow-black/10 dark:shadow-black/20"
                             }`}
                           >
                             {tool.label}
@@ -322,7 +328,7 @@ function PromptsListContent() {
                       {!isAIToolsExpanded && (
                         <button
                           onClick={() => setIsAIToolsExpanded(true)}
-                          className="px-3.5 py-1.5 rounded-full text-xs font-medium transition-all border-2 bg-white/60 backdrop-blur-md dark:bg-white/5 dark:backdrop-blur-md text-foreground border-white/50 dark:border-white/20 hover:bg-white/70 dark:hover:bg-white/10 shadow-lg shadow-black/8 dark:shadow-black/15 flex items-center justify-center"
+                          className="px-3.5 py-1.5 rounded-full text-xs font-medium transition-all border-2 bg-white/20 backdrop-blur-lg dark:bg-white/10 dark:backdrop-blur-lg text-foreground border-white/40 dark:border-white/30 hover:bg-white/30 dark:hover:bg-white/15 shadow-lg shadow-black/10 dark:shadow-black/20 flex items-center justify-center"
                         >
                           <Plus className="h-3.5 w-3.5" />
                         </button>
@@ -368,10 +374,10 @@ function PromptsListContent() {
                             <button
                               key={tool.value}
                               onClick={() => setAiProvider(tool.value)}
-                              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all border-2 whitespace-nowrap ${
+                              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all border-2 whitespace-nowrap backdrop-blur-lg ${
                                 isSelected
-                                  ? `${colors.bg} ${colors.text} ${colors.border} shadow-sm ${colors.darkBg} ${colors.darkBorder} dark:backdrop-blur-md dark:shadow-xl backdrop-blur-md shadow-xl`
-                                  : "bg-white/60 backdrop-blur-md dark:bg-white/5 dark:backdrop-blur-md text-foreground border-white/50 dark:border-white/20 hover:bg-white/70 dark:hover:bg-white/10 shadow-lg shadow-black/8 dark:shadow-black/15"
+                                  ? `${colors.bg} ${colors.text} ${colors.border} ${colors.darkBg} ${colors.darkBorder} dark:backdrop-blur-lg dark:shadow-xl backdrop-blur-lg shadow-xl border-opacity-60 dark:border-opacity-50`
+                                  : "bg-white/20 backdrop-blur-lg dark:bg-white/10 dark:backdrop-blur-lg text-foreground border-white/40 dark:border-white/30 hover:bg-white/30 dark:hover:bg-white/15 shadow-lg shadow-black/10 dark:shadow-black/20"
                               }`}
                             >
                               {tool.label}
@@ -380,7 +386,7 @@ function PromptsListContent() {
                         })}
                         <button
                           onClick={() => setIsAIToolsExpanded(false)}
-                          className="px-3.5 py-1.5 rounded-full text-xs font-medium transition-all border-2 bg-white/60 backdrop-blur-md dark:bg-white/5 dark:backdrop-blur-md text-foreground border-white/50 dark:border-white/20 hover:bg-white/70 dark:hover:bg-white/10 shadow-lg shadow-black/8 dark:shadow-black/15 flex items-center justify-center"
+                          className="px-3.5 py-1.5 rounded-full text-xs font-medium transition-all border-2 bg-white/20 backdrop-blur-lg dark:bg-white/10 dark:backdrop-blur-lg text-foreground border-white/40 dark:border-white/30 hover:bg-white/30 dark:hover:bg-white/15 shadow-lg shadow-black/10 dark:shadow-black/20 flex items-center justify-center"
                         >
                           <ChevronUp className="h-3.5 w-3.5" />
                         </button>
