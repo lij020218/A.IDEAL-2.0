@@ -249,9 +249,9 @@ export default function PromptDetailPage() {
 
             {/* Header */}
             <div className="space-y-4 mb-8">
-              <div className="flex items-start justify-between">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div className="flex-1">
-                  <h1 className="text-4xl font-bold mb-2 text-foreground dark:text-white/90">{prompt.topic}</h1>
+                  <h1 className="text-2xl md:text-4xl font-bold mb-2 text-foreground dark:text-white/90 break-words">{prompt.topic}</h1>
 
                   {/* Stats Row */}
                   <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground dark:text-white/80 mb-3">
@@ -304,17 +304,17 @@ export default function PromptDetailPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => router.push(`/prompts/new?promptId=${params.id}`)}
-                      className="px-4 py-2 border-2 border-white/40 dark:border-white/20 bg-white/60 dark:bg-white/10 backdrop-blur-md text-foreground rounded-lg hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 flex items-center gap-2"
+                      className="px-3 py-2 md:px-4 border-2 border-white/40 dark:border-white/20 bg-white/60 dark:bg-white/10 backdrop-blur-md text-foreground rounded-lg hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 flex items-center gap-1 md:gap-2 text-xs md:text-sm"
                     >
-                      <Edit className="h-4 w-4" />
+                      <Edit className="h-3 w-3 md:h-4 md:w-4" />
                       수정
                     </button>
                     <button
                       onClick={() => setShowDeleteConfirm(true)}
                       disabled={isDeleting}
-                      className="px-4 py-2 border-2 border-red-500/40 dark:border-red-500/30 bg-red-500/20 dark:bg-red-500/10 backdrop-blur-md text-red-600 dark:text-red-400 rounded-lg hover:bg-red-500/30 dark:hover:bg-red-500/20 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 flex items-center gap-2 disabled:opacity-50"
+                      className="px-3 py-2 md:px-4 border-2 border-red-500/40 dark:border-red-500/30 bg-red-500/20 dark:bg-red-500/10 backdrop-blur-md text-red-600 dark:text-red-400 rounded-lg hover:bg-red-500/30 dark:hover:bg-red-500/20 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 flex items-center gap-1 md:gap-2 disabled:opacity-50 text-xs md:text-sm"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
                       삭제
                     </button>
                   </div>
