@@ -11,12 +11,16 @@ import {
   ArrowLeft,
   ArrowRight,
   Loader2,
-  Play,
   CheckCircle2,
   Send,
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  Rocket,
+  MessageSquare,
+  Wand2,
+  GraduationCap,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
@@ -84,6 +88,31 @@ export default function LearnSessionPage({
 
   // Time tracking
   const [startTime, setStartTime] = useState<number | null>(null);
+
+  // 로딩 애니메이션 관련 state
+  const [currentIconIndex, setCurrentIconIndex] = useState(0);
+  const iconIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 아이콘 회전 애니메이션
+  useEffect(() => {
+    const cleanup = () => {
+      if (iconIntervalRef.current) {
+        clearInterval(iconIntervalRef.current);
+        iconIntervalRef.current = null;
+      }
+    };
+
+    if (isGeneratingContent) {
+      setCurrentIconIndex(0);
+      iconIntervalRef.current = setInterval(() => {
+        setCurrentIconIndex((prev) => (prev + 1) % 5);
+      }, 800);
+    } else {
+      cleanup();
+    }
+
+    return cleanup;
+  }, [isGeneratingContent]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -418,10 +447,13 @@ export default function LearnSessionPage({
   }
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-gradient-to-b from-cyan-50/50 via-blue-50/30 to-white relative">
       {/* Global Background Effects */}
-      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
-      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-100/40 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-blue-100/40 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-sky-100/30 rounded-full blur-3xl" />
+      </div>
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
@@ -442,11 +474,11 @@ export default function LearnSessionPage({
           <div className="max-w-2xl mx-auto">
             <div className="card-aurora rounded-xl p-12 text-center">
               <div className="flex flex-col items-center gap-6">
-                <div className="h-20 w-20 rounded-full bg-gradient-to-br from-[#ADD8E6]/30 via-[#DDA0DD]/30 to-[#FFDAB9]/30 dark:from-[rgba(0,255,200,0.3)] dark:via-[rgba(255,0,153,0.3)] dark:to-[rgba(0,150,255,0.3)] backdrop-blur-md border-2 border-[#ADD8E6]/40 dark:border-[rgba(0,255,200,0.4)] shadow-lg shadow-[#ADD8E6]/20 dark:shadow-[rgba(0,255,200,0.2)] flex items-center justify-center">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center shadow-lg">
                   {isGeneratingContent ? (
-                    <Loader2 className="h-10 w-10 animate-spin text-[#ADD8E6] dark:text-[rgba(0,255,200,1)]" />
+                    <Loader2 className="h-10 w-10 animate-spin text-cyan-500" />
                   ) : (
-                    <Play className="h-10 w-10 text-[#ADD8E6] dark:text-[rgba(0,255,200,1)]" />
+                    <Rocket className="h-10 w-10 text-cyan-500" />
                   )}
                 </div>
 
@@ -465,23 +497,82 @@ export default function LearnSessionPage({
                 </div>
 
                 {isGeneratingContent ? (
-                  <div className="space-y-3">
-                    <p className="text-lg font-medium dark:text-white/90">AI가 학습 내용을 생성하고 있습니다...</p>
-                    <div className="flex gap-2 justify-center">
-                      <div className="w-2 h-2 bg-[#ADD8E6] dark:bg-[rgba(0,255,200,1)] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <div className="w-2 h-2 bg-[#DDA0DD] dark:bg-[rgba(255,0,153,1)] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <div className="w-2 h-2 bg-[#FFDAB9] dark:bg-[rgba(0,150,255,1)] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                  <div className="flex flex-col items-center space-y-6">
+                    {/* 아이콘 컨테이너 - 드롭 애니메이션 */}
+                    <div className="relative w-16 h-16 animate-drop-in">
+                      {/* 각 아이콘 - 현재 인덱스만 표시 */}
+                      {[
+                        // 성장하기 - Rocket
+                        <div key="rocket" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center shadow-lg">
+                          <Rocket className="h-8 w-8 text-cyan-500" />
+                        </div>,
+                        // 프롬프트 모음 - MessageSquare
+                        <div key="message" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-100/70 to-amber-100/70 backdrop-blur-md border border-orange-200/50 flex items-center justify-center shadow-lg">
+                          <MessageSquare className="h-8 w-8 text-orange-500" />
+                        </div>,
+                        // 생성하기 - Wand2
+                        <div key="wand" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-100/70 to-red-100/70 backdrop-blur-md border border-rose-200/50 flex items-center justify-center shadow-lg">
+                          <Wand2 className="h-8 w-8 text-rose-500" />
+                        </div>,
+                        // 시험 공부하기 - GraduationCap
+                        <div key="graduation" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-100/70 to-cyan-100/70 backdrop-blur-md border border-blue-200/50 flex items-center justify-center shadow-lg">
+                          <GraduationCap className="h-8 w-8 text-blue-500" />
+                        </div>,
+                        // 도전자들 - Users
+                        <div key="users" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md border border-purple-200/50 flex items-center justify-center shadow-lg">
+                          <Users className="h-8 w-8 text-purple-500" />
+                        </div>,
+                      ].map((icon, index) => (
+                        <div
+                          key={index}
+                          className={`absolute inset-0 transition-all duration-500 ease-in-out ${
+                            index === currentIconIndex
+                              ? "opacity-100 scale-100 rotate-0"
+                              : "opacity-0 scale-75 -rotate-90"
+                          }`}
+                        >
+                          {icon}
+                        </div>
+                      ))}
                     </div>
+
+                    <div className="text-center space-y-2">
+                      <p className="text-lg font-medium dark:text-white/90">AI가 학습 내용을 생성하고 있습니다</p>
+                      <p className="text-sm text-muted-foreground dark:text-white/70">약 2분 정도 소요됩니다</p>
+                    </div>
+
+                    {/* CSS 애니메이션 정의 */}
+                    <style jsx>{`
+                      @keyframes dropIn {
+                        0% {
+                          transform: translateY(-150px);
+                          opacity: 0;
+                        }
+                        60% {
+                          transform: translateY(15px);
+                          opacity: 1;
+                        }
+                        80% {
+                          transform: translateY(-5px);
+                        }
+                        100% {
+                          transform: translateY(0);
+                          opacity: 1;
+                        }
+                      }
+                      .animate-drop-in {
+                        animation: dropIn 0.7s ease-out forwards;
+                      }
+                    `}</style>
                   </div>
                 ) : (
-                  <Button 
-                    size="lg" 
-                    className="gap-2 mt-4 bg-gradient-to-r from-[#ADD8E6]/40 via-[#DDA0DD]/40 to-[#FFDAB9]/40 dark:from-[rgba(0,255,200,0.4)] dark:via-[rgba(255,0,153,0.4)] dark:to-[rgba(0,150,255,0.4)] backdrop-blur-md border-2 border-[#ADD8E6]/50 dark:border-[rgba(0,255,200,0.5)] text-foreground dark:text-white hover:from-[#ADD8E6]/50 hover:via-[#DDA0DD]/50 hover:to-[#FFDAB9]/50 dark:hover:from-[rgba(0,255,200,0.5)] dark:hover:via-[rgba(255,0,153,0.5)] dark:hover:to-[rgba(0,150,255,0.5)] transition-all shadow-lg shadow-[#ADD8E6]/20 dark:shadow-[rgba(0,255,200,0.3)]" 
+                  <button
                     onClick={startSession}
+                    className="w-full px-6 py-4 rounded-2xl border border-cyan-200/50 bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md text-cyan-500 hover:from-cyan-100/80 hover:to-blue-100/80 dark:from-cyan-500/20 dark:to-blue-500/20 dark:border-cyan-400/30 dark:text-cyan-400 dark:hover:from-cyan-500/30 dark:hover:to-blue-500/30 transition-all font-semibold text-lg shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-3"
                   >
-                    <Play className="h-5 w-5" />
+                    <Rocket className="h-5 w-5" />
                     학습 시작하기
-                  </Button>
+                  </button>
                 )}
               </div>
             </div>
