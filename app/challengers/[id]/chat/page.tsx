@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Header from "@/components/Header";
 import LeftSidebar from "@/components/LeftSidebar";
-import { Send, Loader2, ArrowLeft, Users, UserCircle, Paperclip, X, File, FileImage, Calendar, Plus, Square, Github, Lightbulb } from "lucide-react";
+import { Send, Loader2, ArrowLeft, Users, UserCircle, Paperclip, X, File, FileImage, Calendar, Plus, Square, Github, Lightbulb, ChevronDown } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import CalendarModal from "@/components/CalendarModal";
@@ -58,6 +58,7 @@ export default function ChatRoomPage() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showWhiteboard, setShowWhiteboard] = useState(false);
   const [showPlusMenu, setShowPlusMenu] = useState(false);
+  const [isMembersExpanded, setIsMembersExpanded] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; messageId: string; content: string } | null>(null);
   const [messageToAddToWhiteboard, setMessageToAddToWhiteboard] = useState<{ content: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -312,29 +313,30 @@ export default function ChatRoomPage() {
         </button>
 
         {/* Header */}
-        <div className="mb-6 flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2 text-foreground dark:text-white/90">
+        <div className="mb-6 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl md:text-3xl font-bold mb-2 text-foreground dark:text-white/90 break-words">
               {challenge.title}
             </h1>
-            <p className="text-muted-foreground dark:text-white/80">팀원들과 함께 아이디어를 실현해보세요</p>
+            <p className="text-sm md:text-base text-muted-foreground dark:text-white/80">팀원들과 함께 아이디어를 실현해보세요</p>
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => setShowCalendar(true)}
-              className="btn-aurora px-4 py-2 rounded-lg flex items-center gap-2"
+              className="btn-aurora px-3 py-2 md:px-4 rounded-lg flex items-center gap-1 md:gap-2 text-xs md:text-sm"
               title="일정 관리"
             >
-              <Calendar className="h-5 w-5" />
+              <Calendar className="h-4 w-4 md:h-5 md:w-5" />
               일정
             </button>
             <button
               onClick={() => setShowWhiteboard(true)}
-              className="btn-aurora px-4 py-2 rounded-lg flex items-center gap-2"
+              className="btn-aurora px-3 py-2 md:px-4 rounded-lg flex items-center gap-1 md:gap-2 text-xs md:text-sm"
               title="화이트보드"
             >
-              <Square className="h-5 w-5" />
-              화이트보드
+              <Square className="h-4 w-4 md:h-5 md:w-5" />
+              <span className="hidden sm:inline">화이트보드</span>
+              <span className="sm:hidden">보드</span>
             </button>
           </div>
         </div>
@@ -342,28 +344,54 @@ export default function ChatRoomPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Members Sidebar */}
           <div className="lg:col-span-1 flex">
-            <div className="card-aurora rounded-xl p-6 flex flex-col w-full" style={{ height: "70vh", minHeight: "500px" }}>
-              <div className="flex items-center gap-2 mb-4">
-                <Users className="h-5 w-5 text-purple-500" />
-                <h2 className="text-lg font-bold text-foreground dark:text-white/90">팀원 ({members.length})</h2>
-              </div>
-              <div className="flex-1 overflow-y-auto space-y-3 mb-4 scrollbar-hide">
+            <div className="card-aurora rounded-xl p-4 md:p-6 flex flex-col w-full lg:h-[70vh] lg:min-h-[500px]">
+              {/* Mobile: Collapsible header */}
+              <button
+                onClick={() => setIsMembersExpanded(!isMembersExpanded)}
+                className="flex items-center justify-between w-full lg:pointer-events-none mb-2 md:mb-4"
+              >
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 md:h-5 md:w-5 text-purple-500" />
+                  <h2 className="text-base md:text-lg font-bold text-foreground dark:text-white/90">팀원 ({members.length})</h2>
+                </div>
+                <ChevronDown className={`h-4 w-4 lg:hidden text-muted-foreground transition-transform ${isMembersExpanded ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Mobile: Show current user preview when collapsed */}
+              {!isMembersExpanded && (
+                <div className="lg:hidden mb-2">
+                  {members.find(m => m.user.id === session?.user?.id) && (
+                    <div className="p-2 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-lg text-xs">
+                      <div className="flex items-center gap-2">
+                        <UserCircle className="h-4 w-4 text-purple-500" />
+                        <span className="font-medium text-foreground dark:text-white/90">
+                          {members.find(m => m.user.id === session?.user?.id)?.user.name || "나"}
+                        </span>
+                        <span className="text-muted-foreground">외 {members.length - 1}명</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Members list - always visible on desktop, collapsible on mobile */}
+              <div className={`flex-1 overflow-y-auto space-y-2 md:space-y-3 mb-2 md:mb-4 scrollbar-hide ${!isMembersExpanded ? 'hidden lg:block' : ''}`}>
                 {members.map((member) => (
-                  <div key={member.id} className="p-3 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-lg shadow-lg shadow-black/5 dark:shadow-black/15">
+                  <div key={member.id} className="p-2 md:p-3 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-lg shadow-lg shadow-black/5 dark:shadow-black/15">
                     <div className="flex items-start gap-2">
-                      <UserCircle className="h-5 w-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                      <UserCircle className="h-4 w-4 md:h-5 md:w-5 text-purple-500 flex-shrink-0 mt-0.5" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-medium text-sm truncate text-foreground dark:text-white/90">
+                          <p className="font-medium text-xs md:text-sm truncate text-foreground dark:text-white/90">
                             {member.user.name || "익명"}
                           </p>
                           {member.isOwner && (
-                            <span className="px-1.5 py-0.5 bg-primary/20 text-primary text-xs rounded backdrop-blur-sm">
+                            <span className="px-1 py-0.5 md:px-1.5 bg-primary/20 text-primary text-[10px] md:text-xs rounded backdrop-blur-sm">
                               방장
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground dark:text-white/80 mt-1">
+                        <p className="text-[10px] md:text-xs text-muted-foreground dark:text-white/80 mt-1">
                           {member.role === "designer" ? "디자이너" :
                            member.role === "developer" ? "개발자" :
                            member.role === "pm" ? "기획자/PM" :
@@ -379,7 +407,7 @@ export default function ChatRoomPage() {
                            member.role === "mentor" ? "멘토/자문" :
                            member.role}
                         </p>
-                        <p className="text-xs text-muted-foreground dark:text-white/80 mt-1 line-clamp-2">
+                        <p className="text-[10px] md:text-xs text-muted-foreground dark:text-white/80 mt-1 line-clamp-2">
                           {member.experience}
                         </p>
                       </div>
@@ -388,20 +416,20 @@ export default function ChatRoomPage() {
                 ))}
               </div>
 
-              {/* GitHub Integration */}
-              <div className="p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-lg shadow-lg shadow-black/5 dark:shadow-black/15">
-                <div className="flex items-center gap-2 mb-3">
-                  <Github className="h-5 w-5 text-purple-500" />
-                  <h3 className="text-sm font-bold text-foreground dark:text-white/90">GitHub 연동</h3>
+              {/* GitHub Integration - hidden on mobile when collapsed */}
+              <div className={`p-3 md:p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-lg shadow-lg shadow-black/5 dark:shadow-black/15 ${!isMembersExpanded ? 'hidden lg:block' : ''}`}>
+                <div className="flex items-center gap-2 mb-2 md:mb-3">
+                  <Github className="h-4 w-4 md:h-5 md:w-5 text-purple-500" />
+                  <h3 className="text-xs md:text-sm font-bold text-foreground dark:text-white/90">GitHub 연동</h3>
                 </div>
-                <p className="text-xs text-muted-foreground dark:text-white/80 mb-3">
+                <p className="text-[10px] md:text-xs text-muted-foreground dark:text-white/80 mb-2 md:mb-3">
                   팀의 GitHub 저장소를 연결하여 커밋과 이슈를 추적하세요
                 </p>
-                <button className="w-full px-3 py-2 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md hover:bg-white/60 dark:hover:bg-white/10 transition-all text-xs flex items-center justify-center gap-2 shadow-lg shadow-black/8 dark:shadow-black/15">
-                  <Github className="h-4 w-4" />
+                <button className="w-full px-2 py-1.5 md:px-3 md:py-2 rounded-lg border-2 border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md hover:bg-white/60 dark:hover:bg-white/10 transition-all text-[10px] md:text-xs flex items-center justify-center gap-1 md:gap-2 shadow-lg shadow-black/8 dark:shadow-black/15">
+                  <Github className="h-3 w-3 md:h-4 md:w-4" />
                   저장소 연결
                 </button>
-                <div className="mt-3 text-xs text-muted-foreground dark:text-white/80">
+                <div className="mt-2 md:mt-3 text-[10px] md:text-xs text-muted-foreground dark:text-white/80">
                   <p className="opacity-60">연결된 저장소가 없습니다</p>
                 </div>
               </div>
