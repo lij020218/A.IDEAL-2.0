@@ -14,7 +14,10 @@ import {
   Calendar,
   MessageSquare,
   Users,
-  Rocket
+  Rocket,
+  Target,
+  BookOpen,
+  Clock
 } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/language-context";
@@ -323,37 +326,51 @@ export default function Home() {
                   href={`/grow/${topic.id}`}
                   className="card-aurora rounded-xl p-6 hover:shadow-lg transition-all block"
                 >
-                  <div className="mb-4">
-                    <h3 className="text-xl font-bold mb-2 line-clamp-2">
-                      {topic.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {topic.description || topic.goal}
-                    </p>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="mb-4">
-                    <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                      <span>{tr("진행률")}</span>
-                      <span>{topic.progress || 0}%</span>
+                  <div className="flex flex-col h-full">
+                    {/* Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-xl font-semibold line-clamp-2 mb-2">
+                          {topic.title}
+                        </h3>
+                        {topic.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {topic.description}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all"
-                        style={{ width: `${topic.progress || 0}%` }}
-                      />
-                    </div>
-                  </div>
 
-                  {/* Meta Info */}
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span className="px-2 py-1 bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 rounded">
-                      {topic.level === "beginner" ? tr("초급") : topic.level === "intermediate" ? tr("중급") : tr("고급")}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {topic.duration}{tr("일")}
+                    {/* Stats */}
+                    <div className="space-y-3 mb-4">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Target className="h-4 w-4" />
+                        <span className="line-clamp-1">{topic.goal}</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <BookOpen className="h-4 w-4" />
+                          <span>{topic.level === "beginner" ? tr("초급") : topic.level === "intermediate" ? tr("중급") : tr("고급")}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          <span>{topic.duration}{tr("일")}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="mt-auto">
+                      <div className="flex items-center justify-between text-sm mb-2">
+                        <span className="text-muted-foreground">{tr("학습 진도")}</span>
+                        <span className="font-medium">{topic.progress || 0}%</span>
+                      </div>
+                      <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all"
+                          style={{ width: `${topic.progress || 0}%` }}
+                        />
+                      </div>
                     </div>
                   </div>
                 </Link>
