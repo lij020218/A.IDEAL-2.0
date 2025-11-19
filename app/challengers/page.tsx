@@ -220,7 +220,7 @@ export default function ChallengersPage() {
           <div className="card-aurora rounded-xl p-6">
             <div className="flex items-start gap-4">
               <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md border border-purple-200/50 flex items-center justify-center flex-shrink-0 shadow-lg">
-                <Rocket className="h-6 w-6 text-purple-500" />
+                <Lightbulb className="h-6 w-6 text-purple-500" />
               </div>
               <div>
                 <h3 className="font-semibold mb-2">아이디어 실현</h3>

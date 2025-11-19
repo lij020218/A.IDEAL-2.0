@@ -290,7 +290,7 @@ export default function ChallengeDetailPage() {
               onClick={() => setShowContact(true)}
               className="w-full px-6 py-4 rounded-2xl border border-purple-200/50 bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md text-purple-500 hover:from-purple-100/80 hover:to-pink-100/80 dark:from-purple-500/20 dark:to-pink-500/20 dark:border-purple-400/30 dark:text-purple-400 dark:hover:from-purple-500/30 dark:hover:to-pink-500/30 transition-all font-semibold text-lg shadow-lg shadow-purple-500/20 flex items-center justify-center gap-2"
             >
-              <Rocket className="h-6 w-6" />
+              <Lightbulb className="h-6 w-6" />
               같이 도전하기
             </button>
           ) : (
