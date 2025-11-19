@@ -18,6 +18,8 @@ import {
   Target,
   BookOpen,
   Star,
+  MessageSquare,
+  Rocket,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -202,7 +204,7 @@ export default function ProfilePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
             <StatCard
-              icon={<FileText className="h-5 w-5 text-blue-500" />}
+              icon={<MessageSquare className="h-5 w-5 text-orange-500" />}
               label="프롬프트"
               value={profileData.stats.promptsCount}
               subText={`${profileData.stats.publicPromptsCount}개 공개`}
@@ -221,12 +223,12 @@ export default function ProfilePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
             <StatCard
-              icon={<Target className="h-5 w-5 text-orange-500" />}
+              icon={<Users className="h-5 w-5 text-purple-500" />}
               label="도전 과제"
               value={profileData.stats.challengesCount}
             />
             <StatCard
-              icon={<BookOpen className="h-5 w-5 text-green-500" />}
+              icon={<Rocket className="h-5 w-5 text-cyan-500" />}
               label="학습 주제"
               value={profileData.stats.learningTopicsCount}
             />

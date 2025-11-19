@@ -14,6 +14,9 @@ import {
   Sparkles,
   ArrowRight,
   Loader2,
+  MessageSquare,
+  Users,
+  Rocket,
 } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
@@ -143,8 +146,8 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="card-aurora rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="h-12 w-12 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 backdrop-blur-sm border border-blue-500/20 dark:border-blue-500/30 flex items-center justify-center shadow-lg shadow-black/5 dark:shadow-black/15">
-                <FileText className="h-6 w-6 text-blue-500" />
+              <div className="h-12 w-12 rounded-lg bg-orange-500/10 dark:bg-orange-500/20 backdrop-blur-sm border border-orange-500/20 dark:border-orange-500/30 flex items-center justify-center shadow-lg shadow-black/5 dark:shadow-black/15">
+                <MessageSquare className="h-6 w-6 text-orange-500" />
               </div>
             </div>
             <div className="text-3xl font-bold mb-1 dark:text-white/90">{displayStats.promptsCount}</div>
@@ -154,7 +157,7 @@ export default function DashboardPage() {
           <div className="card-aurora rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="h-12 w-12 rounded-lg bg-purple-500/10 dark:bg-purple-500/20 backdrop-blur-sm border border-purple-500/20 dark:border-purple-500/30 flex items-center justify-center shadow-lg shadow-black/5 dark:shadow-black/15">
-                <Target className="h-6 w-6 text-purple-500" />
+                <Users className="h-6 w-6 text-purple-500" />
               </div>
             </div>
             <div className="text-3xl font-bold mb-1 dark:text-white/90">{displayStats.challengesCount}</div>
@@ -163,8 +166,8 @@ export default function DashboardPage() {
 
           <div className="card-aurora rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="h-12 w-12 rounded-lg bg-green-500/10 dark:bg-green-500/20 backdrop-blur-sm border border-green-500/20 dark:border-green-500/30 flex items-center justify-center shadow-lg shadow-black/5 dark:shadow-black/15">
-                <BookOpen className="h-6 w-6 text-green-500" />
+              <div className="h-12 w-12 rounded-lg bg-cyan-500/10 dark:bg-cyan-500/20 backdrop-blur-sm border border-cyan-500/20 dark:border-cyan-500/30 flex items-center justify-center shadow-lg shadow-black/5 dark:shadow-black/15">
+                <Rocket className="h-6 w-6 text-cyan-500" />
               </div>
             </div>
             <div className="text-3xl font-bold mb-1 dark:text-white/90">{displayStats.learningTopicsCount}</div>
@@ -173,8 +176,8 @@ export default function DashboardPage() {
 
           <div className="card-aurora rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="h-12 w-12 rounded-lg bg-orange-500/10 dark:bg-orange-500/20 backdrop-blur-sm border border-orange-500/20 dark:border-orange-500/30 flex items-center justify-center shadow-lg shadow-black/5 dark:shadow-black/15">
-                <TrendingUp className="h-6 w-6 text-orange-500" />
+              <div className="h-12 w-12 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 backdrop-blur-sm border border-blue-500/20 dark:border-blue-500/30 flex items-center justify-center shadow-lg shadow-black/5 dark:shadow-black/15">
+                <TrendingUp className="h-6 w-6 text-blue-500" />
               </div>
             </div>
             <div className="text-3xl font-bold mb-1 dark:text-white/90">{displayStats.totalViews}</div>
@@ -205,7 +208,7 @@ export default function DashboardPage() {
                     className="block p-3 rounded-lg bg-white/40 dark:bg-white/5 backdrop-blur-sm border border-white/30 dark:border-white/10 hover:bg-white/50 dark:hover:bg-white/10 transition-all shadow-md shadow-black/5 dark:shadow-black/10"
                   >
                     <div className="flex items-start gap-3">
-                      <Sparkles className="h-4 w-4 text-[#ADD8E6] dark:text-[#00FFC8] mt-0.5 flex-shrink-0" />
+                      <MessageSquare className="h-4 w-4 text-orange-500 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium text-sm line-clamp-1 dark:text-white/90">{prompt.topic}</h3>
                         <p className="text-xs text-muted-foreground dark:text-white/80 mt-1">
@@ -253,7 +256,7 @@ export default function DashboardPage() {
                     className="block p-3 rounded-lg bg-white/40 dark:bg-white/5 backdrop-blur-sm border border-white/30 dark:border-white/10 hover:bg-white/50 dark:hover:bg-white/10 transition-all shadow-md shadow-black/5 dark:shadow-black/10"
                   >
                     <div className="flex items-start gap-3">
-                      <Target className="h-4 w-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                      <Users className="h-4 w-4 text-purple-500 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium text-sm line-clamp-1 dark:text-white/90">{challenge.title}</h3>
                         <p className="text-xs text-muted-foreground dark:text-white/80 mt-1">
@@ -301,7 +304,7 @@ export default function DashboardPage() {
                     className="block p-3 rounded-lg bg-white/40 dark:bg-white/5 backdrop-blur-sm border border-white/30 dark:border-white/10 hover:bg-white/50 dark:hover:bg-white/10 transition-all shadow-md shadow-black/5 dark:shadow-black/10"
                   >
                     <div className="flex items-start gap-3">
-                      <BookOpen className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <Rocket className="h-4 w-4 text-cyan-500 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium text-sm line-clamp-1 dark:text-white/90">{topic.title}</h3>
                         <p className="text-xs text-muted-foreground dark:text-white/80 mt-1">
@@ -335,8 +338,8 @@ export default function DashboardPage() {
             href="/generate"
             className="card-aurora rounded-xl p-6 hover:shadow-xl transition-all flex items-center gap-4"
           >
-            <div className="h-12 w-12 rounded-lg bg-primary/10 dark:bg-primary/20 backdrop-blur-sm border border-primary/20 dark:border-primary/30 flex items-center justify-center shadow-lg shadow-black/5 dark:shadow-black/15">
-              <Sparkles className="h-6 w-6 text-[#ADD8E6] dark:text-[#00FFC8]" />
+            <div className="h-12 w-12 rounded-lg bg-orange-500/10 dark:bg-orange-500/20 backdrop-blur-sm border border-orange-500/20 dark:border-orange-500/30 flex items-center justify-center shadow-lg shadow-black/5 dark:shadow-black/15">
+              <MessageSquare className="h-6 w-6 text-orange-500" />
             </div>
             <div>
               <h3 className="font-semibold mb-1 dark:text-white/90">프롬프트 생성</h3>
@@ -349,7 +352,7 @@ export default function DashboardPage() {
             className="card-aurora rounded-xl p-6 hover:shadow-xl transition-all flex items-center gap-4"
           >
             <div className="h-12 w-12 rounded-lg bg-purple-500/10 dark:bg-purple-500/20 backdrop-blur-sm border border-purple-500/20 dark:border-purple-500/30 flex items-center justify-center shadow-lg shadow-black/5 dark:shadow-black/15">
-              <Target className="h-6 w-6 text-purple-500" />
+              <Users className="h-6 w-6 text-purple-500" />
             </div>
             <div>
               <h3 className="font-semibold mb-1 dark:text-white/90">도전 올리기</h3>
@@ -361,8 +364,8 @@ export default function DashboardPage() {
             href="/grow/new"
             className="card-aurora rounded-xl p-6 hover:shadow-xl transition-all flex items-center gap-4"
           >
-            <div className="h-12 w-12 rounded-lg bg-green-500/10 dark:bg-green-500/20 backdrop-blur-sm border border-green-500/20 dark:border-green-500/30 flex items-center justify-center shadow-lg shadow-black/5 dark:shadow-black/15">
-              <BookOpen className="h-6 w-6 text-green-500" />
+            <div className="h-12 w-12 rounded-lg bg-cyan-500/10 dark:bg-cyan-500/20 backdrop-blur-sm border border-cyan-500/20 dark:border-cyan-500/30 flex items-center justify-center shadow-lg shadow-black/5 dark:shadow-black/15">
+              <Rocket className="h-6 w-6 text-cyan-500" />
             </div>
             <div>
               <h3 className="font-semibold mb-1 dark:text-white/90">학습 시작</h3>
