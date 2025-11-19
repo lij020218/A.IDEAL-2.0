@@ -5,7 +5,7 @@ import { useSearchParams, usePathname } from "next/navigation";
 import Header from "@/components/Header";
 import PromptGenerator from "@/components/PromptGenerator";
 import LeftSidebar from "@/components/LeftSidebar";
-import { Sparkles, Wand2 } from "lucide-react";
+import { Sparkles, Wand2, MessageSquare, Lightbulb, Zap } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 
 interface ExistingPromptData {
@@ -143,6 +143,53 @@ function GenerateContent() {
               onGeneratingChange={setIsGenerating}
             />
           </div>
+
+          {/* Info Section - result 단계가 아닐 때만 표시 */}
+          {currentStep !== "result" && !isGenerating && (
+            <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              <div className="card-aurora rounded-xl p-6">
+                <div className="flex items-start gap-4">
+                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-rose-100/70 to-red-100/70 backdrop-blur-md border border-rose-200/50 flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <MessageSquare className="h-6 w-6 text-rose-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">대화형 질문</h3>
+                    <p className="text-sm text-muted-foreground">
+                      AI가 5가지 핵심 질문을 던지고 답변을 바탕으로 최적화된 프롬프트를 생성합니다
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card-aurora rounded-xl p-6">
+                <div className="flex items-start gap-4">
+                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-rose-100/70 to-red-100/70 backdrop-blur-md border border-rose-200/50 flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <Lightbulb className="h-6 w-6 text-rose-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">AI 도구 추천</h3>
+                    <p className="text-sm text-muted-foreground">
+                      생성된 프롬프트에 가장 적합한 AI 도구를 자동으로 추천해드립니다
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card-aurora rounded-xl p-6">
+                <div className="flex items-start gap-4">
+                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-rose-100/70 to-red-100/70 backdrop-blur-md border border-rose-200/50 flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <Zap className="h-6 w-6 text-rose-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">즉시 사용 가능</h3>
+                    <p className="text-sm text-muted-foreground">
+                      생성된 프롬프트를 바로 복사하여 AI 도구에서 사용할 수 있습니다
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

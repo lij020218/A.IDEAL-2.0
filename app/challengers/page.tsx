@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Header from "@/components/Header";
 import LeftSidebar from "@/components/LeftSidebar";
-import { Plus, Code, Lightbulb, FileText, Calendar, Loader2, Users } from "lucide-react";
+import { Plus, Code, Lightbulb, FileText, Calendar, Loader2, Users, MessageSquare, Target, Rocket } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import Link from "next/link";
@@ -186,6 +186,51 @@ export default function ChallengersPage() {
               ))}
           </div>
         )}
+
+        {/* Info Section */}
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="card-aurora rounded-xl p-6">
+            <div className="flex items-start gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md border border-purple-200/50 flex items-center justify-center flex-shrink-0 shadow-lg">
+                <MessageSquare className="h-6 w-6 text-purple-500" />
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2">A.IDEAL SPACE</h3>
+                <p className="text-sm text-muted-foreground">
+                  팀원들과 실시간으로 소통하며 아이디어를 구체화하고 협업할 수 있습니다
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="card-aurora rounded-xl p-6">
+            <div className="flex items-start gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md border border-purple-200/50 flex items-center justify-center flex-shrink-0 shadow-lg">
+                <Target className="h-6 w-6 text-purple-500" />
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2">역할 기반 매칭</h3>
+                <p className="text-sm text-muted-foreground">
+                  디자이너, 개발자, 기획자 등 각자의 역할에 맞는 팀원을 찾을 수 있습니다
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="card-aurora rounded-xl p-6">
+            <div className="flex items-start gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md border border-purple-200/50 flex items-center justify-center flex-shrink-0 shadow-lg">
+                <Rocket className="h-6 w-6 text-purple-500" />
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2">아이디어 실현</h3>
+                <p className="text-sm text-muted-foreground">
+                  코드 리뷰, 아이디어 검증, 팀 빌딩까지 프로젝트 실현을 위한 모든 것
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       {/* Footer */}
       <footer className="border-t py-8 px-4 mt-20">
