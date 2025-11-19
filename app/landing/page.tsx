@@ -44,6 +44,13 @@ export default function LandingPage() {
 
   // Calculate opacity and transform based on scroll
   const getTransform = (sectionIndex: number) => {
+    if (typeof window === 'undefined') {
+      return {
+        opacity: 1,
+        transform: 'scale(1)',
+        transition: 'all 0.3s ease-out'
+      };
+    }
     const windowHeight = window.innerHeight;
     const sectionStart = sectionIndex * windowHeight;
 
@@ -64,6 +71,7 @@ export default function LandingPage() {
   };
 
   const scrollToSection = (index: number) => {
+    if (typeof window === 'undefined') return;
     const windowHeight = window.innerHeight;
     window.scrollTo({
       top: index * windowHeight,
