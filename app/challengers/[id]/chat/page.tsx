@@ -294,11 +294,12 @@ export default function ChatRoomPage() {
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className="container mx-auto px-4 py-8 max-w-6xl relative z-10">
-        {/* Center Top Icon */}
-        <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-100/70 to-purple-100/70 backdrop-blur-md border border-pink-200/50 flex items-center justify-center shadow-lg">
+        {/* Center Top Icon with Label */}
+        <div className="flex flex-col items-center mb-6">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-100/70 to-purple-100/70 backdrop-blur-md border border-pink-200/50 flex items-center justify-center shadow-lg mb-3">
             <Lightbulb className="h-8 w-8 text-pink-500" />
           </div>
+          <h2 className="text-lg font-semibold text-foreground dark:text-white/90">A.IDEAL SPACE</h2>
         </div>
 
         {/* Back Button */}
@@ -314,7 +315,7 @@ export default function ChatRoomPage() {
         <div className="mb-6 flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2 text-foreground dark:text-white/90">
-              A.IDEAL SPACE: <span className="text-foreground dark:text-white/90">{challenge.title}</span>
+              {challenge.title}
             </h1>
             <p className="text-muted-foreground dark:text-white/80">팀원들과 함께 아이디어를 실현해보세요</p>
           </div>
@@ -346,7 +347,7 @@ export default function ChatRoomPage() {
                 <Users className="h-5 w-5 text-purple-500" />
                 <h2 className="text-lg font-bold text-foreground dark:text-white/90">팀원 ({members.length})</h2>
               </div>
-              <div className="flex-1 overflow-y-auto space-y-3 mb-4">
+              <div className="flex-1 overflow-y-auto space-y-3 mb-4 scrollbar-hide">
                 {members.map((member) => (
                   <div key={member.id} className="p-3 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-lg shadow-lg shadow-black/5 dark:shadow-black/15">
                     <div className="flex items-start gap-2">
@@ -411,7 +412,7 @@ export default function ChatRoomPage() {
           <div className="lg:col-span-3 flex">
             <div className="card-aurora rounded-xl p-6 flex flex-col w-full" style={{ height: "70vh", minHeight: "500px" }}>
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto mb-4 space-y-4">
+              <div className="flex-1 overflow-y-auto mb-4 space-y-4 scrollbar-hide">
                 {messages.length === 0 ? (
                   <div className="text-center text-muted-foreground py-12">
                     <p>첫 메시지를 보내보세요!</p>
