@@ -474,11 +474,49 @@ export default function LearnSessionPage({
           <div className="max-w-2xl mx-auto">
             <div className="card-aurora rounded-xl p-12 text-center">
               <div className="flex flex-col items-center gap-6">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center shadow-lg">
+                {/* 아이콘 박스 - 로딩 중일 때 회전 애니메이션 */}
+                <div className="relative w-20 h-20">
                   {isGeneratingContent ? (
-                    <Loader2 className="h-10 w-10 animate-spin text-cyan-500" />
+                    <>
+                      {/* 각 아이콘 - 현재 인덱스만 표시 */}
+                      {[
+                        // 성장하기 - Rocket
+                        <div key="rocket" className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center shadow-lg">
+                          <Rocket className="h-10 w-10 text-cyan-500" />
+                        </div>,
+                        // 프롬프트 모음 - MessageSquare
+                        <div key="message" className="w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-100/70 to-amber-100/70 backdrop-blur-md border border-orange-200/50 flex items-center justify-center shadow-lg">
+                          <MessageSquare className="h-10 w-10 text-orange-500" />
+                        </div>,
+                        // 생성하기 - Wand2
+                        <div key="wand" className="w-20 h-20 rounded-2xl bg-gradient-to-br from-rose-100/70 to-red-100/70 backdrop-blur-md border border-rose-200/50 flex items-center justify-center shadow-lg">
+                          <Wand2 className="h-10 w-10 text-rose-500" />
+                        </div>,
+                        // 시험 공부하기 - GraduationCap
+                        <div key="graduation" className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-100/70 to-cyan-100/70 backdrop-blur-md border border-blue-200/50 flex items-center justify-center shadow-lg">
+                          <GraduationCap className="h-10 w-10 text-blue-500" />
+                        </div>,
+                        // 도전자들 - Users
+                        <div key="users" className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md border border-purple-200/50 flex items-center justify-center shadow-lg">
+                          <Users className="h-10 w-10 text-purple-500" />
+                        </div>,
+                      ].map((icon, index) => (
+                        <div
+                          key={index}
+                          className={`absolute inset-0 transition-all duration-500 ease-in-out ${
+                            index === currentIconIndex
+                              ? "opacity-100 scale-100 rotate-0"
+                              : "opacity-0 scale-75 -rotate-90"
+                          }`}
+                        >
+                          {icon}
+                        </div>
+                      ))}
+                    </>
                   ) : (
-                    <Rocket className="h-10 w-10 text-cyan-500" />
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center shadow-lg">
+                      <Rocket className="h-10 w-10 text-cyan-500" />
+                    </div>
                   )}
                 </div>
 
@@ -497,73 +535,9 @@ export default function LearnSessionPage({
                 </div>
 
                 {isGeneratingContent ? (
-                  <div className="flex flex-col items-center space-y-6">
-                    {/* 아이콘 컨테이너 - 드롭 애니메이션 */}
-                    <div className="relative w-16 h-16 animate-drop-in">
-                      {/* 각 아이콘 - 현재 인덱스만 표시 */}
-                      {[
-                        // 성장하기 - Rocket
-                        <div key="rocket" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-100/70 to-blue-100/70 backdrop-blur-md border border-cyan-200/50 flex items-center justify-center shadow-lg">
-                          <Rocket className="h-8 w-8 text-cyan-500" />
-                        </div>,
-                        // 프롬프트 모음 - MessageSquare
-                        <div key="message" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-100/70 to-amber-100/70 backdrop-blur-md border border-orange-200/50 flex items-center justify-center shadow-lg">
-                          <MessageSquare className="h-8 w-8 text-orange-500" />
-                        </div>,
-                        // 생성하기 - Wand2
-                        <div key="wand" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-100/70 to-red-100/70 backdrop-blur-md border border-rose-200/50 flex items-center justify-center shadow-lg">
-                          <Wand2 className="h-8 w-8 text-rose-500" />
-                        </div>,
-                        // 시험 공부하기 - GraduationCap
-                        <div key="graduation" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-100/70 to-cyan-100/70 backdrop-blur-md border border-blue-200/50 flex items-center justify-center shadow-lg">
-                          <GraduationCap className="h-8 w-8 text-blue-500" />
-                        </div>,
-                        // 도전자들 - Users
-                        <div key="users" className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100/70 to-pink-100/70 backdrop-blur-md border border-purple-200/50 flex items-center justify-center shadow-lg">
-                          <Users className="h-8 w-8 text-purple-500" />
-                        </div>,
-                      ].map((icon, index) => (
-                        <div
-                          key={index}
-                          className={`absolute inset-0 transition-all duration-500 ease-in-out ${
-                            index === currentIconIndex
-                              ? "opacity-100 scale-100 rotate-0"
-                              : "opacity-0 scale-75 -rotate-90"
-                          }`}
-                        >
-                          {icon}
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="text-center space-y-2">
-                      <p className="text-lg font-medium dark:text-white/90">AI가 학습 내용을 생성하고 있습니다</p>
-                      <p className="text-sm text-muted-foreground dark:text-white/70">약 2분 정도 소요됩니다</p>
-                    </div>
-
-                    {/* CSS 애니메이션 정의 */}
-                    <style jsx>{`
-                      @keyframes dropIn {
-                        0% {
-                          transform: translateY(-150px);
-                          opacity: 0;
-                        }
-                        60% {
-                          transform: translateY(15px);
-                          opacity: 1;
-                        }
-                        80% {
-                          transform: translateY(-5px);
-                        }
-                        100% {
-                          transform: translateY(0);
-                          opacity: 1;
-                        }
-                      }
-                      .animate-drop-in {
-                        animation: dropIn 0.7s ease-out forwards;
-                      }
-                    `}</style>
+                  <div className="text-center space-y-2">
+                    <p className="text-lg font-medium dark:text-white/90">AI가 학습 내용을 생성하고 있습니다</p>
+                    <p className="text-sm text-muted-foreground dark:text-white/70">약 2분 정도 소요됩니다</p>
                   </div>
                 ) : (
                   <button
