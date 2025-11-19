@@ -426,10 +426,10 @@ export default function ChatRoomPage() {
                         className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}
                       >
                         <div
-                          className={`max-w-[70%] rounded-lg p-4 cursor-pointer ${
+                          className={`max-w-[70%] rounded-lg p-4 cursor-pointer transition-all duration-200 ${
                             isOwnMessage
-                              ? "bg-white/60 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 text-foreground shadow-lg shadow-black/5 dark:shadow-black/15"
-                              : "bg-white/40 dark:bg-white/5 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-md shadow-black/5 dark:shadow-black/10"
+                              ? "bg-white/60 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 text-foreground shadow-lg shadow-black/5 dark:shadow-black/15 hover:bg-gradient-to-br hover:from-purple-50/70 hover:to-pink-50/70 hover:border-purple-200/50 hover:shadow-xl hover:shadow-purple-500/10 dark:hover:from-purple-500/15 dark:hover:to-pink-500/15 dark:hover:border-purple-400/30"
+                              : "bg-white/40 dark:bg-white/5 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-md shadow-black/5 dark:shadow-black/10 hover:bg-white/60 dark:hover:bg-white/10 hover:border-white/50 dark:hover:border-white/20 hover:shadow-lg hover:shadow-purple-500/5"
                           }`}
                           onContextMenu={(e) => handleRightClick(e, message.id, message.content)}
                         >

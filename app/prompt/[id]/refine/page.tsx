@@ -243,15 +243,18 @@ export default function RefinePromptPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background relative">
+      <div className="min-h-screen bg-gradient-to-b from-rose-50/50 via-red-50/30 to-white relative">
         {/* Global Background Effects */}
-        <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
-        <div className="fixed inset-0 hero-grain pointer-events-none"></div>
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-rose-100/40 rounded-full blur-3xl" />
+          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-red-100/40 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-pink-100/30 rounded-full blur-3xl" />
+        </div>
 
         <Header onToggleSidebar={toggleSidebar} />
         <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <div className="container mx-auto px-4 py-12 text-center relative z-10">
-          <p className="text-muted-foreground">로딩 중...</p>
+        <div className="container mx-auto px-4 py-12 flex items-center justify-center min-h-[60vh] relative z-10">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       </div>
     );
@@ -265,34 +268,49 @@ export default function RefinePromptPage() {
   const originalProviderLabel = originalProvider ? AI_PROVIDER_LABELS[originalProvider] : null;
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-gradient-to-b from-rose-50/50 via-red-50/30 to-white relative">
       {/* Global Background Effects */}
-      <div className="fixed inset-0 gradient-bg opacity-100 pointer-events-none"></div>
-      <div className="fixed inset-0 hero-grain pointer-events-none"></div>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-rose-100/40 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-red-100/40 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-pink-100/30 rounded-full blur-3xl" />
+      </div>
 
       <Header onToggleSidebar={toggleSidebar} />
       <LeftSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className="container mx-auto px-4 py-8 relative z-10">
         {/* Back Button */}
-        <button
-          onClick={() => router.push(`/prompt/${params.id}`)}
-          className="mb-4 flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          돌아가기
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => router.push(`/prompt/${params.id}`)}
+            className="absolute -top-2 left-0 inline-flex items-center gap-2 text-muted-foreground hover:opacity-80 transition-colors text-sm"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            돌아가기
+          </button>
+        </div>
 
-        {/* Title */}
-        <h1 className="text-2xl md:text-3xl font-bold mb-6">
-          프롬프트 개선하기
-        </h1>
+        {/* Header with Icon */}
+        <div className="mb-8 mt-6">
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-100/70 to-red-100/70 backdrop-blur-md border border-rose-200/50 flex items-center justify-center shadow-lg mx-auto mb-4">
+              <Sparkles className="h-8 w-8 text-rose-500" />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-3">
+              <span className="text-foreground dark:text-white/90">프롬프트 개선하기</span>
+            </h1>
+            <p className="text-lg text-muted-foreground dark:text-white max-w-2xl mx-auto">
+              AI와 대화하며 프롬프트를 더욱 효과적으로 개선하세요
+            </p>
+          </div>
+        </div>
 
         {!refinedPrompt ? (
           /* Two Column Layout - Chat Interface */
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             {/* Left Panel - Existing Prompt (Collapsible) */}
-            <div className="bg-white/50 dark:bg-black/30 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-4 md:p-6 shadow-lg shadow-black/5 dark:shadow-black/15 max-h-[300px] md:max-h-[400px] overflow-y-auto sidebar-scroll">
+            <div className="bg-white/50 dark:bg-black/30 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-xl p-4 md:p-6 shadow-lg shadow-black/5 dark:shadow-black/15 max-h-[300px] md:max-h-[400px] overflow-y-auto scrollbar-hide">
               <div className="space-y-2 mb-3 md:mb-4">
                 <div className="flex items-center gap-2 md:gap-3">
                   <h2 className="text-lg md:text-xl font-bold">기존 프롬프트</h2>
@@ -317,7 +335,7 @@ export default function RefinePromptPage() {
               <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4">AI와 대화하기</h2>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto mb-4 space-y-4 sidebar-scroll">
+              <div className="flex-1 overflow-y-auto mb-4 space-y-4 scrollbar-hide">
                 {messages.map((message, index) => (
                   <div
                     key={index}
@@ -380,7 +398,7 @@ export default function RefinePromptPage() {
                     }
                   }}
                   placeholder="메시지를 입력하세요... (Shift+Enter로 줄바꿈)"
-                  className="flex-1 px-4 py-3 rounded-lg bg-white/70 dark:bg-black/30 border border-white/40 dark:border-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none overflow-y-auto chat-textarea-scroll"
+                  className="flex-1 px-4 py-3 rounded-lg bg-white/70 dark:bg-black/30 border border-white/40 dark:border-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none overflow-y-auto scrollbar-hide"
                   style={{ minHeight: "48px", maxHeight: "120px" }}
                   rows={1}
                   disabled={isSending}
@@ -388,7 +406,7 @@ export default function RefinePromptPage() {
                 <button
                   type="submit"
                   disabled={isSending || !input.trim()}
-                  className="px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-white/60 dark:bg-white/10 backdrop-blur-md border-2 border-white/40 dark:border-white/20 text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15"
+                  className="h-[52px] px-6 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-white/60 dark:bg-white/10 backdrop-blur-md border-2 border-white/40 dark:border-white/20 text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15"
                 >
                   <Send className="h-5 w-5" />
                 </button>
