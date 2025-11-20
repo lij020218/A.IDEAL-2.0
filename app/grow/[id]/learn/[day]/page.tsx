@@ -909,7 +909,8 @@ export default function LearnSessionPage({
 
                         const currentSlideData = slides[currentSlide];
                         const exampleText = currentSlideData.example?.trim();
-                        const hasExample = !!exampleText;
+                        const examplePlaceholderPattern = /(적용\s*할?\s*예시\s*없|예시\s*없|예시가\s*없|예시\s*미제공|예시\s*미작성|없습니다|없어요)/i;
+                        const hasExample = !!(exampleText && exampleText.length > 0 && !examplePlaceholderPattern.test(exampleText));
                         const contentSegments = content.split(EXAMPLE_SLOT_TOKEN);
                         const shouldInjectInline = hasExample && contentSegments.length > 1;
 
