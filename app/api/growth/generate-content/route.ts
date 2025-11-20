@@ -72,23 +72,41 @@ const SYSTEM_PROMPT = `당신은 A.ideal의 '통합 학습 AI 엔진'이며, **�
 
 ## 슬라이드 생성 규칙
 
-### 1. content (250~300자 철저 준수)
-- "개념 → 이유 → 예시" 순서로 구조화
+### 1. content (300~350자 철저 준수)
+**문장과 문단 흐름 (최우선)**:
+- 문장은 자연스럽게 이어져야 함 (딱딱하거나 끊어지면 안 됨)
+- 문단 사이에는 자연스러운 전환어 사용 ("그렇다면", "이제", "여기서", "하지만", "따라서" 등)
+- 각 문단은 이전 문단의 내용을 자연스럽게 받아서 전개
+- 마치 강의를 듣는 것처럼 흐르는 문체
+
+**구조**:
+- "개념 → 이유 → 설명 → 연결" 순서로 자연스럽게 구조화
 - 초·중·고·대학 누구나 이해할 수 있을 만큼 명확
 - 불필요한 문장 없음, 구조적·논리적·직관적
-- 학생이 이해하지 못할 요소는 자동으로 설명을 덧붙임
+
+**강조 표시**:
 - **중요한 단어**: \`**굵게**\` 표시
 - *중요한 문장*: \`*기울임*\` 표시
 
-### 2. example (실제 적용 예시 1개)
-- 구체적이고 실용적인 예제 제공
-- 단계별로 명확하게 설명 (1→2→3)
-- 학습자가 직접 따라할 수 있는 수준
+**핵심 개념 (본문 안에 적극 삽입)**:
+- 중요한 개념이 나오면 반드시 \`**개념명: 설명**\` 형식으로 작성
+- 슬라이드당 최소 1개, 최대 3개의 핵심 개념 포함
+- 너무 적게 만들지 말 것! 중요 개념은 반드시 카드로 만들기
 
-### 3. cards (시안 글래스 핵심 개념 카드)
-- 배열 형태: [{"card_title":"개념명","card_content":"명확한 정의","style":"glass-cyan"}]
-- 슬라이드당 1~3개의 핵심 개념
-- 정의는 간결하고 정확하게 (50~80자)
+**적용 예시 (선택적, 위치 자유)**:
+- 필요한 경우에만 본문 중간에 자연스럽게 삽입
+- 본문과 분리되지 않고 흐름 안에 포함
+- 예시가 필요 없으면 생략 가능
+
+### 2. example (선택적 - 필요시에만)
+- 적용 예시가 본문 안에 자연스럽게 포함되면 생략
+- 별도로 필요한 경우에만 작성
+- 구체적이고 실용적인 예제 (단계별 1→2→3)
+
+### 3. cards (JSON 필드 - 참고용)
+- 본문에 \`**개념: 설명**\` 형식으로 작성하면 자동으로 시안 글래스 카드로 렌더링됨
+- JSON에는 참고용으로만 포함 (프론트엔드에서 본문 파싱 사용)
+- 형태: [{"card_title":"개념명","card_content":"정의","style":"glass-cyan"}]
 
 ### 4. summary (에메랄드 글래스 요점 정리)
 - 형태: {"text":"요점 정리 내용","style":"glass-emerald"}
@@ -101,7 +119,7 @@ const SYSTEM_PROMPT = `당신은 A.ideal의 '통합 학습 AI 엔진'이며, **�
 - connection_sentence: 이전 내용과 현재 내용의 연결 이유
 
 ### 6. metadata (학습 메타데이터)
-- estimated_study_time_min: 예상 학습 시간 (5~8분)
+- estimated_study_time_min: 예상 학습 시간 (3~5분)
 - difficulty_level: "쉬움" | "보통" | "어려움"
 - source_reference: 출처 (해당 시 명시)
 
@@ -114,8 +132,10 @@ const SYSTEM_PROMPT = `당신은 A.ideal의 '통합 학습 AI 엔진'이며, **�
 ## 절대 규칙
 - 첨부자료가 없으므로 "객관적 사실 기반"만 사용
 - 오개념·불확실·추측 금지
-- content는 정확히 250~300자
-- 모든 슬라이드는 cards와 summary 필수 포함
+- content는 정확히 300~350자
+- 문장과 문단의 흐름이 자연스러워야 함 (최우선!)
+- 핵심 개념은 적극적으로 \`**개념: 설명**\` 형식으로 삽입
+- 모든 슬라이드는 summary 필수 포함
 - JSON만 반환, 코드 블록이나 설명 금지
 
 # 출력 형식
@@ -221,7 +241,9 @@ function buildUserPrompt(params: {
   } = params;
 
   const levelText = level === "beginner" ? "초급" : level === "intermediate" ? "중급" : "고급";
-  const slideCount = Math.max(10, Math.min(18, Math.round(estimatedTime / 5)));
+  // 1시간(60분) = 14~20장 기준으로 계산
+  const baseCount = Math.round(estimatedTime / 60 * 17); // 60분 기준 17장 (중간값)
+  const slideCount = Math.max(14, Math.min(20, baseCount));
 
   const previousSection = previousTitle
     ? `\n이전 학습 (Day ${dayNumber - 1}): ${previousTitle}\n내용: ${previousDescription}\n→ 이전 내용과 자연스럽게 연결하세요.`
@@ -245,13 +267,14 @@ function buildUserPrompt(params: {
 ${previousSection}${examMaterialsSection}
 
 ## 생성 규칙
-1. 슬라이드: ${slideCount}개 (±2)
-2. 슬라이드당 content: 정확히 250~300자
-3. 퀴즈: 6개 (4지선다) - 기본 제공
-4. 모든 슬라이드는 cards + summary 필수
-5. previous_lesson_reference 필수 포함
-6. 세계 최고 강사 톤: "개념 → 이유 → 예시" 구조
-${examMaterials ? "7. **시험 자료 내용을 충실히 따르고 상세히 요약**해야 함" : ""}
+1. 슬라이드: 정확히 ${slideCount}개
+2. 슬라이드당 content: 정확히 300~350자
+3. 문장과 문단 흐름이 자연스러워야 함 (최우선!)
+4. 핵심 개념은 본문에 \`**개념: 설명**\` 형식으로 적극 포함 (슬라이드당 1~3개)
+5. 적용 예시는 필요한 경우에만 본문 중간에 자연스럽게 삽입
+6. 퀴즈: 6개 (4지선다) - 기본 제공
+7. 세계 최고 강사 톤: 자연스러운 강의 흐름
+${examMaterials ? "8. **시험 자료 내용을 충실히 따르고 상세히 요약**해야 함" : ""}
 
 ## JSON 형식 (반드시 이 구조 준수)
 {
@@ -261,19 +284,19 @@ ${examMaterials ? "7. **시험 자료 내용을 충실히 따르고 상세히 �
       "lesson_id": "L${dayNumber}",
       "sequence_number": 1,
       "title": "슬라이드 제목",
-      "content": "250~300자 본문 (개념→이유→예시 구조)",
-      "example": "구체적 적용 예시 (단계별 설명)",
+      "content": "300~350자 본문. 문장과 문단이 자연스럽게 흐르도록 작성. 중요 개념은 **개념명: 설명** 형식으로 본문 안에 포함. 적용 예시는 필요시 본문 중간에 자연스럽게 삽입.",
+      "example": "별도 예시 필요시에만 작성 (선택적)",
       "cards": [
-        {"card_title":"핵심개념1","card_content":"명확한 정의 50~80자","style":"glass-cyan"}
+        {"card_title":"핵심개념1","card_content":"명확한 정의","style":"glass-cyan"}
       ],
       "summary": {"text":"요점 정리 3~5개","style":"glass-emerald"},
       "previous_lesson_reference": {
         "prev_lesson_id": null,
-        "brief_summary": "이전 핵심 요약 30~80자",
+        "brief_summary": "이전 핵심 요약",
         "connection_sentence": "이전과 현재의 연결"
       },
       "metadata": {
-        "estimated_study_time_min": 7,
+        "estimated_study_time_min": 4,
         "difficulty_level": "보통",
         "source_reference": []
       }
