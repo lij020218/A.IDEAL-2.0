@@ -957,21 +957,29 @@ export default function LearnSessionPage({
                                 {content}
                               </ReactMarkdown>
 
-                              {/* 요점 정리 섹션 - 에메랄드 카드 */}
+                              {/* 요점 정리 섹션 - 에메랄드 글래스 스타일 */}
                               {keyPoints.length > 0 && (
                                 <>
-                                  <hr className="my-6 border-t-2 border-primary/30 dark:border-white/20" />
-                                  <div className="my-6 p-5 rounded-lg border-2 bg-emerald-50/90 dark:bg-emerald-900/20 border-emerald-300/70 dark:border-emerald-700/50 shadow-md">
-                                    <div className="flex items-center gap-2 mb-3">
+                                  {/* 구분선 - 본문과 요점 정리 사이 */}
+                                  <div className="my-8 flex items-center gap-4">
+                                    <div className="flex-1 h-[2px] bg-gradient-to-r from-transparent via-border/40 to-border/60 dark:via-white/20 dark:to-white/30" />
+                                    <span className="text-muted-foreground/50 dark:text-white/40 text-xs font-medium">✦</span>
+                                    <div className="flex-1 h-[2px] bg-gradient-to-l from-transparent via-border/40 to-border/60 dark:via-white/20 dark:to-white/30" />
+                                  </div>
+
+                                  {/* 에메랄드 유리 글래스 카드 */}
+                                  <div className="my-6 p-5 rounded-xl border-2 bg-emerald-100/50 dark:bg-emerald-900/30 backdrop-blur-md border-emerald-400/50 dark:border-emerald-500/40 shadow-lg shadow-emerald-500/10 dark:shadow-emerald-500/5">
+                                    <div className="flex items-center gap-2 mb-4">
                                       <span className="text-lg">📌</span>
-                                      <h3 className="text-base font-bold text-emerald-900 dark:text-emerald-100">
+                                      <h3 className="text-base font-bold text-emerald-800 dark:text-emerald-200">
                                         요점 정리
                                       </h3>
                                     </div>
-                                    <ul className="space-y-2 list-disc list-inside">
+                                    <ul className="space-y-2.5">
                                       {keyPoints.map((point, idx) => (
-                                        <li key={idx} className="text-sm leading-relaxed text-emerald-800 dark:text-emerald-100">
-                                          {point}
+                                        <li key={idx} className="flex items-start gap-2 text-sm leading-relaxed text-emerald-900 dark:text-emerald-100">
+                                          <span className="text-emerald-500 dark:text-emerald-400 mt-1.5 text-[6px]">●</span>
+                                          <span>{point}</span>
                                         </li>
                                       ))}
                                     </ul>
