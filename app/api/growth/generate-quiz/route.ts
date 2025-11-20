@@ -5,8 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { generateWithAI, UnifiedMessage } from "@/lib/ai-router";
 import { aiLimiter } from "@/lib/rate-limiter";
 
-const CLAUDE_MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-4-5-20250929";
-
+// ===== 타입 정의 =====
 interface Quiz {
   question: string;
   options: string[];
@@ -14,36 +13,96 @@ interface Quiz {
   explanation: string;
 }
 
-function normalizeJsonPayload(raw: string) {
-  if (!raw) return raw;
+// ===== 시스템 프롬프트 =====
+const SYSTEM_PROMPT = `당신은 교육 전문가입니다. 학습 내용을 바탕으로 효과적인 퀴즈 문제를 만듭니다.
 
-  const trimmed = raw.trim();
-  let jsonCandidate = trimmed;
+# 퀴즈 작성 원칙
+- 문제는 명확하고 이해하기 쉬워야 합니다
+- 선택지는 모두 그럴듯해야 하며, 정답이 명확해야 합니다
+- 설명은 왜 정답인지, 왜 다른 선택지가 틀렸는지 명확히 해야 합니다
+- 학습 내용의 핵심을 다루어야 합니다`;
 
-  // Extract from code blocks
-  const jsonBlockRegex = /```json\s*([\s\S]*?)```/gi;
-  const blockMatch = jsonBlockRegex.exec(trimmed);
-  if (blockMatch && blockMatch[1]) {
-    jsonCandidate = blockMatch[1].trim();
-  } else if (trimmed.startsWith("```")) {
-    const genericMatch = trimmed.match(/```\w*\s*([\s\S]*?)```/);
-    if (genericMatch && genericMatch[1]) {
-      jsonCandidate = genericMatch[1].trim();
+// ===== 사용자 프롬프트 생성 =====
+function buildQuizPrompt(params: {
+  topicTitle: string;
+  curriculumTitle: string;
+  curriculumDescription: string;
+  existingQuizCount: number;
+  additionalCount: number;
+  slides: any[];
+}): string {
+  const { topicTitle, curriculumTitle, curriculumDescription, existingQuizCount, additionalCount, slides } = params;
+
+  // 슬라이드 내용 요약 (퀴즈 생성에 필요한 컨텍스트)
+  const slidesSummary = slides
+    .slice(0, 5) // 처음 5개 슬라이드만 사용 (컨텍스트 길이 제한)
+    .map((slide, idx) => `슬라이드 ${idx + 1}: ${slide.title}\n${slide.content.substring(0, 200)}...`)
+    .join("\n\n");
+
+  return `# 퀴즈 추가 생성 요청
+
+## 학습 정보
+- 주제: ${topicTitle}
+- 오늘의 학습: ${curriculumTitle}
+- 설명: ${curriculumDescription}
+
+## 현재 상황
+- 기존 퀴즈: ${existingQuizCount}문제
+- 추가 생성 필요: ${additionalCount}문제
+
+## 학습 내용 요약
+${slidesSummary}
+
+## 생성 규칙
+1. ${additionalCount}개의 4지선다 문제를 생성하세요
+2. 기존 퀴즈와 중복되지 않도록 주의하세요
+3. 학습 내용의 다양한 측면을 다루세요
+4. 문제는 명확하고, 선택지는 모두 그럴듯해야 합니다
+
+## JSON 형식
+{
+  "quiz": [
+    {
+      "question": "문제",
+      "options": ["선택지1", "선택지2", "선택지3", "선택지4"],
+      "answer": 0,
+      "explanation": "정답 설명"
     }
-  }
-
-  // Find JSON bounds
-  const firstBrace = jsonCandidate.indexOf("{");
-  const lastBrace = jsonCandidate.lastIndexOf("}");
-  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-    jsonCandidate = jsonCandidate.substring(firstBrace, lastBrace + 1);
-  }
-
-  return jsonCandidate;
+  ]
 }
 
+JSON만 반환하세요. 코드 블록 금지.`;
+}
+
+// ===== JSON 정규화 =====
+function normalizeJson(raw: string): string {
+  if (!raw) return raw;
+
+  let text = raw.trim();
+
+  // 코드 블록 제거
+  const jsonMatch = text.match(/```json\s*([\s\S]*?)```/i);
+  if (jsonMatch) {
+    text = jsonMatch[1].trim();
+  } else if (text.startsWith("```")) {
+    const match = text.match(/```\w*\s*([\s\S]*?)```/);
+    if (match) text = match[1].trim();
+  }
+
+  // JSON 객체 추출
+  const firstBrace = text.indexOf("{");
+  const lastBrace = text.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    text = text.substring(firstBrace, lastBrace + 1);
+  }
+
+  return text;
+}
+
+// ===== 메인 API 핸들러 =====
 export async function POST(req: NextRequest) {
   try {
+    // 인증 확인
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -61,21 +120,29 @@ export async function POST(req: NextRequest) {
     const rateLimitResult = await aiLimiter.check(`ai:${user.id}`);
     if (!rateLimitResult.success) {
       return NextResponse.json(
-        { error: "AI 요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
+        { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
         { status: 429 }
       );
     }
 
+    // 요청 파싱
     const { topicId, dayNumber, existingQuizCount, additionalCount } = await req.json();
-
-    if (!topicId || !dayNumber || !additionalCount) {
+    if (!topicId || !dayNumber || typeof existingQuizCount !== "number" || typeof additionalCount !== "number") {
       return NextResponse.json(
         { error: "필수 파라미터가 누락되었습니다" },
         { status: 400 }
       );
     }
 
-    // Fetch topic and curriculum
+    // 최대 12문제 제한 확인
+    if (existingQuizCount + additionalCount > 12) {
+      return NextResponse.json(
+        { error: "최대 12문제까지만 생성할 수 있습니다" },
+        { status: 400 }
+      );
+    }
+
+    // 토픽 조회
     const topic = await prisma.growthTopic.findFirst({
       where: { id: topicId, userId: user.id },
     });
@@ -84,114 +151,70 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "학습 주제를 찾을 수 없습니다" }, { status: 404 });
     }
 
+    // 커리큘럼 조회
     const curriculum = await prisma.curriculum.findFirst({
       where: { topicId, dayNumber },
     });
 
     if (!curriculum) {
-      return NextResponse.json({ error: "해당 일차 커리큘럼이 없습니다" }, { status: 404 });
+      return NextResponse.json({ error: "커리큘럼을 찾을 수 없습니다" }, { status: 404 });
     }
 
-    const targetCount = Math.min(additionalCount, 12 - (existingQuizCount || 0));
-
-    if (targetCount <= 0) {
-      return NextResponse.json({ error: "더 이상 퀴즈를 추가할 수 없습니다" }, { status: 400 });
+    // 기존 슬라이드 로드
+    let slides: any[] = [];
+    if (curriculum.content) {
+      try {
+        slides = JSON.parse(curriculum.content);
+      } catch {
+        // 슬라이드 파싱 실패 시 빈 배열
+      }
     }
 
-    // Build quiz generation prompt
-    const systemPrompt = `너는 교육 콘텐츠 전문가이다. 학습 주제에 맞는 4지선다 퀴즈를 생성한다.
-
-## 퀴즈 생성 규칙
-- 각 문제는 학습 내용을 정확히 이해했는지 테스트
-- 선택지는 서로 명확히 구분되어야 함
-- 오답도 학습에 도움이 되도록 구성
-- 설명은 정답 이유와 오답 이유를 간결히 포함
-
-## [절대 필수] 개수 규칙
-- 요청받은 개수를 **정확히** 생성해야 합니다
-- 더 적거나 더 많이 생성하면 실패로 간주됩니다
-
-## JSON 형식으로만 응답
-반드시 아래 형식의 JSON 객체만 반환:
-{
-  "quiz": [
-    {
-      "question": "문제",
-      "options": ["선택지1", "선택지2", "선택지3", "선택지4"],
-      "answer": 0,
-      "explanation": "정답 및 오답 설명"
-    }
-  ]
-}`;
-
-    const userPrompt = `다음 학습 주제에 대해 **정확히 ${targetCount}개**의 추가 퀴즈를 생성해주세요.
-
-⚠️ 중요: 반드시 ${targetCount}개를 생성하세요. ${targetCount - 1}개나 ${targetCount + 1}개가 아닌 정확히 ${targetCount}개입니다.
-
-학습 주제: ${topic.title}
-목표: ${topic.goal}
-수준: ${topic.level === "beginner" ? "초급" : topic.level === "intermediate" ? "중급" : "고급"}
-
-오늘의 학습 (Day ${dayNumber})
-- 제목: ${curriculum.title}
-- 설명: ${curriculum.description}
-
-기존에 ${existingQuizCount || 0}개의 퀴즈가 있으므로, 중복되지 않는 새로운 관점의 문제를 만들어주세요.
-난이도는 초·중·고급을 적절히 섞어주세요.
-
-반드시 JSON 객체만 반환하세요. 코드 블록이나 설명을 추가하지 마세요.
-다시 한번 확인: quiz 배열에 정확히 ${targetCount}개의 문제가 있어야 합니다.`;
+    // 프롬프트 생성
+    const userPrompt = buildQuizPrompt({
+      topicTitle: topic.title,
+      curriculumTitle: curriculum.title,
+      curriculumDescription: curriculum.description,
+      existingQuizCount,
+      additionalCount,
+      slides,
+    });
 
     const messages: UnifiedMessage[] = [
-      { role: "system", content: systemPrompt },
+      { role: "system", content: SYSTEM_PROMPT },
       { role: "user", content: userPrompt },
     ];
 
-    // Try GPT first (faster for simple tasks)
-    let response;
-    let provider = "GPT";
-    let model = process.env.OPENAI_MODEL || "gpt-5.1-2025-11-13";
-
-    try {
-      response = await generateWithAI("gpt", messages, {
-        temperature: 0.8,
-        jsonMode: true,
-        maxTokens: 2000,
-      });
-    } catch (gptError) {
-      console.warn("[Generate Quiz] GPT failed, trying Claude:", gptError);
-      // Fallback to Claude
-      response = await generateWithAI("claude", messages, {
-        temperature: 0.7,
-        jsonMode: true,
-        maxTokens: 2000,
-      });
-      provider = "Claude";
-      model = response.model || CLAUDE_MODEL;
-    }
+    // GPT-5.1 호출
+    const model = process.env.OPENAI_MODEL || "gpt-5.1-2025-11-13";
+    const response = await generateWithAI("gpt", messages, {
+      temperature: 1, // GPT-5는 항상 1로 고정
+      jsonMode: true,
+      maxTokens: 4000,
+    });
 
     if (!response?.content) {
       throw new Error("AI 응답이 비어있습니다");
     }
 
-    // Parse response
-    const parsed = JSON.parse(normalizeJsonPayload(response.content));
-    const newQuiz: Quiz[] = parsed.quiz || [];
+    // 응답 파싱
+    const normalized = normalizeJson(response.content);
+    const parsed = JSON.parse(normalized);
 
-    if (!Array.isArray(newQuiz) || newQuiz.length === 0) {
-      throw new Error("퀴즈 생성에 실패했습니다");
+    if (!parsed.quiz || !Array.isArray(parsed.quiz)) {
+      throw new Error("퀴즈 배열이 없습니다");
     }
 
-    // Validate quiz structure
-    newQuiz.forEach((item, index) => {
-      if (!item.question || !Array.isArray(item.options) || typeof item.answer !== "number") {
-        throw new Error(`퀴즈 ${index + 1} 구조가 올바르지 않습니다`);
+    // 퀴즈 검증
+    parsed.quiz.forEach((q: any, i: number) => {
+      if (!q.question || !Array.isArray(q.options) || q.options.length !== 4 || typeof q.answer !== "number") {
+        throw new Error(`퀴즈 ${i + 1} 구조가 잘못되었습니다`);
       }
     });
 
     return NextResponse.json({
-      quiz: newQuiz,
-      aiProvider: provider,
+      quiz: parsed.quiz,
+      aiProvider: "GPT",
       aiModel: model,
     });
   } catch (error) {
@@ -206,3 +229,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
