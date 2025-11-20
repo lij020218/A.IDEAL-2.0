@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, ChangeEvent } from "react";
+import { useState, useEffect, useRef, ChangeEvent, Fragment } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
@@ -108,6 +108,7 @@ export default function LearnSessionPage({
   const [quizPage, setQuizPage] = useState(0);
   const QUIZ_PAGE_SIZE = 3;
   const [isAddingQuiz, setIsAddingQuiz] = useState(false);
+  const EXAMPLE_SLOT_TOKEN = "[[EXAMPLE_SLOT]]";
 
   // 시험 공부 주제인지 확인
   const isExamTopic = topic?.description ? (() => {
@@ -907,11 +908,31 @@ export default function LearnSessionPage({
                         const content = formatForReadability(contentToRender);
 
                         const currentSlideData = slides[currentSlide];
+                        const exampleText = currentSlideData.example?.trim();
+                        const hasExample = !!exampleText;
+                        const contentSegments = content.split(EXAMPLE_SLOT_TOKEN);
+                        const shouldInjectInline = hasExample && contentSegments.length > 1;
+
+                        const renderExampleCard = () => (
+                          <div className="my-6 p-4 rounded-lg bg-purple-50/50 dark:bg-purple-900/20 border-2 border-purple-200/50 dark:border-purple-700/40">
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="text-sm">💡</span>
+                              <h4 className="text-sm font-bold text-purple-800 dark:text-purple-200">
+                                적용 예시
+                              </h4>
+                            </div>
+                            <div className="text-sm text-purple-900 dark:text-purple-100 leading-relaxed whitespace-pre-wrap">
+                              {exampleText}
+                            </div>
+                          </div>
+                        );
 
                         // Render content normally (no image processing)
                         return (
                           <>
-                            <ReactMarkdown
+                            {contentSegments.map((segment, segmentIdx) => (
+                              <Fragment key={segmentIdx}>
+                                <ReactMarkdown
                                 components={{
                                   ul: ({ node, ...props }: any) => (
                                     <ul className="space-y-2 my-4 list-disc list-inside" {...props} />
@@ -1027,23 +1048,13 @@ export default function LearnSessionPage({
                                   },
                                 }}
                               >
-                                {content}
+                                {segment}
                               </ReactMarkdown>
+                              {shouldInjectInline && segmentIdx < contentSegments.length - 1 && renderExampleCard()}
+                              </Fragment>
+                            ))}
 
-                              {/* 적용 예시 섹션 (example) */}
-                              {currentSlideData.example && (
-                                <div className="my-6 p-4 rounded-lg bg-purple-50/50 dark:bg-purple-900/20 border-2 border-purple-200/50 dark:border-purple-700/40">
-                                  <div className="flex items-center gap-2 mb-3">
-                                    <span className="text-sm">💡</span>
-                                    <h4 className="text-sm font-bold text-purple-800 dark:text-purple-200">
-                                      적용 예시
-                                    </h4>
-                                  </div>
-                                  <div className="text-sm text-purple-900 dark:text-purple-100 leading-relaxed whitespace-pre-wrap">
-                                    {currentSlideData.example}
-                                  </div>
-                                </div>
-                              )}
+                            {!shouldInjectInline && hasExample && renderExampleCard()}
 
                               {/* 요점 정리 섹션 - 에메랄드 글래스 스타일 (summary 우선, 없으면 keyPoints) */}
                               {(currentSlideData.summary || keyPoints.length > 0) && (
