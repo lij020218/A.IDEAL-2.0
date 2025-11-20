@@ -792,13 +792,15 @@ export default function LearnSessionPage({
                         let keyPoints: string[] = [];
                         let contentToRender = raw;
 
-                        // 요점 정리 섹션 찾기 - --- 유무와 관계없이 찾음
-                        if (raw.includes('요점 정리') || raw.includes('📌')) {
-                          // 요점 정리 패턴 매칭 (마크다운 강조 포함)
-                          const keyPointsMatch = raw.match(/\n*\*?\*?📌\s*요점\s*정리\*?\*?[:\s]*\n([\s\S]*?)$/);
+                        // 요점 정리 섹션 찾기 - 다양한 형식 지원
+                        if (raw.includes('요점 정리') || raw.includes('📌') || raw.includes('★')) {
+                          // 다양한 요점 정리 패턴 매칭:
+                          // - "---\n★ 요점 정리:" 또는 "---\n\n★ 요점 정리:"
+                          // - "📌 요점 정리" 또는 "**📌 요점 정리**"
+                          const keyPointsMatch = raw.match(/(?:\n+\s*-{3,}\s*\n+|\n+)\*?\*?[★📌]\s*요점\s*정리\*?\*?[:\s]*\n([\s\S]*?)$/);
                           if (keyPointsMatch) {
                             const keyPointsText = keyPointsMatch[1].trim();
-                            // bullet points 추출
+                            // bullet points 추출 (·, •, -, * 지원)
                             keyPoints = keyPointsText
                               .split(/\n/)
                               .map(line => line.trim())
@@ -806,10 +808,12 @@ export default function LearnSessionPage({
                               .map(line => line.replace(/^[·•\-\*]\s*/, '').trim())
                               .filter(Boolean);
 
-                            // 본문에서 요점 정리 섹션 제거
+                            // 본문에서 요점 정리 섹션 제거 (--- 포함)
+                            // 먼저 --- 이후 전체를 제거
                             contentToRender = raw
-                              .replace(/\n+\s*---\s*\n+[\s\S]*$/, '')  // --- 이후 전부 제거
-                              .replace(/\n+\*?\*?📌\s*요점\s*정리\*?\*?[:\s]*\n[\s\S]*$/, '');  // 요점 정리 이후 제거
+                              .replace(/\n+\s*-{3,}\s*\n+[\s\S]*$/, '')  // --- 이후 전부 제거
+                              .replace(/\n+\*?\*?[★📌]\s*요점\s*정리\*?\*?[:\s]*\n[\s\S]*$/, '')  // 요점 정리 이후 제거 (--- 없는 경우)
+                              .trim();
                           }
                         }
                         
