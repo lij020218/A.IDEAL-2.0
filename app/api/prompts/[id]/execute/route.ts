@@ -78,8 +78,9 @@ export async function POST(
 
     // Execute prompt
     // Note: GPT-5는 항상 temperature 1로 고정되며, max_tokens는 설정하지 않음
-    console.log("[Prompt Execute] Starting execution");
-    console.log("[Prompt Execute] Provider:", provider);
+    console.log("[Prompt Execute] ==========  EXECUTION START ==========");
+    console.log("[Prompt Execute] User selected provider:", aiProvider || "not specified");
+    console.log("[Prompt Execute] Final provider:", provider);
     console.log("[Prompt Execute] Messages count:", messages.length);
     console.log("[Prompt Execute] First message role:", messages[0]?.role);
     console.log("[Prompt Execute] First message length:", messages[0]?.content?.length || 0);
@@ -143,6 +144,10 @@ export async function POST(
           { status: 500 }
         );
       }
+
+      console.log("[Prompt Execute] ========== EXECUTION END ==========");
+      console.log("[Prompt Execute] Final provider used:", response.provider);
+      console.log("[Prompt Execute] Model used:", response.model);
 
       return NextResponse.json({
         success: true,
