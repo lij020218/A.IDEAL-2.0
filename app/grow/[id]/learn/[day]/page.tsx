@@ -789,30 +789,50 @@ export default function LearnSessionPage({
                         // Preprocess content to extract key points
                         const raw = slides[currentSlide]?.content || '';
 
-                        // Split content by horizontal rule (---) to separate main content from key points
-                        const hrSplit = raw.split(/\n---\n/);
+                        // Split content by horizontal rule (---) - more flexible matching
+                        // Match --- with optional whitespace before/after and newlines
+                        const hrSplit = raw.split(/\n+\s*---\s*\n+/);
                         const mainContent = hrSplit[0] || '';
                         const keyPointsSection = hrSplit.length > 1 ? hrSplit.slice(1).join('\n---\n') : '';
 
-                        // Extract key points if they exist (look for 📌 요점 정리:)
+                        // Extract key points if they exist (look for 📌 요점 정리: with optional ** markdown)
                         let keyPoints: string[] = [];
                         let contentToRender = mainContent;
 
-                        if (keyPointsSection.includes('📌 요점 정리')) {
-                          // Extract the key points content
-                          const keyPointsMatch = keyPointsSection.match(/📌 요점 정리[:\s]*\n([\s\S]*)/);
+                        // More flexible matching - handle **📌 요점 정리:** or 📌 요점 정리:
+                        if (keyPointsSection.includes('요점 정리') || keyPointsSection.includes('📌')) {
+                          // Extract the key points content - handle both **📌 요점 정리:** and plain format
+                          const keyPointsMatch = keyPointsSection.match(/\*?\*?📌\s*요점\s*정리\*?\*?[:\s]*\n([\s\S]*)/);
                           if (keyPointsMatch) {
                             const keyPointsText = keyPointsMatch[1].trim();
                             // Split by middle dot (·) or bullet points
                             keyPoints = keyPointsText
                               .split(/\n/)
                               .map(line => line.trim())
-                              .filter(line => line.startsWith('·') || line.startsWith('•') || line.startsWith('-'))
-                              .map(line => line.replace(/^[·•\-]\s*/, '').trim())
+                              .filter(line => line.startsWith('·') || line.startsWith('•') || line.startsWith('-') || line.startsWith('*'))
+                              .map(line => line.replace(/^[·•\-\*]\s*/, '').trim())
                               .filter(Boolean);
                           }
-                        } else {
-                          // No horizontal rule found, render all as main content
+                        }
+
+                        // If no key points found in section after ---, check the whole content
+                        if (keyPoints.length === 0 && raw.includes('요점 정리')) {
+                          const fullMatch = raw.match(/\*?\*?📌\s*요점\s*정리\*?\*?[:\s]*\n([\s\S]*?)$/);
+                          if (fullMatch) {
+                            const keyPointsText = fullMatch[1].trim();
+                            keyPoints = keyPointsText
+                              .split(/\n/)
+                              .map(line => line.trim())
+                              .filter(line => line.startsWith('·') || line.startsWith('•') || line.startsWith('-') || line.startsWith('*'))
+                              .map(line => line.replace(/^[·•\-\*]\s*/, '').trim())
+                              .filter(Boolean);
+                            // Remove key points section from main content
+                            contentToRender = raw.replace(/\n+\s*---\s*\n+[\s\S]*$/, '').replace(/\n+\*?\*?📌\s*요점\s*정리\*?\*?[:\s]*\n[\s\S]*$/, '');
+                          }
+                        }
+
+                        if (keyPoints.length === 0) {
+                          // No key points found, render all as main content
                           contentToRender = raw;
                         }
                         
