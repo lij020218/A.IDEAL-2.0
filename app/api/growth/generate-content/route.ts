@@ -69,6 +69,7 @@ type LearningContext = {
   curriculum: CurriculumRecord;
   previous: PreviousRecord;
   dayNumber: number;
+  quizCount: number;
 };
 
 type GenerationResult = {
@@ -153,10 +154,59 @@ function truncateToMaxWords(text: string, maxWords: number): string {
   return words.slice(0, maxWords).join(" ");
 }
 
-function enforceSlideLengthCap(data: LearningContentPayload, cap = 500): LearningContentPayload {
+function splitContentAndSummary(content: string) {
+  const parts = content.split(/\n---\n/);
+  return {
+    main: parts[0] || "",
+    keyPointBlock: parts.slice(1).join("\n---\n").trim(),
+  };
+}
+
+function buildKeyPointsBlock(points: string[]) {
+  const cleaned = points.map((p) => p.trim()).filter(Boolean);
+  if (!cleaned.length) return "";
+  return `**📌 요점 정리:**\n${cleaned.map((p) => (p.startsWith("·") ? p : `· ${p}`)).join("\n")}`;
+}
+
+function ensureKeyPointsSection(content: string): string {
+  const { main, keyPointBlock } = splitContentAndSummary(content);
+  const trimmedMain = main.trim();
+
+  if (keyPointBlock) {
+    const normalized = keyPointBlock.trim();
+    if (/📌\s*요점\s*정리/i.test(normalized)) {
+      return `${trimmedMain}\n\n---\n${normalized}`;
+    }
+    const bulletized = normalized
+      .split("\n")
+      .map((line) => line.trim().replace(/^[·•\\-]\s*/, ""))
+      .filter(Boolean)
+      .map((line) => `· ${line}`);
+    const block = buildKeyPointsBlock(bulletized);
+    return block ? `${trimmedMain}\n\n---\n\n${block}` : trimmedMain;
+  }
+
+  const sentences = trimmedMain
+    .replace(/\n+/g, " ")
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const bullets = (sentences.length ? sentences : [trimmedMain])
+    .slice(0, 4)
+    .map((s) => truncateToMaxWords(s, 18));
+  const block = buildKeyPointsBlock(bullets);
+  return block ? `${trimmedMain}\n\n---\n\n${block}` : trimmedMain;
+}
+
+function enforceSlideLengthCap(data: LearningContentPayload, cap = 750): LearningContentPayload {
   const adjustedSlides = data.slides.map((s) => ({
     title: s.title,
-    content: truncateToMaxWords(s.content, cap),
+    content: (() => {
+      const { main, keyPointBlock } = splitContentAndSummary(s.content);
+      const truncatedMain = truncateToMaxWords(main, cap).trim();
+      const recombined = keyPointBlock ? `${truncatedMain}\n\n---\n${keyPointBlock}` : truncatedMain;
+      return ensureKeyPointsSection(recombined);
+    })(),
   }));
   return { ...data, slides: adjustedSlides };
 }
@@ -201,9 +251,10 @@ function buildPrompt(params: {
   current: { title: string; description: string; estimatedTime: number };
   previous?: { title: string; description: string } | null;
   dayNumber: number;
+  quizCount: number;
   examFiles?: Array<{ url: string; filename: string; size: number }> | null;
 }) {
-  const { topic, current, previous, dayNumber, examFiles } = params;
+  const { topic, current, previous, dayNumber, examFiles, quizCount } = params;
   // 최소 장수: 60분 기준 13장 (시간 비례 최소치), 기본 추정: 1페이지 ≈ 4분
   const minSlides = Math.max(13, Math.ceil((current.estimatedTime * 13) / 60));
   const estimatedSlides = Math.max(minSlides, Math.min(20, Math.round(current.estimatedTime / 4)));
@@ -222,11 +273,35 @@ function buildPrompt(params: {
   }
 
   const filesSection = parsedFiles && parsedFiles.length > 0
-    ? `\n\n**중요: 시험 자료 파일**
-다음 PDF 파일들을 반드시 참고하여 학습 내용을 생성하세요:
+    ? `\n\n**[최우선 과제] 시험 자료 파일 기반 학습 콘텐츠 생성**
+
+다음 PDF 파일들이 제공되었습니다:
 ${parsedFiles.map((f, idx) => `${idx + 1}. ${f.filename}`).join("\n")}
 
-이 파일들의 내용을 바탕으로 학습 내용을 구성하고, 파일에 있는 핵심 개념, 예제, 문제 등을 반영하세요.`
+### 시험 자료 기반 학습 규칙 (절대 준수)
+
+1. **파일 내용을 최대한 상세하게 반영**
+   - 파일에 있는 모든 핵심 개념, 정의, 공식, 이론을 빠짐없이 포함
+   - 파일에 있는 예제, 문제, 사례를 그대로 또는 변형하여 활용
+   - 파일에 있는 도표, 그래프 설명을 텍스트로 상세히 풀어서 설명
+   - **절대 내용을 생략하거나 요약하지 마세요** - 시험 준비에 필요한 모든 세부사항을 포함
+
+2. **시험 대비 구조화**
+   - 각 슬라이드는 시험에 나올 수 있는 핵심 포인트를 중심으로 구성
+   - 암기해야 할 내용은 개념 카드 형식(**개념명: 설명**)으로 명확히 표시
+   - 혼동하기 쉬운 개념들은 비교표 형식으로 정리
+   - 공식이나 프로세스는 단계별로 상세히 설명
+
+3. **퀴즈는 실제 시험 형식 반영**
+   - 파일에 있는 문제를 변형하여 출제
+   - 파일에서 다룬 개념을 테스트하는 문제 생성
+   - 오답 선택지도 학습에 도움이 되도록 구성
+
+4. **슬라이드 수 증가**
+   - 시험 자료가 있는 경우 최소 15장 이상으로 더 상세하게 구성
+   - 내용이 많으면 20장까지 늘려서 모든 내용을 빠짐없이 담아주세요
+
+**핵심: 학생이 이 슬라이드만 보고도 시험 범위의 모든 내용을 학습할 수 있어야 합니다.**`
     : "";
 
   return `당신은 세계 최고 수준의 프리미엄 온라인 강의를 만드는 전문 강사입니다. 논리적 흐름과 가독성을 최우선으로 하여 깊이 있는 학습 자료를 설계하세요.
@@ -294,7 +369,7 @@ ${
      · 핵심 개념 2
      · 핵심 개념 3
 
-9. **퀴즈**: 2~3개, 각 4개 보기, 정답 인덱스와 설명 포함
+9. **퀴즈**: ${quizCount}개 (최소 6, 최대 12) · 모두 4지선다, 정답 인덱스와 설명 포함 · 한 화면에 3문제씩 묶을 수 있도록 난이도 균형을 맞춰 주세요
 
 10. **참고 자료**: 2개 이상, 자료명 + 한줄 설명
 
@@ -365,6 +440,7 @@ function buildMessages(context: LearningContext): UnifiedMessage[] {
       ? { title: previous.title, description: previous.description }
       : null,
     dayNumber,
+    quizCount: context.quizCount,
   });
 
   return [
@@ -618,10 +694,239 @@ function buildFallbackContent(params: {
   };
 }
 
+function buildFallbackContentV2(params: {
+  topic: { title: string; goal: string; level: string; description?: string | null };
+  current: { title: string; description: string; estimatedTime: number };
+  previous?: { title: string; description: string } | null;
+  dayNumber: number;
+  quizCount: number;
+}): LearningContentPayload {
+  const { topic, current, previous, dayNumber, quizCount } = params;
+  const withKeyPoints = (body: string, points: string[]) => {
+    const block = buildKeyPointsBlock(points);
+    return block ? `${body.trim()}\n\n---\n\n${block}` : body.trim();
+  };
+
+  const continuityText = previous
+    ? `이전 Day ${dayNumber - 1}에서 다뤘던 "${previous.title}" 내용을 이어받아 흐름을 잇습니다. `
+    : "";
+
+  const slides = [
+    {
+      title: `${current.title} 개요`,
+      content: withKeyPoints(
+        `${continuityText}**${topic.title}** 과정의 **Day ${dayNumber}** 학습 전, 오늘 다룰 범위를 한눈에 정리합니다.
+
+학습 목표를 다시 선언하고, 오늘 다루는 ${current.description}이(가) 전체 과정과 어떻게 맞물리는지 설명합니다. 
+시간 계획(준비/실행/리뷰)과 기대 산출물을 미리 적어 실전 감각을 올립니다.`,
+        [
+          `${topic.title} 여정과 Day ${dayNumber} 목표 정렬`,
+          `핵심 산출물과 평가 기준을 선제적으로 정의`,
+          `필요한 선수 지식을 짧게 점검`,
+          `준비·실행·리뷰로 시간 배분`,
+        ],
+      ),
+    },
+    {
+      title: "핵심 개념 브리핑",
+      content: withKeyPoints(
+        `오늘의 러닝에 필요한 필수 개념을 역할(이론/도구/사례)별로 구분해 정리합니다.
+
+각 개념이 ${topic.goal}에 주는 직접 효과와 위험 요소를 함께 설명해 이해의 깊이를 확보합니다.`,
+        [
+          `핵심 개념 3~4개를 역할별로 구분`,
+          `각 개념이 목표에 주는 직접 효과 명시`,
+          `오용 시 발생할 위험 요소 함께 언급`,
+          `실전 예시로 개념을 연결`,
+        ],
+      ),
+    },
+    {
+      title: "실무 적용 내러티브",
+      content: withKeyPoints(
+        `개념을 짧은 업무 시나리오에 입혀 단계별 체크리스트로 따라갈 수 있게 안내합니다.
+
+**${current.estimatedTime}분**을 준비/실행/리뷰 세 구간으로 나누고, 각 구간마다 성공 조건과 중간 점검 포인트를 적습니다.`,
+        [
+          `준비 단계에서 환경·데이터·도구 상태를 점검`,
+          `실행 단계는 입력→처리→출력 흐름으로 구체화`,
+          `리뷰 단계에서 품질 기준과 회고 질문을 명시`,
+          `중간 점검 포인트를 시간대별로 배치`,
+        ],
+      ),
+    },
+    {
+      title: "미니 연습",
+      content: withKeyPoints(
+        `${current.title}을(를) 바로 적용할 수 있는 10~15분 분량의 연습 과제를 만듭니다.
+
+입력 데이터/조건, 수행 단계, 기대 출력, 검증 질문을 모두 적어 혼자서도 돌려볼 수 있게 합니다.`,
+        [
+          `연습 목표와 기대 결과를 먼저 선언`,
+          `입력 데이터와 제약 조건을 명확히 기입`,
+          `검증 질문으로 결과 품질을 스스로 체크`,
+          `실무 맥락으로 확장할 응용 아이디어 제안`,
+        ],
+      ),
+    },
+    {
+      title: "리플렉션 질문",
+      content: withKeyPoints(
+        `회고 질문을 통해 오늘 배운 내용을 자신의 맥락으로 번역합니다.
+
+교차 검증(사실/의견/추론), 위험 상상, 다음 행동 선언을 포함해 답변을 작성하도록 안내합니다.`,
+        [
+          `사실·의견·추론을 분리해 적기`,
+          `가정이 틀렸을 때의 리스크 상상`,
+          `다음 학습·실행 행동을 하나 이상 선언`,
+          `메모를 남겨 다음 세션에서 재검토`,
+        ],
+      ),
+    },
+    {
+      title: "마무리 및 다음 예열",
+      content: withKeyPoints(
+        `오늘 학습을 정리하고 내일을 예열합니다. 복습 루틴(압축, 적용, 공유)과 예습 아이디어를 제안해 관성 있게 이어가게 돕습니다.
+
+작은 산출물(노트/코드/데모)로 남겨 다음 세션의 출발점으로 삼습니다.`,
+        [
+          `복습을 압축(3줄)·적용(1회)·공유(1회)로 마무리`,
+          `내일 읽을 자료나 실험할 아이디어를 미리 선정`,
+          `오늘 만든 산출물을 버전 관리 도구에 남김`,
+          `막힌 부분은 질문 리스트로 정리`,
+        ],
+      ),
+    },
+  ];
+
+  const objectives = [
+    `${current.title}의 핵심 개념을 이해하고 연결 관계를 설명한다.`,
+    `${topic.goal} 달성에 필요한 실행 단계를 구체적으로 말할 수 있다.`,
+    `다음 학습 계획을 위한 선수 과제와 리소스를 준비한다.`,
+  ];
+
+  const quizBase = [
+    {
+      question: `${current.title} 섹션을 설계할 때 가장 중요한 활동은 무엇인가요?`,
+      options: [
+        "결과물을 서둘러 만드는 것",
+        "맥락과 목표를 정확히 합의하는 것",
+        "모든 참고 자료를 읽는 것",
+        "이전 학습 내용을 모두 반복하는 것",
+      ],
+      answer: 1,
+      explanation:
+        "Day 학습의 첫 단계는 전체 목표와 맥락을 명확히 정하는 것입니다. 나머지 선택지는 활동은 되지만 우선순위가 아니거나 비효율적입니다.",
+    },
+    {
+      question: `"${topic.title}" 과정을 실무에 연결하는 가장 좋은 방법은?`,
+      options: [
+        "모든 개념을 이론으로만 정리한다",
+        "도구를 무조건 도입한다",
+        "업무 흐름에 맞춘 점진적 실험 계획을 만든다",
+        "관련 없는 최신 트렌드만 조사한다",
+      ],
+      answer: 2,
+      explanation:
+        "실행 계획을 만들고 점진적으로 검증해야 학습이 실제 업무에 닿습니다. 다른 선택지는 흐름을 흐리거나 목표와 무관합니다.",
+    },
+    {
+      question: `${current.title}을(를) 검증할 때 가장 먼저 점검해야 할 것은?`,
+      options: [
+        "도구 버전과 라이선스",
+        "성공 기준과 지표 정의",
+        "최신 트렌드 기사 수집",
+        "팀원 전원의 동의 여부",
+      ],
+      answer: 1,
+      explanation:
+        "성공 기준을 먼저 정의해야 이후 실험·측정이 가능하며, 다른 선택지는 부차적입니다.",
+    },
+    {
+      question: `${current.description} 실습에서 중간 점검 포인트로 적절한 것은?`,
+      options: [
+        "실습 시간을 모두 소비했는지",
+        "입력·처리·출력 흐름이 명확한지",
+        "모든 참고 자료를 다 읽었는지",
+        "동료에게 공유했는지",
+      ],
+      answer: 1,
+      explanation:
+        "흐름이 명확해야 결과를 재현하고 개선할 수 있습니다. 나머지는 필수 검증 포인트가 아닙니다.",
+    },
+    {
+      question: `리뷰 단계에서 반드시 남겨야 할 것은 무엇인가요?`,
+      options: [
+        "도구 설치 순서",
+        "막힌 지점과 해결 시도 기록",
+        "팀 빌딩 아이디어",
+        "향후 전혀 다른 주제 제안",
+      ],
+      answer: 1,
+      explanation:
+        "막힌 지점과 해결 시도를 기록해야 다음 실습이나 동료에게 인수인계할 때 재현성을 확보할 수 있습니다.",
+    },
+    {
+      question: `${topic.goal}을(를) 향한 다음 액션으로 가장 적절한 것은?`,
+      options: [
+        "새로운 도구를 무조건 도입한다",
+        "오늘 실습을 간단히 공유하고 피드백을 받는다",
+        "완전히 다른 분야를 공부한다",
+        "모든 산출물을 삭제한다",
+      ],
+      answer: 1,
+      explanation:
+        "작은 공유와 피드백이 다음 개선을 위한 실질적 인사이트를 줍니다. 다른 선택지는 목표 달성에 도움이 되지 않습니다.",
+    },
+    {
+      question: `${current.title} 맥락에서 리스크를 가장 잘 줄이는 방법은?`,
+      options: [
+        "최대한 많은 기능을 한 번에 넣는다",
+        "작은 단위로 실험하고 측정한다",
+        "아무 수정 없이 기다린다",
+        "문서 없이 진행한다",
+      ],
+      answer: 1,
+      explanation:
+        "작은 단위 실험과 측정이 리스크를 통제합니다. 나머지는 리스크를 키우거나 통제 불가 상태를 만듭니다.",
+    },
+    {
+      question: `실습 결과를 다음 세션에 활용하는 가장 좋은 방법은?`,
+      options: [
+        "학습 노트를 삭제한다",
+        "요약과 코드/산출물을 버전 관리에 남긴다",
+        "전혀 다른 주제로 넘어간다",
+        "팀과 공유하지 않는다",
+      ],
+      answer: 1,
+      explanation:
+        "버전 관리에 남겨야 후속 실습과 협업에 활용할 수 있습니다.",
+    },
+  ];
+
+  const quiz: LearningContentPayload["quiz"] = [];
+  for (let i = 0; i < Math.min(quizCount, 12); i++) {
+    const item = quizBase[i % quizBase.length];
+    quiz.push({ ...item });
+  }
+
+  const resources = [
+    `${topic.title} 기본 가이드 - ${topic.description || "핵심 개념을 빠르게 복습하는 요약본"}`,
+    `${current.title} 업무 체크리스트 - 바로 적용 가능한 단계와 질문`,
+  ];
+
+  return {
+    slides,
+    objectives,
+    quiz,
+    resources,
+  };
+}
+
 function buildFallbackResult(context: LearningContext, reason: string): GenerationResult {
   console.warn("[Generate Content] Fallback content 사용:", reason);
 
-  const data = buildFallbackContent({
+  const data = buildFallbackContentV2({
     topic: {
       title: context.topic.title,
       goal: context.topic.goal,
@@ -637,6 +942,7 @@ function buildFallbackResult(context: LearningContext, reason: string): Generati
       ? { title: context.previous.title, description: context.previous.description }
       : null,
     dayNumber: context.dayNumber,
+    quizCount: context.quizCount,
   });
 
   return {
@@ -757,13 +1063,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { topicId, dayNumber, force } = await req.json();
+    const { topicId, dayNumber, force, quizCount } = await req.json();
     if (!topicId || !dayNumber) {
       return NextResponse.json(
         { error: "Topic ID와 dayNumber는 필수입니다" },
         { status: 400 },
       );
     }
+
+    const desiredQuizCount = (() => {
+      const parsed = Number(quizCount);
+      if (Number.isFinite(parsed)) {
+        return Math.min(12, Math.max(6, Math.round(parsed)));
+      }
+      return 6;
+    })();
 
     await ensureGrowthContentAllowed(user.id);
 
@@ -796,6 +1110,7 @@ export async function POST(req: NextRequest) {
       curriculum: currentCurriculum,
       previous,
       dayNumber,
+      quizCount: desiredQuizCount,
     };
 
     let generationResult: GenerationResult;
@@ -830,7 +1145,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 슬라이드 길이 상한(500단어) 강제
-    const cappedData = enforceSlideLengthCap(generationResult.data, 500);
+    const cappedData = enforceSlideLengthCap(generationResult.data, 750);
 
     await ensureCurriculumColumns();
     await saveLearningContent(currentCurriculum.id, cappedData);

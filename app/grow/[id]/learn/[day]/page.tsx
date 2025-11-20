@@ -75,6 +75,9 @@ export default function LearnSessionPage({
   const [resources, setResources] = useState<string[]>([]);
   const [aiProvider, setAiProvider] = useState<string>("");
   const [aiModel, setAiModel] = useState<string>("");
+  const [quizPage, setQuizPage] = useState(0);
+  const QUIZ_PAGE_SIZE = 3;
+  const [isAddingQuiz, setIsAddingQuiz] = useState(false);
 
   // 시험 공부 주제인지 확인
   const isExamTopic = topic?.description ? (() => {
@@ -102,6 +105,9 @@ export default function LearnSessionPage({
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Quiz addition via chat
+  const [isWaitingForQuizCount, setIsWaitingForQuizCount] = useState(false);
 
   // Time tracking
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -211,6 +217,8 @@ export default function LearnSessionPage({
             setSlides(savedSlides);
             setObjectives(savedObjectives);
             setQuiz(savedQuiz);
+            setQuizAnswers(Array((savedQuiz || []).length).fill(-1));
+            setQuizPage(0);
             setResources(savedResources);
             // AI 정보는 저장되지 않았을 수 있으므로 기본값 사용
             setAiProvider("Stored");
@@ -270,6 +278,8 @@ export default function LearnSessionPage({
         setSlides(data.slides || []);
         setObjectives(data.objectives || []);
         setQuiz(data.quiz || []);
+        setQuizAnswers(Array((data.quiz || []).length).fill(-1));
+        setQuizPage(0);
         setResources(data.resources || []);
         setAiProvider(data.aiProvider || "GPT");
         setAiModel(data.aiModel || "gpt-5.1-2025-11-13");
@@ -317,6 +327,8 @@ export default function LearnSessionPage({
         setSlides(data.slides || []);
         setObjectives(data.objectives || []);
         setQuiz(data.quiz || []);
+        setQuizAnswers(Array((data.quiz || []).length).fill(-1));
+        setQuizPage(0);
         setResources(data.resources || []);
         setAiProvider(data.aiProvider || aiProvider);
         setAiModel(data.aiModel || aiModel);
@@ -335,12 +347,87 @@ export default function LearnSessionPage({
     }
   };
 
+  const handleAddQuizzes = () => {
+    if (isAddingQuiz || quiz.length >= 12) return;
+
+    // AI 튜터에게 질문하도록 메시지 추가
+    const maxAddable = 12 - quiz.length;
+    const tutorMessage: Message = {
+      role: "assistant",
+      content: `몇 문제를 추가할까요? 현재 ${quiz.length}문제가 있고, 최대 ${maxAddable}문제까지 추가할 수 있습니다. (예: "6문제" 또는 숫자만 입력)`,
+    };
+    setMessages(prev => [...prev, tutorMessage]);
+    setIsWaitingForQuizCount(true);
+  };
+
+  const generateAdditionalQuizzes = async (count: number) => {
+    if (isAddingQuiz) return;
+
+    const targetTotal = Math.min(12, quiz.length + count);
+    setIsAddingQuiz(true);
+    setShowQuizResults(false);
+
+    // AI 튜터 응답
+    const processingMessage: Message = {
+      role: "assistant",
+      content: `${count}문제를 추가 생성하고 있습니다... 잠시만 기다려주세요.`,
+    };
+    setMessages(prev => [...prev, processingMessage]);
+
+    try {
+      const response = await fetch("/api/growth/generate-content", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topicId: params.id,
+          dayNumber: parseInt(params.day),
+          force: true,
+          quizCount: targetTotal,
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const newQuiz = data.quiz || [];
+        setQuiz(newQuiz);
+        setQuizAnswers(Array(newQuiz.length).fill(-1));
+        setQuizPage(0);
+        setShowQuiz(true);
+
+        // 완료 메시지
+        const completedMessage: Message = {
+          role: "assistant",
+          content: `✅ ${count}문제가 추가되었습니다! 총 ${newQuiz.length}문제가 되었어요. (${Math.ceil(newQuiz.length / 3)}개의 슬라이드)`,
+        };
+        setMessages(prev => [...prev, completedMessage]);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage: Message = {
+          role: "assistant",
+          content: `❌ 퀴즈 추가에 실패했습니다: ${errorData.error || "알 수 없는 오류"}`,
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      }
+    } catch (error) {
+      console.error("Error adding quizzes:", error);
+      const errorMessage: Message = {
+        role: "assistant",
+        content: "❌ 퀴즈 추가 중 오류가 발생했습니다. 다시 시도해주세요.",
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsAddingQuiz(false);
+      setIsWaitingForQuizCount(false);
+    }
+  };
+
   const nextSlide = () => {
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(currentSlide + 1);
     } else {
       // Show quiz after last slide
       setShowQuiz(true);
+      setQuizPage(0);
+      setShowQuizResults(false);
     }
   };
 
@@ -410,12 +497,54 @@ export default function LearnSessionPage({
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const currentInput = input;
     setInput("");
     setIsSending(true);
 
     // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
+    }
+
+    // 퀴즈 추가 대기 상태일 때 숫자 파싱
+    if (isWaitingForQuizCount) {
+      const numberMatch = currentInput.match(/(\d+)/);
+      if (numberMatch) {
+        const count = parseInt(numberMatch[1]);
+        const maxAddable = 12 - quiz.length;
+
+        if (count <= 0) {
+          const errorMessage: Message = {
+            role: "assistant",
+            content: "1 이상의 숫자를 입력해주세요.",
+          };
+          setMessages(prev => [...prev, errorMessage]);
+          setIsSending(false);
+          return;
+        }
+
+        if (count > maxAddable) {
+          const errorMessage: Message = {
+            role: "assistant",
+            content: `최대 ${maxAddable}문제까지만 추가할 수 있습니다. 다시 입력해주세요.`,
+          };
+          setMessages(prev => [...prev, errorMessage]);
+          setIsSending(false);
+          return;
+        }
+
+        setIsSending(false);
+        generateAdditionalQuizzes(count);
+        return;
+      } else {
+        const errorMessage: Message = {
+          role: "assistant",
+          content: "숫자를 입력해주세요. (예: \"6\" 또는 \"6문제\")",
+        };
+        setMessages(prev => [...prev, errorMessage]);
+        setIsSending(false);
+        return;
+      }
     }
 
     try {
@@ -569,7 +698,9 @@ export default function LearnSessionPage({
                 {isGeneratingContent ? (
                   <div className="text-center space-y-2">
                     <p className="text-lg font-medium dark:text-white/90">AI가 학습 내용을 생성하고 있습니다</p>
-                    <p className="text-sm text-muted-foreground dark:text-white/70">약 2분 정도 소요됩니다</p>
+                    <p className="text-sm text-muted-foreground dark:text-white/70">
+                      약 {isExamTopic ? "3~4" : curriculum.estimatedTime >= 60 ? "3" : "2"}분 정도 소요됩니다
+                    </p>
                   </div>
                 ) : (
                   <button
@@ -822,9 +953,9 @@ export default function LearnSessionPage({
                                       ? children[0]
                                       : '';
                                     
-                                    // 가운뎃점이 있으면 줄바꿈 처리
-                                    if (text && text.includes('·')) {
-                                      const parts = text.split('·');
+                                    // 가운뎃점이 있더라도 단어를 쪼개지 않도록, 불릿 형태(앞뒤 공백)일 때만 분리
+                                    if (text && /\s·\s/.test(text)) {
+                                      const parts = text.split(/\s·\s/);
                                       return (
                                         <p className="my-3 leading-6 tracking-wide text-sm text-foreground/90 dark:text-white/80">
                                           {parts.map((part: string, idx: number) => {
@@ -955,69 +1086,116 @@ export default function LearnSessionPage({
                 ) : (
                   /* Quiz View */
                   <>
-                    <h2 className="text-2xl font-bold mb-6 dark:text-white/90">학습 확인 퀴즈</h2>
-
-                    <div className="flex-1 overflow-y-auto space-y-6 mb-8">
-                      {quiz.map((q, qIdx) => (
-                        <div key={qIdx} className="space-y-3">
-                          <p className="font-semibold dark:text-white/90">
-                            {qIdx + 1}. {q.question}
-                          </p>
-                          <div className="space-y-2">
-                            {q.options.map((option, oIdx) => (
-                              <button
-                                key={oIdx}
-                                onClick={() => handleQuizAnswer(qIdx, oIdx)}
-                                className={`w-full p-3 rounded-lg border-2 text-left transition-all backdrop-blur-md ${
-                                  quizAnswers[qIdx] === oIdx
-                                    ? "border-primary/60 dark:border-primary/40 bg-primary/20 dark:bg-primary/10 shadow-lg shadow-primary/20 dark:shadow-primary/30"
-                                    : "border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 hover:border-primary/50 dark:hover:border-primary/30 hover:bg-white/60 dark:hover:bg-white/10 shadow-lg shadow-black/5 dark:shadow-black/15"
-                                } ${
-                                  showQuizResults
-                                    ? oIdx === q.answer
-                                      ? "border-green-500/60 dark:border-green-500/40 bg-green-500/20 dark:bg-green-500/10"
-                                      : quizAnswers[qIdx] === oIdx
-                                      ? "border-red-500/60 dark:border-red-500/40 bg-red-500/20 dark:bg-red-500/10"
-                                      : ""
-                                    : ""
-                                }`}
-                                disabled={showQuizResults}
-                              >
-                                <span className="dark:text-white/90">{option}</span>
-                              </button>
-                            ))}
-                          </div>
-                          {showQuizResults && (
-                            <p className="text-sm text-muted-foreground dark:text-white/80 mt-2">
-                              ✓ {q.explanation}
-                            </p>
+                    {/* Quiz Header */}
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <h2 className="text-2xl font-bold dark:text-white/90">학습 확인 퀴즈</h2>
+                        <p className="text-sm text-muted-foreground dark:text-white/70 mt-1">
+                          총 {quiz.length}문제 · 페이지 {quizPage + 1} / {Math.ceil(quiz.length / QUIZ_PAGE_SIZE)}
+                        </p>
+                      </div>
+                      {quiz.length < 12 && (
+                        <button
+                          onClick={handleAddQuizzes}
+                          disabled={isAddingQuiz}
+                          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border ${isExamTopic ? 'border-blue-200/50 bg-gradient-to-br from-blue-100/70 to-cyan-100/70 text-blue-500 hover:from-blue-100/80 hover:to-cyan-100/80 dark:from-blue-500/20 dark:to-cyan-500/20 dark:border-blue-400/30 dark:text-blue-400 dark:hover:from-blue-500/30 dark:hover:to-cyan-500/30 shadow-lg shadow-blue-500/20' : 'border-cyan-200/50 bg-gradient-to-br from-cyan-100/70 to-blue-100/70 text-cyan-500 hover:from-cyan-100/80 hover:to-blue-100/80 dark:from-cyan-500/20 dark:to-blue-500/20 dark:border-cyan-400/30 dark:text-cyan-400 dark:hover:from-cyan-500/30 dark:hover:to-blue-500/30 shadow-lg shadow-cyan-500/20'} backdrop-blur-md transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                          {isAddingQuiz ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-4 w-4" />
                           )}
-                        </div>
-                      ))}
+                          퀴즈 추가
+                        </button>
+                      )}
                     </div>
 
+                    {/* Quiz List - Paginated */}
+                    <div className="flex-1 overflow-y-auto space-y-6 mb-8">
+                      {quiz.slice(quizPage * QUIZ_PAGE_SIZE, quizPage * QUIZ_PAGE_SIZE + QUIZ_PAGE_SIZE).map((q, idx) => {
+                        const absoluteIndex = quizPage * QUIZ_PAGE_SIZE + idx;
+                        return (
+                          <div key={absoluteIndex} className="space-y-3">
+                            <p className="font-semibold dark:text-white/90">
+                              {absoluteIndex + 1}. {q.question}
+                            </p>
+                            <div className="space-y-2">
+                              {q.options.map((option, oIdx) => (
+                                <button
+                                  key={oIdx}
+                                  onClick={() => handleQuizAnswer(absoluteIndex, oIdx)}
+                                  className={`w-full p-3 rounded-lg border-2 text-left transition-all backdrop-blur-md ${
+                                    quizAnswers[absoluteIndex] === oIdx
+                                      ? "border-primary/60 dark:border-primary/40 bg-primary/20 dark:bg-primary/10 shadow-lg shadow-primary/20 dark:shadow-primary/30"
+                                      : "border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 hover:border-primary/50 dark:hover:border-primary/30 hover:bg-white/60 dark:hover:bg-white/10 shadow-lg shadow-black/5 dark:shadow-black/15"
+                                  } ${
+                                    showQuizResults
+                                      ? oIdx === q.answer
+                                        ? "border-green-500/60 dark:border-green-500/40 bg-green-500/20 dark:bg-green-500/10"
+                                        : quizAnswers[absoluteIndex] === oIdx
+                                        ? "border-red-500/60 dark:border-red-500/40 bg-red-500/20 dark:bg-red-500/10"
+                                        : ""
+                                      : ""
+                                  }`}
+                                  disabled={showQuizResults}
+                                >
+                                  <span className="dark:text-white/90">{option}</span>
+                                </button>
+                              ))}
+                            </div>
+                            {showQuizResults && (
+                              <p className="text-sm text-muted-foreground dark:text-white/80 mt-2">
+                                ✓ {q.explanation}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Quiz Navigation */}
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
-                        <Button 
-                          variant="outline" 
-                          onClick={prevSlide} 
-                          className="gap-2 border-2 border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md text-foreground hover:bg-white/60 dark:hover:bg-white/10 transition-all shadow-lg shadow-black/8 dark:shadow-black/15"
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                          돌아가기
-                        </Button>
-                        {!showQuizResults ? (
+                        {quizPage === 0 ? (
+                          <Button
+                            variant="outline"
+                            onClick={prevSlide}
+                            className="gap-2 border-2 border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md text-foreground hover:bg-white/60 dark:hover:bg-white/10 transition-all shadow-lg shadow-black/8 dark:shadow-black/15"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                            슬라이드로
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            onClick={() => setQuizPage(quizPage - 1)}
+                            className="gap-2 border-2 border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md text-foreground hover:bg-white/60 dark:hover:bg-white/10 transition-all shadow-lg shadow-black/8 dark:shadow-black/15"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                            이전 페이지
+                          </Button>
+                        )}
+
+                        {quizPage < Math.ceil(quiz.length / QUIZ_PAGE_SIZE) - 1 ? (
+                          <Button
+                            onClick={() => setQuizPage(quizPage + 1)}
+                            className="gap-2 bg-white/60 dark:bg-white/10 backdrop-blur-md border-2 border-white/40 dark:border-white/20 text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15"
+                          >
+                            다음 페이지
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        ) : !showQuizResults ? (
                           <Button
                             onClick={submitQuiz}
-                            disabled={quizAnswers.length !== quiz.length}
-                            className="gap-2 bg-white/60 dark:bg-white/10 backdrop-blur-md border-2 border-white/40 dark:border-white/20 text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15"
+                            disabled={quizAnswers.some(a => a === -1)}
+                            className="gap-2 bg-white/60 dark:bg-white/10 backdrop-blur-md border-2 border-white/40 dark:border-white/20 text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 disabled:opacity-50"
                           >
                             제출하기
                             <CheckCircle2 className="h-4 w-4" />
                           </Button>
                         ) : (
-                          <Button 
-                            onClick={completeSession} 
+                          <Button
+                            onClick={completeSession}
                             className="gap-2 bg-white/60 dark:bg-white/10 backdrop-blur-md border-2 border-white/40 dark:border-white/20 text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15"
                           >
                             학습 완료
