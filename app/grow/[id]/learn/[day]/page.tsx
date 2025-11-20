@@ -792,28 +792,41 @@ export default function LearnSessionPage({
                         let keyPoints: string[] = [];
                         let contentToRender = raw;
 
-                        // 요점 정리 섹션 찾기 - 다양한 형식 지원
+                        // 요점 정리 섹션 찾기 - 표준화된 형식 우선
                         if (raw.includes('요점 정리') || raw.includes('📌') || raw.includes('★')) {
-                          // 다양한 요점 정리 패턴 매칭:
-                          // - "---\n★ 요점 정리:" 또는 "---\n\n★ 요점 정리:"
-                          // - "📌 요점 정리" 또는 "**📌 요점 정리**"
-                          const keyPointsMatch = raw.match(/(?:\n+\s*-{3,}\s*\n+|\n+)\*?\*?[★📌]\s*요점\s*정리\*?\*?[:\s]*\n([\s\S]*?)$/);
+                          // 표준 형식: ---\n\n📌 요점 정리:\n- 항목
+                          // 레거시 형식도 지원: ★ 요점 정리, **📌 요점 정리:**
+                          const keyPointsMatch = raw.match(/\n*-{3,}\s*\n+\*?\*?[★📌]?\s*요점\s*정리\*?\*?[:\s]*\n([\s\S]*?)$/);
                           if (keyPointsMatch) {
                             const keyPointsText = keyPointsMatch[1].trim();
-                            // bullet points 추출 (·, •, -, * 지원)
+                            // bullet points 추출 (-, ·, •, * 지원 - 하이픈 우선)
                             keyPoints = keyPointsText
                               .split(/\n/)
                               .map(line => line.trim())
-                              .filter(line => /^[·•\-\*]/.test(line))
-                              .map(line => line.replace(/^[·•\-\*]\s*/, '').trim())
+                              .filter(line => /^[\-·•\*]/.test(line))
+                              .map(line => line.replace(/^[\-·•\*]\s*/, '').trim())
                               .filter(Boolean);
 
-                            // 본문에서 요점 정리 섹션 제거 (--- 포함)
-                            // 먼저 --- 이후 전체를 제거
+                            // 본문에서 --- 이후 전체 제거
                             contentToRender = raw
-                              .replace(/\n+\s*-{3,}\s*\n+[\s\S]*$/, '')  // --- 이후 전부 제거
-                              .replace(/\n+\*?\*?[★📌]\s*요점\s*정리\*?\*?[:\s]*\n[\s\S]*$/, '')  // 요점 정리 이후 제거 (--- 없는 경우)
+                              .replace(/\n*-{3,}\s*\n+[\s\S]*$/, '')
                               .trim();
+                          } else {
+                            // --- 없이 요점 정리만 있는 경우
+                            const legacyMatch = raw.match(/\n+\*?\*?[★📌]\s*요점\s*정리\*?\*?[:\s]*\n([\s\S]*?)$/);
+                            if (legacyMatch) {
+                              const keyPointsText = legacyMatch[1].trim();
+                              keyPoints = keyPointsText
+                                .split(/\n/)
+                                .map(line => line.trim())
+                                .filter(line => /^[\-·•\*]/.test(line))
+                                .map(line => line.replace(/^[\-·•\*]\s*/, '').trim())
+                                .filter(Boolean);
+
+                              contentToRender = raw
+                                .replace(/\n+\*?\*?[★📌]\s*요점\s*정리\*?\*?[:\s]*\n[\s\S]*$/, '')
+                                .trim();
+                            }
                           }
                         }
                         
