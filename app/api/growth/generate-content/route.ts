@@ -5,7 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { ensureGrowthContentAllowed } from "@/lib/plan";
 import { generateWithAI, UnifiedMessage } from "@/lib/ai-router";
 import { aiLimiter } from "@/lib/rate-limiter";
-import pdf from "pdf-parse";
 
 // ===== 타입 정의 =====
 interface Slide {
@@ -95,7 +94,9 @@ async function extractTextFromPDF(url: string): Promise<string> {
     }
     
     const buffer = Buffer.from(await response.arrayBuffer());
-    const data = await pdf(buffer);
+    // pdf-parse는 CommonJS 모듈이므로 require 사용
+    const pdfParse = require("pdf-parse");
+    const data = await pdfParse(buffer);
     const text = data.text.trim();
     
     console.log("[Generate Content] PDF 텍스트 추출 완료, 길이:", text.length);
