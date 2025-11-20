@@ -94,3 +94,7 @@ npx prisma migrate deploy
 ### "Prisma Client not generated" 오류
 → `package.json`의 `postinstall` 스크립트 확인 (`prisma generate` 포함되어야 함)
 
+
+
+
+

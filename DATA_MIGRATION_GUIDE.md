@@ -148,3 +148,7 @@ npx prisma migrate dev --name init_postgres
 ### 파일 업로드 실패
 → Vercel Blob Storage 토큰 권한을 확인하세요 (read-write 권한 필요)
 
+
+
+
+

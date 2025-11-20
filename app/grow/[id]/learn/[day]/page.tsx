@@ -792,13 +792,23 @@ export default function LearnSessionPage({
                         let keyPoints: string[] = [];
                         let contentToRender = raw;
 
+                        // 디버깅: 원본 콘텐츠 확인
+                        console.log('[KeyPoints Debug] 원본 콘텐츠:', raw.substring(0, 500));
+                        console.log('[KeyPoints Debug] 포함 여부 - 요점 정리:', raw.includes('요점 정리'));
+                        console.log('[KeyPoints Debug] 포함 여부 - 📌:', raw.includes('📌'));
+                        console.log('[KeyPoints Debug] 포함 여부 - ---:', raw.includes('---'));
+
                         // 요점 정리 섹션 찾기 - 표준화된 형식 우선
                         if (raw.includes('요점 정리') || raw.includes('📌') || raw.includes('★')) {
                           // 표준 형식: ---\n\n📌 요점 정리:\n- 항목
-                          // 레거시 형식도 지원: ★ 요점 정리, **📌 요점 정리:**
                           const keyPointsMatch = raw.match(/\n*-{3,}\s*\n+\*?\*?[★📌]?\s*요점\s*정리\*?\*?[:\s]*\n([\s\S]*?)$/);
+
+                          console.log('[KeyPoints Debug] 표준 형식 매칭:', !!keyPointsMatch);
+
                           if (keyPointsMatch) {
                             const keyPointsText = keyPointsMatch[1].trim();
+                            console.log('[KeyPoints Debug] 추출된 요점 정리 텍스트:', keyPointsText);
+
                             // bullet points 추출 (-, ·, •, * 지원 - 하이픈 우선)
                             keyPoints = keyPointsText
                               .split(/\n/)
@@ -807,6 +817,8 @@ export default function LearnSessionPage({
                               .map(line => line.replace(/^[\-·•\*]\s*/, '').trim())
                               .filter(Boolean);
 
+                            console.log('[KeyPoints Debug] 파싱된 포인트:', keyPoints);
+
                             // 본문에서 --- 이후 전체 제거
                             contentToRender = raw
                               .replace(/\n*-{3,}\s*\n+[\s\S]*$/, '')
@@ -814,8 +826,13 @@ export default function LearnSessionPage({
                           } else {
                             // --- 없이 요점 정리만 있는 경우
                             const legacyMatch = raw.match(/\n+\*?\*?[★📌]\s*요점\s*정리\*?\*?[:\s]*\n([\s\S]*?)$/);
+
+                            console.log('[KeyPoints Debug] 레거시 형식 매칭:', !!legacyMatch);
+
                             if (legacyMatch) {
                               const keyPointsText = legacyMatch[1].trim();
+                              console.log('[KeyPoints Debug] 레거시 추출된 텍스트:', keyPointsText);
+
                               keyPoints = keyPointsText
                                 .split(/\n/)
                                 .map(line => line.trim())
@@ -823,12 +840,16 @@ export default function LearnSessionPage({
                                 .map(line => line.replace(/^[\-·•\*]\s*/, '').trim())
                                 .filter(Boolean);
 
+                              console.log('[KeyPoints Debug] 레거시 파싱된 포인트:', keyPoints);
+
                               contentToRender = raw
                                 .replace(/\n+\*?\*?[★📌]\s*요점\s*정리\*?\*?[:\s]*\n[\s\S]*$/, '')
                                 .trim();
                             }
                           }
                         }
+
+                        console.log('[KeyPoints Debug] 최종 keyPoints 개수:', keyPoints.length);
                         
                         // Readability formatting: keep markdown emphasis and reflow sentences into short paragraphs
                         const formatForReadability = (text: string) => {
