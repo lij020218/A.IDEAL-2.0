@@ -793,7 +793,10 @@ export default function LearnSessionPage({
                         let contentToRender = raw;
 
                         // 디버깅: 원본 콘텐츠 확인
-                        console.log('[KeyPoints Debug] 원본 콘텐츠:', raw.substring(0, 500));
+                        const dashIndex = raw.lastIndexOf('---');
+                        console.log('[KeyPoints Debug] 원본 콘텐츠 전체 길이:', raw.length);
+                        console.log('[KeyPoints Debug] --- 마지막 위치:', dashIndex);
+                        console.log('[KeyPoints Debug] --- 이후 내용:', dashIndex >= 0 ? raw.substring(dashIndex) : 'N/A');
                         console.log('[KeyPoints Debug] 포함 여부 - 요점 정리:', raw.includes('요점 정리'));
                         console.log('[KeyPoints Debug] 포함 여부 - 📌:', raw.includes('📌'));
                         console.log('[KeyPoints Debug] 포함 여부 - ---:', raw.includes('---'));
