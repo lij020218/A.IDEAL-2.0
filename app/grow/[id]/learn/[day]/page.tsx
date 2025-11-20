@@ -789,51 +789,28 @@ export default function LearnSessionPage({
                         // Preprocess content to extract key points
                         const raw = slides[currentSlide]?.content || '';
 
-                        // Split content by horizontal rule (---) - more flexible matching
-                        // Match --- with optional whitespace before/after and newlines
-                        const hrSplit = raw.split(/\n+\s*---\s*\n+/);
-                        const mainContent = hrSplit[0] || '';
-                        const keyPointsSection = hrSplit.length > 1 ? hrSplit.slice(1).join('\n---\n') : '';
-
-                        // Extract key points if they exist (look for 📌 요점 정리: with optional ** markdown)
                         let keyPoints: string[] = [];
-                        let contentToRender = mainContent;
+                        let contentToRender = raw;
 
-                        // More flexible matching - handle **📌 요점 정리:** or 📌 요점 정리:
-                        if (keyPointsSection.includes('요점 정리') || keyPointsSection.includes('📌')) {
-                          // Extract the key points content - handle both **📌 요점 정리:** and plain format
-                          const keyPointsMatch = keyPointsSection.match(/\*?\*?📌\s*요점\s*정리\*?\*?[:\s]*\n([\s\S]*)/);
+                        // 요점 정리 섹션 찾기 - --- 유무와 관계없이 찾음
+                        if (raw.includes('요점 정리') || raw.includes('📌')) {
+                          // 요점 정리 패턴 매칭 (마크다운 강조 포함)
+                          const keyPointsMatch = raw.match(/\n*\*?\*?📌\s*요점\s*정리\*?\*?[:\s]*\n([\s\S]*?)$/);
                           if (keyPointsMatch) {
                             const keyPointsText = keyPointsMatch[1].trim();
-                            // Split by middle dot (·) or bullet points
+                            // bullet points 추출
                             keyPoints = keyPointsText
                               .split(/\n/)
                               .map(line => line.trim())
-                              .filter(line => line.startsWith('·') || line.startsWith('•') || line.startsWith('-') || line.startsWith('*'))
+                              .filter(line => /^[·•\-\*]/.test(line))
                               .map(line => line.replace(/^[·•\-\*]\s*/, '').trim())
                               .filter(Boolean);
-                          }
-                        }
 
-                        // If no key points found in section after ---, check the whole content
-                        if (keyPoints.length === 0 && raw.includes('요점 정리')) {
-                          const fullMatch = raw.match(/\*?\*?📌\s*요점\s*정리\*?\*?[:\s]*\n([\s\S]*?)$/);
-                          if (fullMatch) {
-                            const keyPointsText = fullMatch[1].trim();
-                            keyPoints = keyPointsText
-                              .split(/\n/)
-                              .map(line => line.trim())
-                              .filter(line => line.startsWith('·') || line.startsWith('•') || line.startsWith('-') || line.startsWith('*'))
-                              .map(line => line.replace(/^[·•\-\*]\s*/, '').trim())
-                              .filter(Boolean);
-                            // Remove key points section from main content
-                            contentToRender = raw.replace(/\n+\s*---\s*\n+[\s\S]*$/, '').replace(/\n+\*?\*?📌\s*요점\s*정리\*?\*?[:\s]*\n[\s\S]*$/, '');
+                            // 본문에서 요점 정리 섹션 제거
+                            contentToRender = raw
+                              .replace(/\n+\s*---\s*\n+[\s\S]*$/, '')  // --- 이후 전부 제거
+                              .replace(/\n+\*?\*?📌\s*요점\s*정리\*?\*?[:\s]*\n[\s\S]*$/, '');  // 요점 정리 이후 제거
                           }
-                        }
-
-                        if (keyPoints.length === 0) {
-                          // No key points found, render all as main content
-                          contentToRender = raw;
                         }
                         
                         // Readability formatting: keep markdown emphasis and reflow sentences into short paragraphs
@@ -863,54 +840,12 @@ export default function LearnSessionPage({
                           <>
                             <ReactMarkdown
                                 components={{
-                                  ul: ({ node, ...props }: any) => {
-                                    const children = props.children;
-                                    // 리스트 항목들을 가운뎃점으로 연결된 형태로 렌더링
-                                    if (Array.isArray(children)) {
-                                      const items = children.filter((child: any) => child?.type === 'li');
-                                      if (items.length > 0 && items.length <= 5) {
-                                        // 짧은 리스트(5개 이하)는 가운뎃점으로 연결
-                                        return (
-                                          <div className="my-4">
-                                            <p className="text-base leading-7 text-foreground/90 dark:text-white/80">
-                                              {items.map((item: any, idx: number) => {
-                                                const text = typeof item.props?.children === 'string' 
-                                                  ? item.props.children 
-                                                  : typeof item.props?.children?.[0] === 'string'
-                                                  ? item.props.children[0]
-                                                  : '';
-                                                return (
-                                                  <span key={idx}>
-                                                    {text.replace(/^[-*•]\s*/, '').trim()}
-                                                    {idx < items.length - 1 && <span className="mx-2 text-primary/60 dark:text-primary/40">·</span>}
-                                                  </span>
-                                                );
-                                              })}
-                                            </p>
-                                          </div>
-                                        );
-                                      }
-                                    }
-                                    // 긴 리스트나 복잡한 구조는 기본 ul 사용
-                                    return <ul className="space-y-3 my-4" {...props} />;
-                                  },
-                                  li: ({ node, ...props }: any) => {
-                                    // 기본 li 렌더링 (ul에서 처리되지 않은 경우)
-                                    const children = props.children;
-                                    const text = typeof children === 'string' 
-                                      ? children 
-                                      : typeof children?.[0] === 'string'
-                                      ? children[0]
-                                      : '';
-                                    
-                                    // 짧은 항목은 인라인으로, 긴 항목은 블록으로
-                                    if (text && text.length < 100) {
-                                      return (
-                                        <li className="leading-relaxed inline" {...props} />
-                                      );
-                                    }
-                                    return <li className="leading-relaxed" {...props} />;
-                                  },
+                                  ul: ({ node, ...props }: any) => (
+                                    <ul className="space-y-2 my-4 list-disc list-inside" {...props} />
+                                  ),
+                                  li: ({ node, ...props }: any) => (
+                                    <li className="leading-relaxed text-sm" {...props} />
+                                  ),
                                   strong: ({ node, ...props }: any) => {
                                     const content = typeof props.children === 'string' 
                                       ? props.children 
@@ -975,54 +910,9 @@ export default function LearnSessionPage({
                                   hr: ({ node, ...props }) => (
                                     <hr className="my-6 border-primary/20" {...props} />
                                   ),
-                                  p: ({ node, ...props }: any) => {
-                                    const children = props.children;
-                                    const text = typeof children === 'string' 
-                                      ? children 
-                                      : typeof children?.[0] === 'string'
-                                      ? children[0]
-                                      : '';
-                                    
-                                    // 가운뎃점이 있더라도 단어를 쪼개지 않도록, 불릿 형태(앞뒤 공백)일 때만 분리
-                                    if (text && /\s·\s/.test(text)) {
-                                      const parts = text.split(/\s·\s/);
-                                      return (
-                                        <p className="my-3 leading-6 tracking-wide text-sm text-foreground/90 dark:text-white/80">
-                                          {parts.map((part: string, idx: number) => {
-                                            const trimmed = part.trim();
-                                            if (!trimmed) return null;
-                                            return (
-                                              <span key={idx} className="block">
-                                                {idx > 0 && <span className="text-primary/60 dark:text-primary/40 mr-2">·</span>}
-                                                {trimmed}
-                                              </span>
-                                            );
-                                          })}
-                                        </p>
-                                      );
-                                    }
-                                    
-                                    // 짧은 문장들이 연속되어 있을 때 가운뎃점으로 연결
-                                    if (text && text.length < 200) {
-                                      // 문장이 2-3개로 나뉘어 있고 짧을 때
-                                      const sentences = text.split(/[\.!?…]/).filter((s: string) => s.trim().length > 10 && s.trim().length < 80);
-                                      if (sentences.length >= 2 && sentences.length <= 4) {
-                                        return (
-                                          <p className="my-3 leading-6 tracking-wide text-sm text-foreground/90 dark:text-white/80">
-                                            {sentences.map((sentence: string, idx: number) => (
-                                              <span key={idx} className="block">
-                                                {idx > 0 && <span className="text-primary/60 dark:text-primary/40 mr-2">·</span>}
-                                                {sentence.trim()}
-                                              </span>
-                                            ))}
-                                          </p>
-                                        );
-                                      }
-                                    }
-                                    
-                                    // 기본 렌더링
-                                    return <p className="my-3 leading-6 tracking-wide whitespace-pre-line text-sm" {...props} />;
-                                  },
+                                  p: ({ node, ...props }: any) => (
+                                    <p className="my-3 leading-6 tracking-wide whitespace-pre-line text-sm" {...props} />
+                                  ),
                                   blockquote: ({ node, ...props }: any) => {
                                     const content = props.children;
                                     const text = typeof content === 'string'
@@ -1078,14 +968,13 @@ export default function LearnSessionPage({
                                         요점 정리
                                       </h3>
                                     </div>
-                                    <div className="space-y-2">
+                                    <ul className="space-y-2 list-disc list-inside">
                                       {keyPoints.map((point, idx) => (
-                                        <div key={idx} className="flex items-start gap-2 text-sm leading-relaxed">
-                                          <span className="text-emerald-600 dark:text-emerald-400 mt-0.5">·</span>
-                                          <span className="text-emerald-800 dark:text-emerald-100 flex-1">{point}</span>
-                                        </div>
+                                        <li key={idx} className="text-sm leading-relaxed text-emerald-800 dark:text-emerald-100">
+                                          {point}
+                                        </li>
                                       ))}
-                                    </div>
+                                    </ul>
                                   </div>
                                 </>
                               )}
