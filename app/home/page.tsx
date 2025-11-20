@@ -67,6 +67,7 @@ interface GrowthTopic {
   duration: number;
   goal: string;
   progress: number;
+  progressPercentage?: number;
   createdAt: string;
 }
 
@@ -112,10 +113,18 @@ export default function Home() {
 
   const fetchGrowthTopics = async () => {
     try {
-      const response = await fetch("/api/growth/topics/public");
+      const response = await fetch("/api/growth/topics");
       if (response.ok) {
         const data = await response.json();
-        setGrowthTopics(data.topics || []);
+        const topics = (data.topics || []).map((topic: any) => ({
+          ...topic,
+          // private API returns progressPercentage; normalize to progress for UI
+          progress: typeof topic.progress === "number" ? topic.progress : (topic.progressPercentage ?? 0),
+        }));
+        setGrowthTopics(topics);
+      } else if (response.status === 401) {
+        // unauthorized users shouldn't see others' topics; show empty
+        setGrowthTopics([]);
       }
     } catch (error) {
       console.error("Error fetching growth topics:", error);
