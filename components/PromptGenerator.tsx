@@ -71,6 +71,7 @@ export default function PromptGenerator({ initialTopic = "", existingPromptData,
   // 아이콘 회전 애니메이션을 위한 ref와 useEffect
   const iconIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hasAutoSubmittedRef = useRef(false);
 
   useEffect(() => {
     // cleanup 함수
@@ -143,12 +144,13 @@ export default function PromptGenerator({ initialTopic = "", existingPromptData,
 
   // Auto-submit when initialTopic is provided (but not when editing)
   useEffect(() => {
-    if (initialTopic && initialTopic.trim() && !existingPromptData) {
+    if (initialTopic && initialTopic.trim() && !existingPromptData && !hasAutoSubmittedRef.current) {
+      hasAutoSubmittedRef.current = true;
       setTopic(initialTopic);
       // Automatically generate questions
       handleTopicSubmitWithValue(initialTopic);
     }
-  }, [initialTopic]);
+  }, [initialTopic, existingPromptData]);
 
   const handleTopicSubmitWithValue = async (topicValue: string) => {
     if (!topicValue.trim()) return;
