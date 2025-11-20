@@ -57,10 +57,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Use the optimized multi-AI router
-    // QUESTION_GENERATION automatically routes to GPT-5
+    // Use GPT-5 Mini for question generation (fast and efficient)
     // GPT-5는 항상 temperature 1로 고정, max_tokens는 설정하지 않음
+    const miniModel = process.env.OPENAI_MINI_MODEL || "gpt-5-mini-2025-08-07";
     console.log("[generate-questions] Creating prompt messages...");
+    console.log("[generate-questions] Using model:", miniModel);
     const messages = createQuestionGenerationPrompt(topic, existingPrompt);
     console.log("[generate-questions] Messages created, calling AI...");
 
@@ -69,7 +70,8 @@ export async function POST(req: NextRequest) {
       messages,
       {
         // temperature는 GPT-5에서 무시됨 (항상 1로 고정)
-        jsonMode: true
+        jsonMode: true,
+        model: miniModel // GPT-5 Mini 명시적 지정
       }
     );
 

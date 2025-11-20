@@ -911,43 +911,6 @@ export default function LearnSessionPage({
                         // Render content normally (no image processing)
                         return (
                           <>
-                            {/* 이전 학습 연결 (previous_lesson_reference) */}
-                            {currentSlideData.previous_lesson_reference && currentSlide > 0 && (
-                              <div className="mb-6 p-4 rounded-lg bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/40">
-                                <div className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-2 uppercase tracking-wide">
-                                  📚 이전 학습과의 연결
-                                </div>
-                                <p className="text-sm text-blue-800 dark:text-blue-100 mb-1">
-                                  {currentSlideData.previous_lesson_reference.brief_summary}
-                                </p>
-                                <p className="text-xs text-blue-600 dark:text-blue-200 italic">
-                                  → {currentSlideData.previous_lesson_reference.connection_sentence}
-                                </p>
-                              </div>
-                            )}
-
-                            {/* 시안 글래스 핵심 개념 카드들 (cards) */}
-                            {currentSlideData.cards && currentSlideData.cards.length > 0 && (
-                              <div className="space-y-3 mb-6">
-                                {currentSlideData.cards.map((card, idx) => (
-                                  <div
-                                    key={idx}
-                                    className="p-4 rounded-xl border-2 bg-cyan-50/60 dark:bg-cyan-900/20 backdrop-blur-md border-cyan-300/60 dark:border-cyan-600/40 shadow-lg shadow-cyan-500/10 dark:shadow-cyan-500/5"
-                                  >
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <span className="text-sm">💎</span>
-                                      <h4 className="text-sm font-bold text-cyan-800 dark:text-cyan-200">
-                                        {card.card_title}
-                                      </h4>
-                                    </div>
-                                    <p className="text-sm text-cyan-900 dark:text-cyan-100 leading-relaxed">
-                                      {card.card_content}
-                                    </p>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-
                             <ReactMarkdown
                                 components={{
                                   ul: ({ node, ...props }: any) => (

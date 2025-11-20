@@ -98,9 +98,10 @@ async function generateWithGPT(
     temperature?: number;
     jsonMode?: boolean;
     maxTokens?: number; // 프롬프트 실행 등에서 응답 시간 단축을 위해 사용 (max_completion_tokens로 변환됨)
+    model?: string; // 특정 모델 지정 (예: GPT-5 Mini)
   } = {}
 ): Promise<UnifiedResponse> {
-  const model = process.env.OPENAI_MODEL || "gpt-5.1-2025-11-13";
+  const model = options.model || process.env.OPENAI_MODEL || "gpt-5.1-2025-11-13";
 
   console.log("[AI Router] Generating with GPT");
   console.log("[AI Router] Model:", model);
@@ -459,6 +460,7 @@ export async function generateWithAI(
     temperature?: number;
     jsonMode?: boolean;
     maxTokens?: number; // 프롬프트 실행 등에서 응답 시간 단축을 위해 사용
+    model?: string; // 특정 모델 지정 (예: GPT-5 Mini)
   } = {}
 ): Promise<UnifiedResponse> {
   switch (provider) {
@@ -503,6 +505,7 @@ export async function generateForTask(
   options: {
     temperature?: number;
     jsonMode?: boolean;
+    model?: string; // 특정 모델 지정 (예: GPT-5 Mini)
   } = {}
 ): Promise<UnifiedResponse> {
   const provider = AI_TASK_MAPPING[taskType];

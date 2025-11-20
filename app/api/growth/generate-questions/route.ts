@@ -43,7 +43,7 @@ JSON 형식으로 응답해주세요:
   ]
 }`;
 
-    // 질문 생성: GPT가 적합 (창의적 질문, 다양성)
+    // 질문 생성: GPT-5 Mini 사용 (빠르고 효율적)
     const messages: UnifiedMessage[] = [
       {
         role: "system",
@@ -58,9 +58,14 @@ JSON 형식으로 응답해주세요:
 
     let response;
     try {
+      // GPT-5 Mini 사용 (질문 생성에 최적화)
+      const miniModel = process.env.OPENAI_MINI_MODEL || "gpt-5-mini-2025-08-07";
+      console.log("[Generate Questions] Using model:", miniModel);
+
       response = await generateWithAI("gpt", messages, {
         temperature: 1, // GPT-5는 항상 1로 고정 (창의적 질문에 적합)
         jsonMode: true,
+        model: miniModel, // GPT-5 Mini 명시적 지정
       });
     } catch (error) {
       console.error("[Generate Questions] GPT error:", error instanceof Error ? error.message : String(error));

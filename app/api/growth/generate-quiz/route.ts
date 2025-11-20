@@ -185,12 +185,15 @@ export async function POST(req: NextRequest) {
       { role: "user", content: userPrompt },
     ];
 
-    // GPT-5.1 호출
-    const model = process.env.OPENAI_MODEL || "gpt-5.1-2025-11-13";
+    // GPT-5 Mini 호출 (퀴즈 생성에 최적화)
+    const miniModel = process.env.OPENAI_MINI_MODEL || "gpt-5-mini-2025-08-07";
+    console.log("[Generate Quiz] Using model:", miniModel);
+
     const response = await generateWithAI("gpt", messages, {
       temperature: 1, // GPT-5는 항상 1로 고정
       jsonMode: true,
       maxTokens: 4000,
+      model: miniModel, // GPT-5 Mini 명시적 지정
     });
 
     if (!response?.content) {
@@ -215,7 +218,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       quiz: parsed.quiz,
       aiProvider: "GPT",
-      aiModel: model,
+      aiModel: miniModel,
     });
   } catch (error) {
     console.error("[Generate Quiz] Error:", error);
