@@ -25,10 +25,40 @@ import {
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 
+interface Card {
+  card_title: string;
+  card_content: string;
+  style: "glass-cyan";
+}
+
+interface Summary {
+  text: string;
+  style: "glass-emerald";
+}
+
+interface PreviousLessonReference {
+  prev_lesson_id: string | null;
+  brief_summary: string;
+  connection_sentence: string;
+}
+
+interface Metadata {
+  estimated_study_time_min: number;
+  difficulty_level: "쉬움" | "보통" | "어려움";
+  source_reference?: string[];
+}
+
 interface Slide {
+  slide_id?: string;
+  lesson_id?: string;
+  sequence_number?: number;
   title: string;
   content: string;
-  summary?: string;
+  example?: string;
+  cards?: Card[];
+  summary?: Summary;
+  previous_lesson_reference?: PreviousLessonReference;
+  metadata?: Metadata;
 }
 
 interface Quiz {
@@ -876,9 +906,48 @@ export default function LearnSessionPage({
 
                         const content = formatForReadability(contentToRender);
 
+                        const currentSlideData = slides[currentSlide];
+
                         // Render content normally (no image processing)
                         return (
                           <>
+                            {/* 이전 학습 연결 (previous_lesson_reference) */}
+                            {currentSlideData.previous_lesson_reference && currentSlide > 0 && (
+                              <div className="mb-6 p-4 rounded-lg bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/40">
+                                <div className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-2 uppercase tracking-wide">
+                                  📚 이전 학습과의 연결
+                                </div>
+                                <p className="text-sm text-blue-800 dark:text-blue-100 mb-1">
+                                  {currentSlideData.previous_lesson_reference.brief_summary}
+                                </p>
+                                <p className="text-xs text-blue-600 dark:text-blue-200 italic">
+                                  → {currentSlideData.previous_lesson_reference.connection_sentence}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* 시안 글래스 핵심 개념 카드들 (cards) */}
+                            {currentSlideData.cards && currentSlideData.cards.length > 0 && (
+                              <div className="space-y-3 mb-6">
+                                {currentSlideData.cards.map((card, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="p-4 rounded-xl border-2 bg-cyan-50/60 dark:bg-cyan-900/20 backdrop-blur-md border-cyan-300/60 dark:border-cyan-600/40 shadow-lg shadow-cyan-500/10 dark:shadow-cyan-500/5"
+                                  >
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <span className="text-sm">💎</span>
+                                      <h4 className="text-sm font-bold text-cyan-800 dark:text-cyan-200">
+                                        {card.card_title}
+                                      </h4>
+                                    </div>
+                                    <p className="text-sm text-cyan-900 dark:text-cyan-100 leading-relaxed">
+                                      {card.card_content}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
                             <ReactMarkdown
                                 components={{
                                   ul: ({ node, ...props }: any) => (
@@ -998,8 +1067,23 @@ export default function LearnSessionPage({
                                 {content}
                               </ReactMarkdown>
 
-                              {/* 요점 정리 섹션 - 에메랄드 글래스 스타일 */}
-                              {keyPoints.length > 0 && (
+                              {/* 적용 예시 섹션 (example) */}
+                              {currentSlideData.example && (
+                                <div className="my-6 p-4 rounded-lg bg-purple-50/50 dark:bg-purple-900/20 border-2 border-purple-200/50 dark:border-purple-700/40">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <span className="text-sm">💡</span>
+                                    <h4 className="text-sm font-bold text-purple-800 dark:text-purple-200">
+                                      적용 예시
+                                    </h4>
+                                  </div>
+                                  <div className="text-sm text-purple-900 dark:text-purple-100 leading-relaxed whitespace-pre-wrap">
+                                    {currentSlideData.example}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* 요점 정리 섹션 - 에메랄드 글래스 스타일 (summary 우선, 없으면 keyPoints) */}
+                              {(currentSlideData.summary || keyPoints.length > 0) && (
                                 <>
                                   {/* 구분선 - 본문과 요점 정리 사이 */}
                                   <div className="my-8 flex items-center gap-4">
@@ -1016,14 +1100,20 @@ export default function LearnSessionPage({
                                         요점 정리
                                       </h3>
                                     </div>
-                                    <ul className="space-y-2.5">
-                                      {keyPoints.map((point, idx) => (
-                                        <li key={idx} className="flex items-start gap-2 text-sm leading-relaxed text-emerald-900 dark:text-emerald-100">
-                                          <span className="text-emerald-500 dark:text-emerald-400 mt-1.5 text-[6px]">●</span>
-                                          <span>{point}</span>
-                                        </li>
-                                      ))}
-                                    </ul>
+                                    {currentSlideData.summary ? (
+                                      <div className="text-sm leading-relaxed text-emerald-900 dark:text-emerald-100 whitespace-pre-wrap">
+                                        {currentSlideData.summary.text}
+                                      </div>
+                                    ) : (
+                                      <ul className="space-y-2.5">
+                                        {keyPoints.map((point, idx) => (
+                                          <li key={idx} className="flex items-start gap-2 text-sm leading-relaxed text-emerald-900 dark:text-emerald-100">
+                                            <span className="text-emerald-500 dark:text-emerald-400 mt-1.5 text-[6px]">●</span>
+                                            <span>{point}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
                                   </div>
                                 </>
                               )}
