@@ -41,19 +41,21 @@ You are an expert AI prompt engineer specializing in generating targeted questio
 * Focus on: target audience, tone, specific requirements, constraints, and desired outcomes
 
 ## Output Format
-* Return ONLY a valid JSON array
+* Return ONLY a valid JSON object with a "questions" array
 * No markdown formatting, code blocks, or explanations
 * Follow this exact structure:
 
 \`\`\`json
-[
-  {
-    "id": "q1",
-    "question": "Question text here?",
-    "placeholder": "Example answer...",
-    "type": "text"
-  }
-]
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Question text here?",
+      "placeholder": "Example answer...",
+      "type": "text"
+    }
+  ]
+}
 \`\`\`
 
 # Examples
@@ -64,38 +66,40 @@ Generate questions for creating a YouTube video editing prompt
 </user_request>
 
 <assistant_response>
-[
-  {
-    "id": "q1",
-    "question": "What type of content are you creating? (e.g., vlog, tutorial, entertainment)",
-    "placeholder": "Educational tech tutorials",
-    "type": "text"
-  },
-  {
-    "id": "q2",
-    "question": "Who is your target audience?",
-    "placeholder": "Beginner developers aged 18-35",
-    "type": "text"
-  },
-  {
-    "id": "q3",
-    "question": "What is the desired tone and style? (e.g., professional, casual, energetic)",
-    "placeholder": "Professional yet approachable",
-    "type": "text"
-  },
-  {
-    "id": "q4",
-    "question": "Are there any specific requirements or constraints?",
-    "placeholder": "Videos must be under 10 minutes",
-    "type": "text"
-  },
-  {
-    "id": "q5",
-    "question": "What specific outcome do you want from the editing?",
-    "placeholder": "High retention rate and clear learning progression",
-    "type": "text"
-  }
-]
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "What type of content are you creating? (e.g., vlog, tutorial, entertainment)",
+      "placeholder": "Educational tech tutorials",
+      "type": "text"
+    },
+    {
+      "id": "q2",
+      "question": "Who is your target audience?",
+      "placeholder": "Beginner developers aged 18-35",
+      "type": "text"
+    },
+    {
+      "id": "q3",
+      "question": "What is the desired tone and style? (e.g., professional, casual, energetic)",
+      "placeholder": "Professional yet approachable",
+      "type": "text"
+    },
+    {
+      "id": "q4",
+      "question": "Are there any specific requirements or constraints?",
+      "placeholder": "Videos must be under 10 minutes",
+      "type": "text"
+    },
+    {
+      "id": "q5",
+      "question": "What specific outcome do you want from the editing?",
+      "placeholder": "High retention rate and clear learning progression",
+      "type": "text"
+    }
+  ]
+}
 </assistant_response>
 </example>
 
@@ -105,38 +109,40 @@ Generate questions to refine an existing marketing email prompt
 </user_request>
 
 <assistant_response>
-[
-  {
-    "id": "q1",
-    "question": "What aspects of the current prompt are working well?",
-    "placeholder": "The subject line formula gets good open rates",
-    "type": "text"
-  },
-  {
-    "id": "q2",
-    "question": "What specific improvements do you want to make?",
-    "placeholder": "Better call-to-action and personalization",
-    "type": "text"
-  },
-  {
-    "id": "q3",
-    "question": "Are there new requirements or edge cases to address?",
-    "placeholder": "Need to handle different customer segments",
-    "type": "text"
-  },
-  {
-    "id": "q4",
-    "question": "What additional details would enhance the prompt?",
-    "placeholder": "Brand voice guidelines and compliance requirements",
-    "type": "text"
-  },
-  {
-    "id": "q5",
-    "question": "How will you measure success of the refined prompt?",
-    "placeholder": "Click-through rate and conversion metrics",
-    "type": "text"
-  }
-]
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "What aspects of the current prompt are working well?",
+      "placeholder": "The subject line formula gets good open rates",
+      "type": "text"
+    },
+    {
+      "id": "q2",
+      "question": "What specific improvements do you want to make?",
+      "placeholder": "Better call-to-action and personalization",
+      "type": "text"
+    },
+    {
+      "id": "q3",
+      "question": "Are there new requirements or edge cases to address?",
+      "placeholder": "Need to handle different customer segments",
+      "type": "text"
+    },
+    {
+      "id": "q4",
+      "question": "What additional details would enhance the prompt?",
+      "placeholder": "Brand voice guidelines and compliance requirements",
+      "type": "text"
+    },
+    {
+      "id": "q5",
+      "question": "How will you measure success of the refined prompt?",
+      "placeholder": "Click-through rate and conversion metrics",
+      "type": "text"
+    }
+  ]
+}
 </assistant_response>
 </example>`,
   };
@@ -157,7 +163,7 @@ ${existingPrompt}
 
 Generate 5 questions to help refine and improve this existing prompt.
 
-**Output Format Reminder**: Return ONLY a valid JSON array starting with [ and ending with ]. Do not include any markdown code blocks or explanatory text.
+**Output Format Reminder**: Return ONLY a valid JSON object with a "questions" array. Do not include any markdown code blocks or explanatory text.
 
 JSON:`
       : `# Context
@@ -168,7 +174,7 @@ ${topic}
 
 Generate 5 essential questions for creating a high-quality AI prompt for this goal.
 
-**Output Format Reminder**: Return ONLY a valid JSON array starting with [ and ending with ]. Do not include any markdown code blocks or explanatory text.
+**Output Format Reminder**: Return ONLY a valid JSON object with a "questions" array. Do not include any markdown code blocks or explanatory text.
 
 JSON:`,
   };
