@@ -83,7 +83,11 @@ export async function POST(req: NextRequest) {
       console.error("[generate-questions] Error stack:", error.stack);
     }
     return NextResponse.json(
-      { error: "Failed to generate questions" },
+      {
+        error: "Failed to generate questions",
+        details: process.env.NODE_ENV === "development" ? (error instanceof Error ? error.message : String(error)) : undefined,
+        stack: process.env.NODE_ENV === "development" ? (error instanceof Error ? error.stack : undefined) : undefined
+      },
       { status: 500 }
     );
   }
