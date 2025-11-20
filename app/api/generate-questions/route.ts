@@ -3,6 +3,45 @@ import { GeneratedQuestion } from "@/types";
 import { generateForTask } from "@/lib/ai-router";
 import { createQuestionGenerationPrompt } from "@/lib/prompts/prompt-templates";
 
+/**
+ * Robust JSON parser that handles common AI response formats:
+ * - JSON wrapped in markdown code blocks (```json ... ```)
+ * - JSON with explanatory text before/after
+ * - Multiple JSON formats (array or object with questions property)
+ */
+function parseAIJsonResponse(content: string): any {
+  console.log("[parseAIJsonResponse] Original content:", content);
+
+  // Step 1: Try to extract JSON from markdown code blocks
+  const codeBlockMatch = content.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+  if (codeBlockMatch) {
+    console.log("[parseAIJsonResponse] Found markdown code block, extracting...");
+    content = codeBlockMatch[1].trim();
+  }
+
+  // Step 2: Find JSON object or array in the content
+  // Look for the first { or [ and the last } or ]
+  const jsonStart = Math.min(
+    content.indexOf('{') !== -1 ? content.indexOf('{') : Infinity,
+    content.indexOf('[') !== -1 ? content.indexOf('[') : Infinity
+  );
+
+  const jsonEnd = Math.max(
+    content.lastIndexOf('}'),
+    content.lastIndexOf(']')
+  );
+
+  if (jsonStart !== Infinity && jsonEnd !== -1 && jsonStart < jsonEnd) {
+    console.log("[parseAIJsonResponse] Extracting JSON from position", jsonStart, "to", jsonEnd);
+    content = content.substring(jsonStart, jsonEnd + 1);
+  }
+
+  console.log("[parseAIJsonResponse] Cleaned content:", content);
+
+  // Step 3: Parse the JSON
+  return JSON.parse(content);
+}
+
 export async function POST(req: NextRequest) {
   try {
     console.log("[generate-questions] Request received");
@@ -45,11 +84,11 @@ export async function POST(req: NextRequest) {
       throw new Error("No content received from AI");
     }
 
-    // Parse the JSON response
+    // Parse the JSON response with robust error handling
     let questions: GeneratedQuestion[];
     try {
       console.log("[generate-questions] Parsing JSON response...");
-      const parsed = JSON.parse(content);
+      const parsed = parseAIJsonResponse(content);
       console.log("[generate-questions] Parsed type:", typeof parsed);
       console.log("[generate-questions] Is array:", Array.isArray(parsed));
       console.log("[generate-questions] Parsed data:", JSON.stringify(parsed, null, 2));
@@ -62,13 +101,16 @@ export async function POST(req: NextRequest) {
       } else {
         console.error("[generate-questions] Unexpected format - not an array or object with questions array");
         console.error("[generate-questions] Full response:", content);
-        throw new Error("Invalid response format from AI");
+        throw new Error("Invalid response format from AI: expected array or object with questions property");
       }
 
       console.log("[generate-questions] Successfully parsed", questions.length, "questions");
     } catch (parseError) {
-      console.error("[generate-questions] Failed to parse AI response:", content);
-      throw new Error("Invalid response format from AI");
+      console.error("[generate-questions] Failed to parse AI response");
+      console.error("[generate-questions] Parse error:", parseError);
+      console.error("[generate-questions] Original content:", content);
+      const errorMsg = parseError instanceof Error ? parseError.message : String(parseError);
+      throw new Error(`Failed to parse AI response: ${errorMsg}`);
     }
 
     return NextResponse.json({
