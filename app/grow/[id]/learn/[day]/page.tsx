@@ -363,40 +363,50 @@ export default function LearnSessionPage({
   const generateAdditionalQuizzes = async (count: number) => {
     if (isAddingQuiz) return;
 
-    const targetTotal = Math.min(12, quiz.length + count);
+    const actualCount = Math.min(count, 12 - quiz.length);
+    if (actualCount <= 0) return;
+
     setIsAddingQuiz(true);
     setShowQuizResults(false);
 
     // AI 튜터 응답
     const processingMessage: Message = {
       role: "assistant",
-      content: `${count}문제를 추가 생성하고 있습니다... 잠시만 기다려주세요.`,
+      content: `${actualCount}문제를 추가 생성하고 있습니다... 잠시만 기다려주세요.`,
     };
     setMessages(prev => [...prev, processingMessage]);
 
     try {
-      const response = await fetch("/api/growth/generate-content", {
+      // 퀴즈만 생성하는 전용 API 사용 (빠름)
+      const response = await fetch("/api/growth/generate-quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           topicId: params.id,
           dayNumber: parseInt(params.day),
-          force: true,
-          quizCount: targetTotal,
+          existingQuizCount: quiz.length,
+          additionalCount: actualCount,
         }),
       });
+
       if (response.ok) {
         const data = await response.json();
-        const newQuiz = data.quiz || [];
-        setQuiz(newQuiz);
-        setQuizAnswers(Array(newQuiz.length).fill(-1));
-        setQuizPage(0);
+        const additionalQuiz = data.quiz || [];
+
+        // 기존 퀴즈에 새 퀴즈 추가
+        const mergedQuiz = [...quiz, ...additionalQuiz];
+        setQuiz(mergedQuiz);
+        setQuizAnswers(prev => [...prev, ...Array(additionalQuiz.length).fill(-1)]);
+
+        // 새 퀴즈가 있는 페이지로 이동
+        const newQuizPage = Math.floor(quiz.length / QUIZ_PAGE_SIZE);
+        setQuizPage(newQuizPage);
         setShowQuiz(true);
 
         // 완료 메시지
         const completedMessage: Message = {
           role: "assistant",
-          content: `✅ ${count}문제가 추가되었습니다! 총 ${newQuiz.length}문제가 되었어요. (${Math.ceil(newQuiz.length / 3)}개의 슬라이드)`,
+          content: `✅ ${additionalQuiz.length}문제가 추가되었습니다! 총 ${mergedQuiz.length}문제가 되었어요. (${Math.ceil(mergedQuiz.length / 3)}개의 슬라이드)`,
         };
         setMessages(prev => [...prev, completedMessage]);
       } else {
@@ -1094,20 +1104,6 @@ export default function LearnSessionPage({
                           총 {quiz.length}문제 · 페이지 {quizPage + 1} / {Math.ceil(quiz.length / QUIZ_PAGE_SIZE)}
                         </p>
                       </div>
-                      {quiz.length < 12 && (
-                        <button
-                          onClick={handleAddQuizzes}
-                          disabled={isAddingQuiz}
-                          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border ${isExamTopic ? 'border-blue-200/50 bg-gradient-to-br from-blue-100/70 to-cyan-100/70 text-blue-500 hover:from-blue-100/80 hover:to-cyan-100/80 dark:from-blue-500/20 dark:to-cyan-500/20 dark:border-blue-400/30 dark:text-blue-400 dark:hover:from-blue-500/30 dark:hover:to-cyan-500/30 shadow-lg shadow-blue-500/20' : 'border-cyan-200/50 bg-gradient-to-br from-cyan-100/70 to-blue-100/70 text-cyan-500 hover:from-cyan-100/80 hover:to-blue-100/80 dark:from-cyan-500/20 dark:to-blue-500/20 dark:border-cyan-400/30 dark:text-cyan-400 dark:hover:from-cyan-500/30 dark:hover:to-blue-500/30 shadow-lg shadow-cyan-500/20'} backdrop-blur-md transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed`}
-                        >
-                          {isAddingQuiz ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Sparkles className="h-4 w-4" />
-                          )}
-                          퀴즈 추가
-                        </button>
-                      )}
                     </div>
 
                     {/* Quiz List - Paginated */}
@@ -1185,14 +1181,31 @@ export default function LearnSessionPage({
                             <ChevronRight className="h-4 w-4" />
                           </Button>
                         ) : !showQuizResults ? (
-                          <Button
-                            onClick={submitQuiz}
-                            disabled={quizAnswers.some(a => a === -1)}
-                            className="gap-2 bg-white/60 dark:bg-white/10 backdrop-blur-md border-2 border-white/40 dark:border-white/20 text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 disabled:opacity-50"
-                          >
-                            제출하기
-                            <CheckCircle2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            {quiz.length < 12 && (
+                              <Button
+                                variant="outline"
+                                onClick={handleAddQuizzes}
+                                disabled={isAddingQuiz}
+                                className="gap-2 border-2 border-white/40 dark:border-white/20 bg-white/50 dark:bg-white/5 backdrop-blur-md text-foreground hover:bg-white/60 dark:hover:bg-white/10 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 disabled:opacity-50"
+                              >
+                                {isAddingQuiz ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Sparkles className="h-4 w-4" />
+                                )}
+                                퀴즈 추가
+                              </Button>
+                            )}
+                            <Button
+                              onClick={submitQuiz}
+                              disabled={quizAnswers.some(a => a === -1)}
+                              className="gap-2 bg-white/60 dark:bg-white/10 backdrop-blur-md border-2 border-white/40 dark:border-white/20 text-foreground hover:bg-white/70 dark:hover:bg-white/15 transition-all shadow-lg shadow-black/8 dark:shadow-black/15 disabled:opacity-50"
+                            >
+                              제출하기
+                              <CheckCircle2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         ) : (
                           <Button
                             onClick={completeSession}
