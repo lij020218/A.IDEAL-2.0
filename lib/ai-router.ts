@@ -31,29 +31,50 @@ export const AI_TASK_MAPPING = {
   REAL_TIME_SUGGESTIONS: "grok" as AIProvider,
 } as const;
 
-// AI 클라이언트 초기화
-const openaiClient = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// AI 클라이언트 - lazy initialization으로 변경 (빌드 시점 에러 방지)
+let openaiClient: OpenAI | null = null;
+function getOpenAIClient(): OpenAI {
+  if (!openaiClient) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error("OPENAI_API_KEY is not configured");
+    }
+    openaiClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return openaiClient;
+}
 
-const claudeClient = process.env.CLAUDE_API_KEY
-  ? new Anthropic({
+let claudeClient: Anthropic | null = null;
+function getClaudeClient(): Anthropic | null {
+  if (!claudeClient && process.env.CLAUDE_API_KEY) {
+    claudeClient = new Anthropic({
       apiKey: process.env.CLAUDE_API_KEY,
-    })
-  : null;
+    });
+  }
+  return claudeClient;
+}
 
 // Grok 클라이언트 (OpenAI 호환 API 사용)
-const grokClient = process.env.GROK_API_KEY
-  ? new OpenAI({
+let grokClient: OpenAI | null = null;
+function getGrokClient(): OpenAI | null {
+  if (!grokClient && process.env.GROK_API_KEY) {
+    grokClient = new OpenAI({
       apiKey: process.env.GROK_API_KEY,
       baseURL: "https://api.x.ai/v1",
-    })
-  : null;
+    });
+  }
+  return grokClient;
+}
 
 // Gemini 클라이언트 (Google Generative AI 사용)
-const geminiClient = process.env.GEMINI_API_KEY
-  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-  : null;
+let geminiClient: GoogleGenerativeAI | null = null;
+function getGeminiClient(): GoogleGenerativeAI | null {
+  if (!geminiClient && process.env.GEMINI_API_KEY) {
+    geminiClient = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  }
+  return geminiClient;
+}
 
 // 통합 메시지 타입
 export interface UnifiedMessage {
@@ -120,10 +141,12 @@ async function generateWithGPT(
     console.log("[AI Router] Total message length:", convertedMessages.reduce((sum, m) => sum + (m.content?.length || 0), 0));
 
   try {
+    const client = getOpenAIClient();
+
     // GPT-5 API 파라미터 구성
     // 응답 속도 최적화:
     // - 프롬프트 최적화는 호출 전에 수행
-    const apiParams: Parameters<typeof openaiClient.chat.completions.create>[0] = {
+    const apiParams: Parameters<typeof client.chat.completions.create>[0] = {
       model,
       messages: convertedMessages as any,
       temperature: 1, // GPT-5는 항상 temperature 1로 고정
@@ -136,7 +159,7 @@ async function generateWithGPT(
 
     console.log("[AI Router] API params:", JSON.stringify({ ...apiParams, response_format: apiParams.response_format ? { type: "json_object" } : undefined }, null, 2));
 
-    const completion = await openaiClient.chat.completions.create(apiParams as any);
+    const completion = await client.chat.completions.create(apiParams as any);
 
     console.log("[AI Router] OpenAI response received");
     console.log("[AI Router] Finish reason:", completion.choices[0]?.finish_reason);
@@ -191,7 +214,8 @@ async function generateWithClaude(
     maxTokens?: number;
   } = {}
 ): Promise<UnifiedResponse> {
-  if (!claudeClient) {
+  const client = getClaudeClient();
+  if (!client) {
     throw new Error("Claude API key not configured");
   }
 
@@ -230,7 +254,7 @@ async function generateWithClaude(
   console.log("[AI Router] JSON mode:", options.jsonMode || false);
 
   try {
-    const completion = await claudeClient.messages.create({
+    const completion = await client.messages.create({
       model,
       max_tokens: maxTokens,
       temperature: options.temperature ?? 1.0,
@@ -312,7 +336,8 @@ async function generateWithGrok(
     jsonMode?: boolean;
   } = {}
 ): Promise<UnifiedResponse> {
-  if (!grokClient) {
+  const client = getGrokClient();
+  if (!client) {
     throw new Error("Grok API key not configured");
   }
 
@@ -330,7 +355,7 @@ async function generateWithGrok(
   }));
 
   try {
-    const completion = await grokClient.chat.completions.create({
+    const completion = await client.chat.completions.create({
       model,
       messages: convertedMessages as any,
       temperature: options.temperature ?? 1,
@@ -371,12 +396,13 @@ async function generateWithGemini(
     maxTokens?: number;
   } = {}
 ): Promise<UnifiedResponse> {
-  if (!geminiClient) {
+  const client = getGeminiClient();
+  if (!client) {
     throw new Error("Gemini API key not configured");
   }
 
   const modelName = process.env.GEMINI_MODEL || "gemini-2.0-flash-exp";
-  const model = geminiClient.getGenerativeModel({
+  const model = client.getGenerativeModel({
     model: modelName,
     generationConfig: {
       temperature: options.temperature ?? 1.0,
@@ -406,7 +432,7 @@ async function generateWithGemini(
     // 시스템 메시지가 있으면 모델 재생성 (systemInstruction 포함)
     let finalModel = model;
     if (systemMessage) {
-      finalModel = geminiClient.getGenerativeModel({
+      finalModel = client.getGenerativeModel({
         model: modelName,
         systemInstruction: systemMessage.content,
         generationConfig: {
@@ -469,7 +495,7 @@ export async function generateWithAI(
 
     case "claude":
       // Claude가 없으면 GPT로 폴백
-      if (!claudeClient) {
+      if (!getClaudeClient()) {
         console.warn("Claude API not configured, falling back to GPT");
         return generateWithGPT(messages, options);
       }
@@ -477,7 +503,7 @@ export async function generateWithAI(
 
     case "grok":
       // Grok이 없으면 GPT로 폴백
-      if (!grokClient) {
+      if (!getGrokClient()) {
         console.warn("Grok API not configured, falling back to GPT");
         return generateWithGPT(messages, options);
       }
@@ -485,7 +511,7 @@ export async function generateWithAI(
 
     case "gemini":
       // Gemini가 없으면 GPT로 폴백
-      if (!geminiClient) {
+      if (!getGeminiClient()) {
         console.warn("Gemini API not configured, falling back to GPT");
         return generateWithGPT(messages, options);
       }
