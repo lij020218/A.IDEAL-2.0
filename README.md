@@ -229,6 +229,12 @@ MIT License - 자유롭게 사용, 수정, 배포 가능합니다.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
+## 👥 팀원 깃허브 계정
+
+- [@freeysl66](https://github.com/freeysl66)
+- [@hyeongjukimm](https://github.com/hyeongjukimm)
+- [@junjun-1017](https://github.com/junjun-1017)
+
 ## 📧 문의
 
 프로젝트 관련 문의사항이 있으시면 이슈를 등록해주세요.
